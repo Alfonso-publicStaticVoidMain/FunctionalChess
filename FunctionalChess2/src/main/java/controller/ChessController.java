@@ -1,10 +1,8 @@
 package controller;
 
-import functional_chess_model.CastlingType;
 import functional_chess_model.Chess;
 import functional_chess_model.ChessColor;
 import functional_chess_model.GameState;
-import functional_chess_model.King;
 import functional_chess_model.Pawn;
 import functional_chess_model.Piece;
 import functional_chess_model.Play;
@@ -131,12 +129,12 @@ public class ChessController implements ActionListener {
             selectedPosition = Optional.empty();
             view.updateBoard();
             
-//            game = game.checkMateChain(activePlayer);
-//            if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {
-//                view.checkMessage(activePlayer);
-//            } else if (game.state() == GameState.DRAW) {
-//                view.drawMessage(activePlayer);
-//            }
+            game = game.checkMateChain(activePlayer);
+            if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {
+                view.checkMessage(activePlayer);
+            } else if (game.state() == GameState.DRAW) {
+                view.drawMessage(activePlayer);
+            }
         }
     }
     

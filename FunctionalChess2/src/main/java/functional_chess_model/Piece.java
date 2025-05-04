@@ -1,5 +1,6 @@
 package functional_chess_model;
 
+import java.util.Objects;
 import javax.swing.ImageIcon;
 
 /**
@@ -51,5 +52,28 @@ public abstract class Piece {
     public String toString() {
         return this.getColor() + " " + this.getClass().getSimpleName();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Piece other = (Piece) obj;
+        if (this.royal != other.royal) {
+            return false;
+        }
+        if (!Objects.equals(this.position, other.position)) {
+            return false;
+        }
+        return this.color == other.color;
+    }
+    
+    
     
 }
