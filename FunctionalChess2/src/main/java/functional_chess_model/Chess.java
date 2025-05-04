@@ -23,7 +23,8 @@ public record Chess(
     GameState state
 ) {
     
-    /* Notes to self:
+    /*
+    Notes to self:
         * I have to be very careful with the usage of the activePlayer attribute
     within Chess, specially when there are times that moves or checks are being
     made before the update of the activePlayer takes place.
@@ -38,16 +39,16 @@ public record Chess(
         if (pieceOrNot.isEmpty()) return Optional.empty();
         Piece pieceToMove = pieceOrNot.get();
         ChessColor playerMoving = pieceToMove.getColor();
-        if (!pieceToMove.isLegalMovement(this, finPos, checkCheck)) return Optional.empty();
-        
         Optional<Piece> pieceCaptured = pieceCapturedByMove(pieceToMove, finPos);
-        System.out.println("pieceCaptured in tryToMove: "+pieceCaptured);
         Optional<CastlingType> castlingInfo = castlingTypeOfPlay(pieceToMove, finPos);
+        
+        if (!pieceToMove.isLegalMovement(this, finPos, checkCheck) && castlingInfo.isEmpty()) return Optional.empty();
         
         List<Piece> updatedPieces = new ArrayList<>(pieces);
         if (pieceCaptured.isPresent()) updatedPieces.remove(pieceCaptured.get());
         updatedPieces.remove(pieceToMove);
-        updatedPieces.add(pieceToMove.moveTo(finPos));
+        Piece pieceMoved = pieceToMove.moveTo(finPos);
+        updatedPieces.add(pieceMoved);
         
         castlingInfo.ifPresent(castlingInfoContained -> {
             Piece rookToCastleWith = findPieceAt(config.rookInitPos(playerMoving, castlingInfoContained)).get();
@@ -56,7 +57,7 @@ public record Chess(
         });
         
         List<Play> updatedPlays = new LinkedList<>(playHistory);
-        updatedPlays.add(new Play(pieceToMove, initPos, finPos, pieceCaptured, castlingInfo));
+        updatedPlays.add(new Play(pieceMoved, initPos, finPos, pieceCaptured, castlingInfo));
         
         Map<ChessColor, Map<CastlingType, Boolean>> updatedCastling = new EnumMap<>(ChessColor.class);
         for (ChessColor color : ChessColor.values()) {
@@ -211,19 +212,27 @@ public record Chess(
             if (xDirEnPassantOrNot.isPresent() && xDirEnPassantOrNot.getAsInt() == -Position.xDist(piece.getPosition(), finPos)) return Optional.of(getLastPlay().get().piece());
         }
         return Optional.empty();
-    }   
+    }
+    
+    public Optional<Piece> pieceCapturedByMove(Position initPos, Position finPos) {
+        Optional<Piece> pieceFound = findPieceAt(initPos);
+        if (pieceFound.isEmpty()) return Optional.empty();
+        return pieceCapturedByMove(pieceFound.get(), finPos);
+    }
     
     public Optional<CastlingType> castlingTypeOfPlay(Piece piece, Position finPos) {
+        if (!(piece instanceof King)) return Optional.empty();
+        if (!finPos.equals(config.kingCastlingPos(piece.getColor(), CastlingType.LEFT)) && !finPos.equals(config.kingCastlingPos(piece.getColor(), CastlingType.RIGHT))) return Optional.empty();
         ChessColor color = piece.getColor();
         int initRow = config.initRow(color);
-        if (castling.get(color).get(CastlingType.LEFT) &&
+        if (isCastlingAvailable(color, CastlingType.LEFT) &&
             IntStream.rangeClosed(config.rookInitCol(CastlingType.LEFT)+1, config.rookCastlingCol(CastlingType.LEFT))
                 .allMatch(x -> !checkPieceAt(Position.of(x, initRow))) &&
             IntStream.rangeClosed(config.kingCastlingCol(CastlingType.LEFT), config.kingInitCol())
                 .noneMatch(x -> pieces.stream()
                     .anyMatch(p -> p.isLegalMovement(this, Position.of(x, initRow), false)))
         ) return Optional.of(CastlingType.LEFT);
-        if (castling.get(color).get(CastlingType.RIGHT) &&
+        if (isCastlingAvailable(color, CastlingType.RIGHT) &&
             IntStream.rangeClosed(config.rookCastlingCol(CastlingType.RIGHT), config.rookInitCol(CastlingType.RIGHT)-1)
                 .allMatch(x -> !checkPieceAt(Position.of(x, initRow))) &&
             IntStream.rangeClosed(config.kingInitCol(), config.kingCastlingCol(CastlingType.RIGHT))
@@ -380,9 +389,9 @@ public record Chess(
      * inclusive. False otherwise.
      */
     public static boolean isKnightLikePath(int Xmovement, int Ymovement) {
-        return Math.abs(Xmovement)+Math.abs(Ymovement)==3
-            && Math.abs(Xmovement)<=2 && Math.abs(Xmovement)>=1
-            && Math.abs(Ymovement)<=2 && Math.abs(Ymovement)>=1;
+        return Math.abs(Xmovement) + Math.abs(Ymovement) == 3
+            && Math.abs(Xmovement) <= 2 && Math.abs(Xmovement) >= 1
+            && Math.abs(Ymovement) <= 2 && Math.abs(Ymovement) >= 1;
     }
     
     /**
@@ -424,4 +433,15 @@ public record Chess(
         GameConfiguration config = GameConfiguration.standardGame();
         return new Chess(config.pieces(), initialCastlingWith(true), List.of(), ChessColor.WHITE, config, GameState.NOT_STARTED);
     }
+    
+    public static Chess almostChess() {
+        GameConfiguration config = GameConfiguration.almostChess();
+        return new Chess(config.pieces(), initialCastlingWith(true), List.of(), ChessColor.WHITE, config, GameState.NOT_STARTED);
+    }
+    
+    public static Chess capablancaChess() {
+        GameConfiguration config = GameConfiguration.capablancaChess();
+        return new Chess(config.pieces(), initialCastlingWith(true), List.of(), ChessColor.WHITE, config, GameState.NOT_STARTED);
+    }
+    
 }

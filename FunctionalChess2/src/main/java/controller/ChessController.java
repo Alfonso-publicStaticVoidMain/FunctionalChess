@@ -120,14 +120,19 @@ public class ChessController implements ActionListener {
                 }
             }
             
+            view.updateBoard();
+            
+            piece = game.findPieceAt(clickedPos).orElse(piece);
             if (piece instanceof Pawn && piece.getPosition().y() == game.config().crowningRow(activePlayer)) { // Pawn crowning
-                    game = game.crownPawnChain(piece, view.pawnCrowningMenu(game.config().crownablePieces()));
-                }
+                game = game.crownPawnChain(piece, view.pawnCrowningMenu(game.config().crownablePieces()));
+                view.updateBoard();
+            }
+            
             view.updateActivePlayer();
                 
             
             selectedPosition = Optional.empty();
-            view.updateBoard();
+            
             
             game = game.checkMateChain(activePlayer);
             if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {

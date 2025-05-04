@@ -1,6 +1,7 @@
 package functional_chess_model;
 
 import java.util.Objects;
+import java.util.Optional;
 import javax.swing.ImageIcon;
 
 /**
