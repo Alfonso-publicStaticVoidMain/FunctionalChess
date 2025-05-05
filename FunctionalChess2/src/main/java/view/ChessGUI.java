@@ -66,10 +66,10 @@ public class ChessGUI extends JFrame {
     private final JScrollPane scrollPane;
     private final DefaultTableModel tableModel;    
     
-    private final JPanel leftPanel;
-    private final JLabel whiteTimer;
-    private final JLabel blackTimer;
-    private Timer gameTimer;
+//    private final JPanel leftPanel;
+//    private final JLabel whiteTimer;
+//    private final JLabel blackTimer;
+//    private Timer gameTimer;
     
     private final int rows;
     private final int cols;
@@ -137,21 +137,23 @@ public class ChessGUI extends JFrame {
         this.add(boardPanel, BorderLayout.CENTER);
 
         // Left panel - timers
-        leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.setPreferredSize(new Dimension(100, 0));
-        whiteTimer = new JLabel(formatTime(300), SwingConstants.CENTER);
-        whiteTimer.setFont(new Font("Arial", Font.BOLD, 16));
-        whiteTimer.setAlignmentX(Component.RIGHT_ALIGNMENT);
-        blackTimer = new JLabel(formatTime(300), SwingConstants.CENTER);
-        blackTimer.setFont(new Font("Arial", Font.BOLD, 16));
-        blackTimer.setAlignmentX(Component.RIGHT_ALIGNMENT);
-        leftPanel.add(Box.createVerticalStrut(25)); // Space from top
-        leftPanel.add(blackTimer);
-        leftPanel.add(Box.createVerticalGlue());
-        leftPanel.add(whiteTimer);
-        leftPanel.add(Box.createVerticalStrut(85)); // Space at bottom
-        this.add(leftPanel, BorderLayout.WEST);
+//        leftPanel = new JPanel();
+//        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+//        leftPanel.setPreferredSize(new Dimension(100, 0));
+//        whiteTimer = new JLabel(formatTime(300), SwingConstants.CENTER);
+//        whiteTimer.setFont(new Font("Arial", Font.BOLD, 16));
+//        whiteTimer.setAlignmentX(Component.RIGHT_ALIGNMENT);
+//        blackTimer = new JLabel(formatTime(300), SwingConstants.CENTER);
+//        blackTimer.setFont(new Font("Arial", Font.BOLD, 16));
+//        blackTimer.setAlignmentX(Component.RIGHT_ALIGNMENT);
+//        leftPanel.add(Box.createVerticalStrut(25)); // Space from top
+//        leftPanel.add(blackTimer);
+//        leftPanel.add(Box.createVerticalGlue());
+//        leftPanel.add(whiteTimer);
+//        leftPanel.add(Box.createVerticalStrut(85)); // Space at bottom
+//        this.add(leftPanel, BorderLayout.WEST);
+        
+        
         this.setVisible(true);
     }
         
@@ -172,7 +174,7 @@ public class ChessGUI extends JFrame {
         saveButton.addActionListener(this.controller);
         loadButton.addActionListener(this.controller);
         backButton.addActionListener(this.controller);
-        gameTimer = new Timer(1000, e -> {
+//        gameTimer = new Timer(1000, e -> {
 //            Chess game = this.controller.getGame();
 //            if (game.isGameStarted()) {
 //                if (controller.getGame().activePlayer() == ChessColor.WHITE) {
@@ -197,7 +199,7 @@ public class ChessGUI extends JFrame {
 //                    }
 //                }
 //            }
-        });
+//        });
 //        gameTimer.start();
     }
     
@@ -257,11 +259,7 @@ public class ChessGUI extends JFrame {
             for (int row = 1; row <= rows; row++) {
                 Position potentialMove = Position.of(col, row);
                 JButton button = boardButtons[col][row];
-                if (piece.isLegalMovement(game, potentialMove) /*||
-                    (piece instanceof King && (
-                    (game.checkLeftCastling(piece.getColor()) && potentialMove.equals(game.leftCastlingKingPosition(piece.getColor())))
-                    || (game.checkRightCastling(piece.getColor()) && potentialMove.equals(game.rightCastlingKingPosition(piece.getColor())))
-                ))*/) {
+                if (piece.isLegalMovement(game, potentialMove)) {
                     Color originalColor = button.getBackground();
                     button.setBackground(Color.YELLOW);
                     button.repaint();
