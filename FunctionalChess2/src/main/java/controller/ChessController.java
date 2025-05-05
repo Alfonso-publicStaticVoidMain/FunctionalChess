@@ -1,8 +1,10 @@
 package controller;
 
+import functional_chess_model.CastlingType;
 import functional_chess_model.Chess;
 import functional_chess_model.ChessColor;
 import functional_chess_model.GameState;
+import functional_chess_model.King;
 import functional_chess_model.Pawn;
 import functional_chess_model.Piece;
 import functional_chess_model.Play;
@@ -75,8 +77,10 @@ public class ChessController implements ActionListener {
         view.clearHighlights();
         if (x == 0 || y == 0) return; // Ignore label clicks
         if (game.state().hasEnded()) return; // Don't do anything if the game has ended.
+        
         Position clickedPos = Position.of(x, y);
         ChessColor activePlayer = game.activePlayer();
+        
         if (selectedPosition.isEmpty()) { // First click stores the selected piece.
             if (game.checkPieceAt(clickedPos)) {
                 Piece piece = game.findPieceAt(clickedPos).get();
@@ -89,32 +93,32 @@ public class ChessController implements ActionListener {
             }
         } else { // Second click attempts to do the movement.
             Piece piece = game.findPieceAt(selectedPosition.get()).get();
+            boolean playDone = false;
+            
             if (!piece.isLegalMovement(game, clickedPos)) {
                 view.highlightPiecesThatCanCaptureKing(piece, clickedPos);
             }
                 
-//                if (selectedPiece instanceof King) {
-//                    if (game.isCastlingAvailable(game.activePlayer(), CastlingType.LEFT) &&
-//                        clickedPos.equals(game.config().kingCastlingPos(game.activePlayer(), CastlingType.LEFT))    
-//                    ) {
-//                        game.doLeftCastling(game.activePlayer());
-//                        playDone = true;
-//                        // A play of left castling was done.
-//                    }
-//                    
-//                    if (game.checkRightCastling(game.activePlayer()) &&
-//                        clickedPos.equals(game.rightCastlingKingPosition(game.activePlayer()))    
-//                    ) {
-//                        game.doRightCastling(game.activePlayer());
-//                        playDone = true;
-//                        // A play of right castling was done.
-//                    }
-//                }
+            if (piece instanceof King) {
+                for (CastlingType type : CastlingType.values()) {
+                    if (!playDone) {
+                        Optional<CastlingType> castlingTypeOfPlay = game.castlingTypeOfPlay(piece, clickedPos);
+                        if (castlingTypeOfPlay.isPresent() && type == castlingTypeOfPlay.get()) {
+                            Optional<Chess> gameAfterCastling = game.tryToCastle(game.activePlayer(), type);
+                            if (gameAfterCastling.isPresent()) {
+                                game = gameAfterCastling.get();
+                                playDone = true;
+                            }
+                        }
+                    }
+                }
+            }
                 
-            else {
+            if (!playDone) {
                 Optional<Chess> gameAfterMoveOrNot = game.tryToMove(piece, clickedPos);
                 if (gameAfterMoveOrNot.isPresent()) {
                     game = gameAfterMoveOrNot.get();
+                    //playDone = true;
                     Optional<Play> lastPlay = game.getLastPlay();
                     if (lastPlay.isPresent()) view.updatePlayHistory(lastPlay.get());
                 }
@@ -128,11 +132,9 @@ public class ChessController implements ActionListener {
                 view.updateBoard();
             }
             
-            view.updateActivePlayer();
-                
+            view.updateActivePlayer();   
             
-            selectedPosition = Optional.empty();
-            
+            selectedPosition = Optional.empty();           
             
             game = game.checkMateChain(activePlayer);
             if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {

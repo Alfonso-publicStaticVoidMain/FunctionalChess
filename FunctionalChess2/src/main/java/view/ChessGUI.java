@@ -21,6 +21,7 @@ import java.awt.LayoutManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -36,6 +37,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -171,7 +173,7 @@ public class ChessGUI extends JFrame {
         loadButton.addActionListener(this.controller);
         backButton.addActionListener(this.controller);
         gameTimer = new Timer(1000, e -> {
-            Chess game = this.controller.getGame();
+//            Chess game = this.controller.getGame();
 //            if (game.isGameStarted()) {
 //                if (controller.getGame().activePlayer() == ChessColor.WHITE) {
 //                    game.consumeWhiteSecond();
@@ -196,7 +198,7 @@ public class ChessGUI extends JFrame {
 //                }
 //            }
         });
-        gameTimer.start();
+//        gameTimer.start();
     }
     
     public void initializeBoard() {
@@ -237,18 +239,14 @@ public class ChessGUI extends JFrame {
         for (int col = 1; col <= cols; col++) {
             for (int row = 1; row <= rows; row++) {
                 Position potentialMove = Position.of(col, row);
-                if (piece.isLegalMovement(game, potentialMove)) {
+                if (piece.isLegalMovement(game, potentialMove) ||
+                    (piece instanceof King && game.castlingTypeOfPlay(piece, potentialMove).isPresent())
+                ) {
                     boardButtons[col][row].setBackground(Color.GREEN);
                 }
                 if (piece.isLegalMovement(game, potentialMove, false) && !piece.isLegalMovement(game, potentialMove, true)) {
                     boardButtons[col][row].setBackground(Color.ORANGE);
                 }
-//                if (piece instanceof King && (
-//                    (game.checkLeftCastling(piece.getColor()) && potentialMove.equals(game.leftCastlingKingPosition(piece.getColor())))
-//                    || (game.checkRightCastling(piece.getColor()) && potentialMove.equals(game.rightCastlingKingPosition(piece.getColor())))
-//                )) {
-//                    boardButtons[col][row].setBackground(Color.GREEN);
-//                }
             }
         }      
     }
@@ -276,13 +274,15 @@ public class ChessGUI extends JFrame {
     }
     
     public void highlightPiecesThatCanCaptureKing(Piece piece, Position finPos) {
-        Position initPos = piece.getPosition();
         Chess gameAfterMovement = controller.getGame().tryToMoveChain(piece, finPos, false);
+        ChessColor color = piece.getColor();
+        Optional<Piece> royalPieceOrNot = gameAfterMovement.findRoyalPiece(color);
+        if (royalPieceOrNot.isEmpty()) return;
+        
         gameAfterMovement.pieces().stream()
             .filter(p -> // Filter for the pieces of a different color than active player that can move to capture active player's King.
-                p.getColor() != gameAfterMovement.activePlayer() &&
-                        //Note to self: edit line below to make the .get() work when there's no royal piece
-                p.isLegalMovement(gameAfterMovement, gameAfterMovement.findRoyalPiece(controller.getGame().activePlayer()).get().getPosition(), false)
+                p.getColor() != color &&
+                p.isLegalMovement(gameAfterMovement, royalPieceOrNot.get().getPosition(), false)
             )
             .map(p -> boardButtons[p.getPosition().x()][p.getPosition().y()]) // Map each piece to its button on the board
             .forEach(button -> { // Set up a timer on each of those buttons to light it red during 1 second
