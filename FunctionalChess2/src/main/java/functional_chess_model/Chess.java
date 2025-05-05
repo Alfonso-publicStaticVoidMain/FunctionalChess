@@ -315,6 +315,7 @@ public record Chess(
         return gameAfterMovementOrNot.get().isPlayerInCheck(piece.getColor());
     }
     
+    @Deprecated
     public boolean wouldRoyalPiecesBeInConflict(Position initPos, Position finPos, ChessColor activePlayer) {
         Optional<Piece> royalPieceActivePlayerOrNot = findRoyalPiece(activePlayer);
         Optional<Piece> royalPieceOtherPlayerOrNot = findRoyalPiece(activePlayer.opposite());

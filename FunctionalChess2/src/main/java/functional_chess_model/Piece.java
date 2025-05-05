@@ -24,21 +24,21 @@ public abstract class Piece implements Serializable {
     }
 
     public Position getPosition() {return position;}
-
     public ChessColor getColor() {return color;}
-
     public boolean isRoyal() {return royal;}
 
     public abstract boolean isLegalMovement(Chess game, Position finPos, boolean checkCheck);
-    public boolean isLegalMovement(Chess game, Position finPos) {return isLegalMovement(game, finPos, true);}
+    public boolean isLegalMovement(Chess game, Position finPos) {
+        return isLegalMovement(game, finPos, true);
+    }
     public abstract Piece moveTo(Position finPos);
 
     public boolean basicLegalityChecks(Chess game, Position finPos, boolean checkCheck) {
         return !(
-            game.checkPieceSameColorAs(finPos, color) ||
-            (checkCheck && game.doesThisMovementCauseACheck(this, finPos)) ||
-            position.equals(finPos) ||
-            (checkCheck && game.wouldRoyalPiecesBeInConflict(position, finPos, color))
+            game.checkPieceSameColorAs(finPos, color)
+            || (checkCheck && game.doesThisMovementCauseACheck(this, finPos))
+            || position.equals(finPos)
+            //|| (checkCheck && game.wouldRoyalPiecesBeInConflict(position, finPos, color))
         );
     }
     

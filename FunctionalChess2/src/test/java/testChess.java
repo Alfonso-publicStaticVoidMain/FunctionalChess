@@ -112,10 +112,7 @@ public class testChess {
     
     public static void main(String[] args) {
         Chess game = STANDARDGAME
-            .tryToMoveChain(Position.of(4, 2), Position.of(4, 4))
-            .tryToMoveChain(Position.of(5, 7), Position.of(5, 5))
-            .tryToMoveChain(Position.of(4, 4), Position.of(5, 5))
-            .tryToMoveChain(Position.of(6, 8), Position.of(2, 4));
+            ;
         SwingUtilities.invokeLater(() -> new ChessController(game, new ChessGUI(8, 8)));
     }
 }
