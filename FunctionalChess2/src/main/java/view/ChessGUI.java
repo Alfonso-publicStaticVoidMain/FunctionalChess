@@ -37,7 +37,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -77,9 +76,10 @@ public class ChessGUI extends JFrame {
     private ChessController controller;
 
     public ChessGUI(int rows, int cols) {
-        this.setTitle("Chess Game");
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(1100+80*(cols-7), 650+80*(rows-7));
+        setTitle("Chess Game");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1100+80*(cols-7), 650+80*(rows-7));
+        setLocationRelativeTo(null);
         this.rows = rows;
         this.cols = cols;
 
@@ -109,7 +109,7 @@ public class ChessGUI extends JFrame {
         topPanel.add(backButton);
         topPanel.add(Box.createHorizontalStrut(60));
         
-        this.add(topPanel, BorderLayout.NORTH);
+        add(topPanel, BorderLayout.NORTH);
         
         // Right panel - Play History
         rightPanel = new JPanel(new BorderLayout());
@@ -125,16 +125,16 @@ public class ChessGUI extends JFrame {
             new Font("Arial", Font.BOLD, 16), Color.BLACK));
         tablePanel.add(scrollPane, BorderLayout.CENTER);
         rightPanel.add(tablePanel, BorderLayout.CENTER);
-        this.add(rightPanel, BorderLayout.EAST);
+        add(rightPanel, BorderLayout.EAST);
         
-        // Central (board) panel - Chess board TO DO
+        // Central (board) panel - Chess board
         boardPanel = new JPanel(new SquareGridLayout(rows+1, cols+1));
         boardPanel.setPreferredSize(new Dimension(80*(rows+1), 80*(cols+1)));
         boardPanel.setBounds(0, 0, 80*(rows+1), 80*(cols+1));
         boardPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
         boardButtons = new JButton[cols+1][rows+1];
-        this.initializeBoard();
-        this.add(boardPanel, BorderLayout.CENTER);
+        initializeBoard();
+        add(boardPanel, BorderLayout.CENTER);
 
         // Left panel - timers
 //        leftPanel = new JPanel();
@@ -151,10 +151,10 @@ public class ChessGUI extends JFrame {
 //        leftPanel.add(Box.createVerticalGlue());
 //        leftPanel.add(whiteTimer);
 //        leftPanel.add(Box.createVerticalStrut(85)); // Space at bottom
-//        this.add(leftPanel, BorderLayout.WEST);
+//        add(leftPanel, BorderLayout.WEST);
         
         
-        this.setVisible(true);
+        setVisible(true);
     }
         
     private static String formatTime(int seconds) {

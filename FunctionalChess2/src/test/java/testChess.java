@@ -51,7 +51,7 @@ public class testChess {
     }
     
     @Test
-    void testPieceCaptured() { 
+    void testPieceCaptured() {
         Chess game = STANDARDGAME
             .tryToMoveChain(Position.of(5, 2), Position.of(5, 4))
             .tryToMoveChain(Position.of(4, 7), Position.of(4, 5));

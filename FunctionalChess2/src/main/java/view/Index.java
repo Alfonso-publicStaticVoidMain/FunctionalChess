@@ -37,8 +37,10 @@ public class Index extends JFrame {
     private IndexController controller;
     
     public Index() {
+        setTitle("Index");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(600, 800);
+        setLocationRelativeTo(null);
         topPanel = new JPanel(new BorderLayout());
 
         title = new JLabel("Chess", SwingConstants.CENTER);

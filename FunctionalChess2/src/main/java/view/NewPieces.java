@@ -38,10 +38,11 @@ public class NewPieces extends JFrame {
 
     public NewPieces() {
         // Basic JFrame setup
-        this.setTitle("Non-Standard Chess Pieces");
-        this.setSize(800, 600);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+        setTitle("Non-Standard Chess Pieces");
+        setSize(800, 600);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
         
         piecesPanel = new JPanel();
         amazonPanel = new JPanel();     
@@ -69,7 +70,7 @@ public class NewPieces extends JFrame {
         add(buttonPanel, BorderLayout.SOUTH);
         
         
-        this.setVisible(true);
+        setVisible(true);
     }
 
     private void addPiecePanel(JPanel piecePanel, String name, ImageIcon whiteIcon, ImageIcon blackIcon, String movementDescription, ImageIcon movementDiagram) {
