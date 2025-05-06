@@ -121,22 +121,71 @@ public record Chess(
         return tryToMove(initPos, finPos, true);
     }
     
+    /**
+     * Attempts to perform a movement and returns the state of the game after it
+     * has been performed, or {@code Optional.empty} if it was illegal.
+     * @param piece {@link Piece} to move.
+     * @param finPos {@link Position} to move the piece to.
+     * @param checkCheck State parameter to track whether or not we declare a
+     * movement illegal if it'd cause a check.
+     * @return The state of the game after the movement has been performed, or
+     * {@code Optional.empty} if that movement was illegal.
+     */
     public Optional<Chess> tryToMove(Piece piece, Position finPos, boolean checkCheck) {
         return tryToMove(piece.getPosition(), finPos, checkCheck);
     }
     
+    /**
+     * Overloaded version of {@link Chess#tryToMove(Piece, Position, boolean)},
+     * defaulting {@code checkCheck} to true.
+     * @param piece {@link Piece} to move.
+     * @param finPos {@link Position} to move the piece to.
+     * @return The state of the game after the movement has been performed, or
+     * {@code Optional.empty} if that movement was illegal. Declares movements
+     * that would cause a check as illegal.
+     */
     public Optional<Chess> tryToMove(Piece piece, Position finPos) {
         return tryToMove(piece.getPosition(), finPos, true);
     }
     
+    /**
+     * Attempts to perform a movement stored within a Play and returns the state
+     * of the game after it has been performed, or {@code Optional.empty} if it
+     * was illegal.
+     * @param play {@link Play} containing the movement.
+     * @param checkCheck State parameter to track whether or not we declare a
+     * movement illegal if it'd cause a check.
+     * @return The state of the game after the movement has been performed, or
+     * {@code Optional.empty} if that movement was illegal.
+     */
     public Optional<Chess> tryToMove(Play play, boolean checkCheck) {
         return tryToMove(play.initPos(), play.finPos(), checkCheck);
     }
     
+    /**
+     * Overloaded version of {@link Chess#tryToMove(Play, boolean)}, defaulting
+     * {@code checkCheck} to true.
+     * @param play {@link Play} containing the movement.
+     * @return The state of the game after the movement has been performed, or
+     * {@code Optional.empty} if that movement was illegal. Declares movements
+     * that would cause a check as illegal.
+     */
     public Optional<Chess> tryToMove(Play play) {
         return tryToMove(play.initPos(), play.finPos(), true);
     }
     
+    /**
+     * Attempts to perform the type of castling to the given player, if able,
+     * and returns the state of the game after it's been done, or
+     * {@code Optional.empty} if it was illegal.
+     * @param color {@link ChessColor} of the player doing the castling.
+     * @param type {@link CastlingType} type of the castling being done.
+     * @return An {@code Optional} object containing the state of the game
+     * after the castling has been performed, or {@code Optional.empty} if it
+     * was illegal. Updates the values of {@code pieces}, {@code playHistory},
+     * {@link activePlayer} and {@link castling} for the returned game
+     * accordingly.
+     */
     public Optional<Chess> tryToCastle(ChessColor color, CastlingType type) {
         Position kingInitPos = config.kingInitPos(color);
         Optional<Piece> kingOrNot = findPieceAt(kingInitPos);
@@ -161,6 +210,21 @@ public record Chess(
         return Optional.of(new Chess(List.copyOf(updatedPieces), Map.copyOf(updatedCastling), List.copyOf(updatedPlays), activePlayer.opposite(), config, GameState.IN_PROGRESS));
     }
     
+    /**
+     * Checks if the given player is in checkmate or if the game is a draw.
+     * @param color {@link ChessColor} of the player being checked.
+     * @return An {@code Optional} object containing the a {@code Chess} game
+     * whose {@code state} attribute has been updated according to checkmate
+     * and draw rules.
+     * <br><br>
+     * If the player is currently in check and with every possible move it could
+     * make it'd still be in check, the state updates to a win of the opposite
+     * player. If the player isn't in check but every possible move would put it
+     * in check, the state is updated to DRAW.
+     * <br><br>
+     * If there's a move that player can make that doesn't end up in them being
+     * in check, {@code Optional.empty} is returned.
+     */
     public Optional<Chess> checkMate(ChessColor color) {
         boolean isInCheck = isPlayerInCheck(color);
         for (Piece piece : pieces.stream()
@@ -177,10 +241,16 @@ public record Chess(
                 }
             }
         }
-        // No valid movement causes the player to not be in check anymore, so the game ends with a victory for the opposing player, or a draw if the player wasn't in check to begin with.
         return Optional.of(new Chess(pieces, castling, playHistory, activePlayer, config, isInCheck ? GameState.playerWins(color.opposite()) : GameState.DRAW));
     }
     
+    /**
+     * Crowns a {@link Pawn} piece passed as argument to a new type, and returns
+     * the game state after than change has been done.
+     * @param piece {@link Piece} to crown.
+     * @param newType String representing the new type to crown it to.
+     * @return 
+     */
     public Optional<Chess> crownPawn(Piece piece, String newType) {
         if (!(piece instanceof Pawn) || playHistory.isEmpty()) return Optional.empty();
         Play lastPlay = getLastPlay().get();
