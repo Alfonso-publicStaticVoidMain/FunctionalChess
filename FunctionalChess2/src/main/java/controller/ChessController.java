@@ -40,7 +40,7 @@ public class ChessController implements ActionListener {
      */
     private ChessGUI view;
     /**
-     * {@link Piece} currently stored as the potential piece to move.
+     * {@link Position} stored to fetch a piece to move from it.
      */
     private Optional<Position> selectedPosition;
 
@@ -68,8 +68,7 @@ public class ChessController implements ActionListener {
     public Chess getGame() {return game;}
     
     /**
-     * Method intended to be used as the action listener for the view's buttons
-     * on the chess board.
+     * Part of the action listener for the view's buttons on the chess board.
      * @param x X coordinate of the button clicked.
      * @param y Y coordinate of the button clicked.
      */
@@ -149,6 +148,11 @@ public class ChessController implements ActionListener {
         }
     }
     
+    /**
+     * Part of the action listener for the reset button on the view. It changes
+     * the game attribute of the controller to the initial state of the game
+     * with the configuration currently being used.
+     */
     public void resetClick() {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to reset the game?");
         if (!userVerification) return;
@@ -167,6 +171,11 @@ public class ChessController implements ActionListener {
         view.resetPlayHistory();
     }
     
+    /**
+     * @hidden
+     * @deprecated
+     */
+    @Deprecated
     public void saveClick() {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to save the state of the game?");
         if (!userVerification) return;
@@ -182,6 +191,11 @@ public class ChessController implements ActionListener {
         }
     }
     
+    /**
+     * @hidden
+     * @deprecated
+     */
+    @Deprecated
     public void loadClick() {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to load a saved game?");
         if (!userVerification) return;

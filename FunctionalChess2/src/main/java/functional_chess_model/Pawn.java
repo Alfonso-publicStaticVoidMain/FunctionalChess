@@ -31,7 +31,7 @@ public class Pawn extends Piece {
             if (Xmovement != 0) {
                 OptionalInt xDirEnPassantOrNot = game.getEnPassantXDir(this);
                 if (xDirEnPassantOrNot.isPresent()) {
-                    if (initPos.y() == game.getLastPlay().get().finPos().y() && Math.abs(Ymovement) == 1 && Xmovement == -xDirEnPassantOrNot.getAsInt()) return true;
+                    if (initPos.y() == game.getLastPlay().get().finPos().y() && Math.abs(Ymovement) == 1 && Xmovement == xDirEnPassantOrNot.getAsInt()) return true;
                 }
                 return false;
             }

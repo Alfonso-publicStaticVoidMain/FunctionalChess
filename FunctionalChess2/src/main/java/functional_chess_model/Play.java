@@ -14,7 +14,6 @@ import java.util.Optional;
  * castling movement, -1 meaning left castling, 1 right castling and 0 a
  * regular play.
  */
-//public class Play {
 public record Play(
     Piece piece,
     Position initPos,

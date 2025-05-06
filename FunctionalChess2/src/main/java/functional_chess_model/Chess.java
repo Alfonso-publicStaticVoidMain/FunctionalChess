@@ -12,6 +12,17 @@ import java.util.stream.IntStream;
 
 /**
  *
+ * @param pieces {@link List} of {@link Piece}s involved in the game.
+ * @param castling {@link Map} that maps each {@link ChessColor} to another
+ * map mapping each {@link CastlingType} to a boolean representing the
+ * availability of castling for that player and castling type.
+ * @param playHistory {@link List} of {@link Play}s previously done in the game.
+ * @param config {@link GameConfiguration} object storing certain qualities of
+ * the game like number of rows, columns, initial rows and columns for each
+ * color and certain types of pieces and castling columns for each type of
+ * castling.
+ * @param state {@link GameState} enum representing if the game has started,
+ * ended, and how it ended, or if it's currently in progress.
  * @author Alfonso Gallego
  */
 public record Chess(
@@ -23,7 +34,7 @@ public record Chess(
     GameState state
 ) {
     
-    //<editor-fold defaultstate="collapsed" desc="Chess -> Optional<Chess> functions">
+    //<editor-fold defaultstate="collapsed" desc="Update state functions">
     
     /**
      * Attempts to perform a movement and returns the state of the game after it
@@ -63,16 +74,44 @@ public record Chess(
     public Optional<Chess> tryToMove(Position initPos, Position finPos, boolean checkCheck) {
         Optional<Piece> pieceOrNot = findPieceAt(initPos);
         if (pieceOrNot.isEmpty()) return Optional.empty();
-        Piece pieceToMove = pieceOrNot.get();
-        ChessColor playerMoving = pieceToMove.getColor();
-        Optional<Piece> pieceCaptured = pieceCapturedByMove(pieceToMove, finPos);
+        return tryToMove(pieceOrNot.get(), finPos, checkCheck);
+    }
+    
+    /**
+     * Overloaded version of {@link Chess#tryToMove(Position, Position, boolean)},
+     * defaulting checkCheck to true.
+     * @param initPos Initial {@link Position} of the movement.
+     * @param finPos Final {@link Position} of the movement.
+     * @return The state of the game after the movement has been performed, or
+     * {@code Optional.empty} if that movement was illegal, or if the initial
+     * position contained no piece. Declares movements that would cause a check
+     * as illegal.
+     */
+    public Optional<Chess> tryToMove(Position initPos, Position finPos) {
+        return tryToMove(initPos, finPos, true);
+    }
+    
+    /**
+     * Attempts to perform a movement and returns the state of the game after it
+     * has been performed, or {@code Optional.empty} if it was illegal.
+     * @param piece {@link Piece} to move.
+     * @param finPos {@link Position} to move the piece to.
+     * @param checkCheck State parameter to track whether or not we declare a
+     * movement illegal if it'd cause a check.
+     * @return The state of the game after the movement has been performed, or
+     * {@code Optional.empty} if that movement was illegal.
+     */
+    public Optional<Chess> tryToMove(Piece piece, Position finPos, boolean checkCheck) {
+        ChessColor playerMoving = piece.getColor();
+        Position initPos = piece.getPosition();
+        Optional<Piece> pieceCaptured = pieceCapturedByMove(piece, finPos);
         
-        if (!pieceToMove.isLegalMovement(this, finPos, checkCheck)) return Optional.empty();
+        if (!piece.isLegalMovement(this, finPos, checkCheck)) return Optional.empty();
         
         List<Piece> updatedPieces = new ArrayList<>(pieces);
         if (pieceCaptured.isPresent()) updatedPieces.remove(pieceCaptured.get());
-        updatedPieces.remove(pieceToMove);
-        Piece pieceMoved = pieceToMove.moveTo(finPos);
+        updatedPieces.remove(piece);
+        Piece pieceMoved = piece.moveTo(finPos);
         updatedPieces.add(pieceMoved);
         
         List<Play> updatedPlays = new LinkedList<>(playHistory);
@@ -105,34 +144,6 @@ public record Chess(
             updatedCastling.put(color, updatedCastlingForColor);
         }
         return Optional.of(new Chess(List.copyOf(updatedPieces), Map.copyOf(updatedCastling), List.copyOf(updatedPlays), activePlayer.opposite(), config, GameState.IN_PROGRESS));
-    }
-    
-    /**
-     * Overloaded version of {@link Chess#tryToMove(Position, Position, boolean)},
-     * defaulting checkCheck to true.
-     * @param initPos Initial {@link Position} of the movement.
-     * @param finPos Final {@link Position} of the movement.
-     * @return The state of the game after the movement has been performed, or
-     * {@code Optional.empty} if that movement was illegal, or if the initial
-     * position contained no piece. Declares movements that would cause a check
-     * as illegal.
-     */
-    public Optional<Chess> tryToMove(Position initPos, Position finPos) {
-        return tryToMove(initPos, finPos, true);
-    }
-    
-    /**
-     * Attempts to perform a movement and returns the state of the game after it
-     * has been performed, or {@code Optional.empty} if it was illegal.
-     * @param piece {@link Piece} to move.
-     * @param finPos {@link Position} to move the piece to.
-     * @param checkCheck State parameter to track whether or not we declare a
-     * movement illegal if it'd cause a check.
-     * @return The state of the game after the movement has been performed, or
-     * {@code Optional.empty} if that movement was illegal.
-     */
-    public Optional<Chess> tryToMove(Piece piece, Position finPos, boolean checkCheck) {
-        return tryToMove(piece.getPosition(), finPos, checkCheck);
     }
     
     /**
@@ -280,22 +291,19 @@ public record Chess(
         return Optional.of(new Chess(List.copyOf(updatedPieces), castling, List.copyOf(updatedPlays), activePlayer, config, GameState.IN_PROGRESS));
     }
     
-    public Optional<Chess> updateCrowningPlay(Piece piece) {
-        if (playHistory.isEmpty()) return Optional.empty();
-        Play lastPlay = getLastPlay().get();
-        Piece lastPieceMoved = lastPlay.piece();
-        if (!(lastPieceMoved instanceof Pawn) || piece instanceof Pawn) return Optional.empty();
-        List<Play> updatedPlays = new LinkedList<>(playHistory);
-        
-        updatedPlays.remove(playHistory.size() - 1);
-        updatedPlays.add(new Play(lastPieceMoved, lastPlay.initPos(), lastPlay.finPos(), lastPlay.pieceCaptured(), piece));
-        return Optional.of(new Chess(pieces, castling, List.copyOf(updatedPlays), activePlayer, config, state));
-    }
-    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Monad Functions">
     
+    /**
+     * flatMap function of this Monad that applies a function to {@code this}
+     * and returns the transformed object, or {@code this} if the function
+     * returned {@code Optional.empty}.
+     * @param f function to apply to {@code this}.
+     * @return The state of the game after the transformation by the function
+     * {@code f}, or {@code this} if that function returned
+     * {@code Optional.empty}.
+     */
     public Chess flatMap(Function<Chess, Optional<Chess>> f) {
         return f.apply(this).orElse(this);
     }
@@ -338,53 +346,127 @@ public record Chess(
     
     //</editor-fold>
     
+    //<editor-fold defaultstate="collapsed" desc="Various auxiliary methods">
+    
+    /**
+     * Gets the last play done, if able.
+     * @return The last {@link Play} stored in the {@code playHistory} attribute,
+     * if its present, or {@code Optional.empty} otherwise.
+     */
     public Optional<Play> getLastPlay() {
         if (playHistory.isEmpty()) return Optional.empty();
         return Optional.of(playHistory.get(playHistory.size() - 1));
     }
     
+    /**
+     * Gets the piece present at the given position, if able.
+     * @param pos {@link Position} to find a {@link Piece} in.
+     * @return The {@link Piece} found in the paratemer position if there's one,
+     * otherwise returns {@code Optional.empty}.
+     */
     public Optional<Piece> findPieceAt(Position pos) {
         return pieces.stream()
-            .filter(piece -> piece.getPosition().equals(pos))
-            .findAny();
+                .filter(piece -> piece.getPosition().equals(pos))
+                .findAny();
     }
     
+    /**
+     * Checks whether there's a piece or not in the given position.
+     * @param pos {@link Position} to check.
+     * @return True if there's a {@link Piece} in the parameter position, false
+     * otherwise.
+     */
     public boolean checkPieceAt(Position pos) {
         return pieces.stream()
-            .anyMatch(piece -> piece.getPosition().equals(pos));
+                .anyMatch(piece -> piece.getPosition().equals(pos));
     }
     
+    /**
+     * Checks whether there's a piece of the same color in the given position.
+     * @param pos {@link Position} to check.
+     * @param color {@link ChessColor} to compare to.
+     * @return True if there's a {@link Piece} in the parameter position, and
+     * its color is the parameter color, false otherwise.
+     */
     public boolean checkPieceSameColorAs(Position pos, ChessColor color) {
         return pieces.stream()
-            .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() == color);
+                .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() == color);
     }
     
+    /**
+     * Checks whether there's a piece of a different color in the given position.
+     * @param pos {@link Position} to check.
+     * @param color {@link ChessColor} to compare to.
+     * @return True if there's a {@link Piece} in the parameter position, and
+     * its color is not the parameter color, false otherwise.
+     */
     public boolean checkPieceDiffColorAs(Position pos, ChessColor color) {
         return pieces.stream()
-            .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() != color);
+                .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() != color);
     }
     
+    /**
+     * Gets the royal piece of the given color.
+     * @param color {@link ChessColor} to match.
+     * @return The {@link Piece} of the paratemer color whose {@code royal}
+     * attribute is true, or {@code Optional.empty} if there's none. If somehow
+     * there are multiple royal pieces, this method might return a different
+     * one on each call.
+     */
     public Optional<Piece> findRoyalPiece(ChessColor color) {
         return pieces.stream()
-            .filter(piece -> piece.isRoyal() && piece.getColor() == color)
-            .findAny();
+                .filter(piece -> piece.isRoyal() && piece.getColor() == color)
+                .findAny();
     }
     
+    /**
+     * Gets the piece that would be captured by the proposed move.
+     * @param piece {@link Piece} to move.
+     * @param finPos {@link Position} to move the piece to.
+     * @return The {@link Piece} that would be captured by the proposed move, or
+     * {@code Optional.empty} it none would be. Ie, the piece present at
+     * {@code finPos} for a regular capture, or in the appropiate position for
+     * an en passant capture for {@link Pawn}s.
+     */
     public Optional<Piece> pieceCapturedByMove(Piece piece, Position finPos) {
         if (checkPieceAt(finPos)) return findPieceAt(finPos);
         if (piece instanceof Pawn) {
             OptionalInt xDirEnPassantOrNot = getEnPassantXDir(piece);
-            if (xDirEnPassantOrNot.isPresent() && xDirEnPassantOrNot.getAsInt() == -Position.xDist(piece.getPosition(), finPos)) return Optional.of(getLastPlay().get().piece());
+            if (xDirEnPassantOrNot.isPresent() && xDirEnPassantOrNot.getAsInt() == Position.xDist(piece.getPosition(), finPos)) return Optional.of(getLastPlay().get().piece());
         }
         return Optional.empty();
     }
     
+    /**
+     * Gets the piece that would be captured by the proposed move.
+     * @param initPos Initial {@link Position} of the movement.
+     * @param finPos Final {@link Position} of the movement.
+     * @return The {@link Piece} that would be captured by the proposed move, or
+     * {@code Optional.empty} it none would be, or if there's no piece in the
+     * initial position. Ie, the piece present at {@code finPos} for a regular
+     * capture, or in the appropiate position for an en passant capture for
+     * {@link Pawn}s.
+     */
     public Optional<Piece> pieceCapturedByMove(Position initPos, Position finPos) {
         Optional<Piece> pieceFound = findPieceAt(initPos);
         if (pieceFound.isEmpty()) return Optional.empty();
         return pieceCapturedByMove(pieceFound.get(), finPos);
     }
-        
+    
+    /**
+     * Shows the kind of casling the movement is representing, accounting for
+     * the legality of said castling.
+     * @param initPos Initial {@link Position} of the movement.
+     * @param finPos Final {@link Position} of the movement.
+     * @return Optional.empty if the movement doesn't represent a castling
+     * movement at all, and Optional[LEFT | RIGHT] if the movement represents a
+     * castling, ie, if the moved piece is a King, the respective castling type
+     * is still available for this game, the final position is the respective
+     * castling position as dictated by this game's configuration, there's no
+     * piece between the {@link King} and the {@link Rook} (though the piece in
+     * that position might not be a Rook), and the King wouldn't be in check
+     * during its movement.
+     */
     public Optional<CastlingType> castlingTypeOfPlay(Position initPos, Position finPos) {
         Optional<Piece> pieceOrNot = findPieceAt(initPos);
         if (pieceOrNot.isEmpty()) return Optional.empty();
@@ -398,13 +480,13 @@ public record Chess(
      * @param piece Piece to move.
      * @param finPos Position to move the piece to.
      * @return Optional.empty if the movement doesn't represent a castling
-     * movement at all.
-     * Returns Optional[LEFT | RIGHT] if the movement represents a castling, ie,
-     * if the moved piece is a King, the respective castling type is still
-     * available, the final position is the respective castling position as
-     * dictated by this game's configuration, there's no piece between the
-     * King and the Rook, and the King wouldn't be in check during its
-     * movement.
+     * movement at all, and Optional[LEFT | RIGHT] if the movement represents a
+     * castling, ie, if the moved piece is a King, the respective castling type
+     * is still available for this game, the final position is the respective
+     * castling position as dictated by this game's configuration, there's no
+     * piece between the {@link King} and the {@link Rook} (though the piece in
+     * that position might not be a Rook), and the King wouldn't be in check
+     * during its movement.
      */
     public Optional<CastlingType> castlingTypeOfPlay(Piece piece, Position finPos) {
         if (!(piece instanceof King)) return Optional.empty();
@@ -414,12 +496,12 @@ public record Chess(
         
         if (isCastlingAvailable(color, CastlingType.LEFT) && finPos.equals(config.kingCastlingPos(color, CastlingType.LEFT))) {
             if (IntStream.rangeClosed(config.rookInitCol(CastlingType.LEFT)+1, config.rookCastlingCol(CastlingType.LEFT))
-                .anyMatch(x -> checkPieceAt(Position.of(x, initRow))))
+                    .anyMatch(x -> checkPieceAt(Position.of(x, initRow))))
                 return Optional.empty();
             
             if (IntStream.rangeClosed(config.kingCastlingCol(CastlingType.LEFT), config.kingInitCol())
-                .anyMatch(x -> pieces.stream()
-                    .anyMatch(p -> p.getColor() != color && p.isLegalMovement(this, Position.of(x, initRow), false))))         
+                    .anyMatch(x -> pieces.stream()
+                            .anyMatch(p -> p.getColor() != color && p.isLegalMovement(this, Position.of(x, initRow), false))))
                 return Optional.empty();
             
             return Optional.of(CastlingType.LEFT);
@@ -427,47 +509,81 @@ public record Chess(
         
         if (isCastlingAvailable(color, CastlingType.RIGHT) && finPos.equals(config.kingCastlingPos(color, CastlingType.RIGHT))) {
             if (IntStream.rangeClosed(config.rookCastlingCol(CastlingType.RIGHT), config.rookInitCol(CastlingType.RIGHT)-1)
-                .anyMatch(x -> checkPieceAt(Position.of(x, initRow)))) return Optional.empty();
+                    .anyMatch(x -> checkPieceAt(Position.of(x, initRow)))) return Optional.empty();
             
             if (IntStream.rangeClosed(config.kingCastlingCol(CastlingType.RIGHT), config.kingInitCol())
-                .anyMatch(x -> pieces.stream()
-                    .anyMatch(p -> p.getColor() != color && p.isLegalMovement(this, Position.of(x, initRow), false)))) return Optional.empty();
-
+                    .anyMatch(x -> pieces.stream()
+                            .anyMatch(p -> p.getColor() != color && p.isLegalMovement(this, Position.of(x, initRow), false)))) return Optional.empty();
+            
             return Optional.of(CastlingType.RIGHT);
         }
         
         return Optional.empty();
     }
     
+    /**
+     * Gets the availability of castling for the given player and type.
+     * @param color {@link ChessColor} player to check.
+     * @param type {@link CastlingType} type to check.
+     * @return Gets the {@code type} key from the {@code color} key of the
+     * castling map of {@code this}.
+     */
     public boolean isCastlingAvailable(ChessColor color, CastlingType type) {
         return castling.get(color).get(type);
     }
     
+    /**
+     * Checks whether the given player is in check.
+     * @param color {@link ChessColor} player to check check for.
+     * @return True if the player is in check, ie, if there's a piece of the
+     * opposite color that can legally capture their royal piece, ignoring if
+     * making that move would cause a check for its controller. If the given
+     * player has no royal pieces, returns false.
+     */
     public boolean isPlayerInCheck(ChessColor color) {
         Optional<Piece> royalPieceOrNot = findRoyalPiece(color);
         if (royalPieceOrNot.isEmpty()) return false;
         return pieces.stream()
-            .anyMatch(piece -> piece.getColor() != color && piece.isLegalMovement(this, royalPieceOrNot.get().getPosition(), false));
+                .anyMatch(piece -> piece.getColor() != color && piece.isLegalMovement(this, royalPieceOrNot.get().getPosition(), false));
     }
     
+    /**
+     * Checks whether performing the given movement causes a check for the
+     * player controlling the piece.
+     * @param piece {@link Piece} to move.
+     * @param finPos {@link Position} to move it to.
+     * @return True if, after performing the movement, the player is in check,
+     * false otherwise.
+     */
     public boolean doesThisMovementCauseACheck(Piece piece, Position finPos) {
         Optional<Chess> gameAfterMovementOrNot = tryToMove(piece.getPosition(), finPos, false);
         if (gameAfterMovementOrNot.isEmpty()) return false;
         return gameAfterMovementOrNot.get().isPlayerInCheck(piece.getColor());
     }
     
-    @Deprecated
-    public boolean wouldRoyalPiecesBeInConflict(Position initPos, Position finPos, ChessColor activePlayer) {
-        Optional<Piece> royalPieceActivePlayerOrNot = findRoyalPiece(activePlayer);
-        Optional<Piece> royalPieceOtherPlayerOrNot = findRoyalPiece(activePlayer.opposite());
-        if (royalPieceActivePlayerOrNot.isEmpty() || royalPieceOtherPlayerOrNot.isEmpty()) return false;
-        Piece royalPieceActivePlayer = royalPieceActivePlayerOrNot.get();
-        Piece royalPieceOtherPlayer = royalPieceOtherPlayerOrNot.get();
-        Optional<Chess> gameAfterMovementOrNot = tryToMove(initPos, finPos, false);
-        if (gameAfterMovementOrNot.isEmpty()) return false;
-        return royalPieceOtherPlayer.isLegalMovement(gameAfterMovementOrNot.get(), royalPieceActivePlayer.getPosition(), false);
+    /**
+     * Checks whether performing the given movement causes a check for the
+     * player controlling the piece in the initial position.
+     * @param initPos Initial {@link Position} of the movement.
+     * @param finPos Final {@link Position} of the movement.
+     * @return True if, after performing the movement, the player is in check,
+     * false otherwise, or if there's no piece in the initial position.
+     */
+    public boolean doesThisMovementCauseACheck(Position initPos, Position finPos) {
+        Optional<Piece> pieceOrNot = findPieceAt(initPos);
+        if (pieceOrNot.isEmpty()) return false;
+        return doesThisMovementCauseACheck(pieceOrNot.get(), finPos);
     }
     
+    /**
+     * Gets the direction in the X axis the piece needs to move to capture
+     * en passant the last piece moved, if that's a legal movement for it.
+     * @param piece {@link Piece} to move.
+     * @return An OptionalInt of +1 or -1 if the last {@link Play} was a
+     * {@link Pawn} moving two cells from its starting position, {@code piece}
+     * is also a {@link Pawn} of the opposite color and is within 1 unit from it
+     * in the X axis.
+     */
     public OptionalInt getEnPassantXDir(Piece piece) {
         Optional<Play> lastPlayOrNot = getLastPlay();
         
@@ -476,15 +592,18 @@ public record Chess(
         Play lastPlay = lastPlayOrNot.get();
         Piece lastPieceMoved = lastPlay.piece();
         
-        if (!(lastPieceMoved instanceof Pawn)) return OptionalInt.empty();
+        if (!(lastPieceMoved instanceof Pawn) || !(piece instanceof Pawn)) return OptionalInt.empty();
         if (lastPieceMoved.getColor() == piece.getColor()) return OptionalInt.empty();
         if (Math.abs(Position.yDist(lastPlay.initPos(), lastPlay.finPos())) != 2) return OptionalInt.empty();
         if (Math.abs(Position.xDist(lastPlay.finPos(), piece.getPosition())) != 1) return OptionalInt.empty();
         
-        return OptionalInt.of(Position.xDist(lastPlay.finPos(), piece.getPosition()));
+        return OptionalInt.of(Position.xDist(piece.getPosition(), lastPlay.finPos()));
     }
+    
+    //</editor-fold>
         
     //<editor-fold defaultstate="collapsed" desc="Path checking methods">
+    
     /**
      * Checks the collision along a path following a Rook or Bishop-like
      * movement, ie, in a straight line or a diagonal.
@@ -523,8 +642,8 @@ public record Chess(
         int steps = Math.max(Math.abs(Xmovement), Math.abs(Ymovement));
         
         return IntStream.range(1, steps)
-                .mapToObj(n -> Position.of(initX + n*Xdirection, initY + n*Ydirection))
-                .noneMatch(position -> checkPieceAt(position));
+            .mapToObj(n -> Position.of(initX + n*Xdirection, initY + n*Ydirection))
+            .noneMatch(position -> checkPieceAt(position));
     }
     
     /**
@@ -588,8 +707,8 @@ public record Chess(
      */
     public static boolean isKnightLikePath(int Xmovement, int Ymovement) {
         return Math.abs(Xmovement) + Math.abs(Ymovement) == 3
-                && Math.abs(Xmovement) <= 2 && Math.abs(Xmovement) >= 1
-                && Math.abs(Ymovement) <= 2 && Math.abs(Ymovement) >= 1;
+            && Math.abs(Xmovement) <= 2 && Math.abs(Xmovement) >= 1
+            && Math.abs(Ymovement) <= 2 && Math.abs(Ymovement) >= 1;
     }
     
     /**
@@ -662,6 +781,7 @@ public record Chess(
         GameConfiguration config = GameConfiguration.tuttiFruttiChess();
         return new Chess(config.pieces(), initialCastlingWith(true), List.of(), ChessColor.WHITE, config, GameState.NOT_STARTED);
     }
+    
     //</editor-fold>
     
 }

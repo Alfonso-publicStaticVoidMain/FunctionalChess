@@ -37,7 +37,6 @@ public abstract class Piece {
             game.checkPieceSameColorAs(finPos, color)
             || (checkCheck && game.doesThisMovementCauseACheck(this, finPos))
             || position.equals(finPos)
-            //|| (checkCheck && game.wouldRoyalPiecesBeInConflict(position, finPos, color))
         );
     }
     
@@ -65,13 +64,7 @@ public abstract class Piece {
             return false;
         }
         final Piece other = (Piece) obj;
-        if (this.royal != other.royal) {
-            return false;
-        }
-        if (!Objects.equals(this.position, other.position)) {
-            return false;
-        }
-        return this.color == other.color;
+        return (this.color == other.color && this.royal == other.royal && this.position.equals(other.position));
     }
     
     
