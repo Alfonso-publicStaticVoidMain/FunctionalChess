@@ -21,7 +21,8 @@ public record Play(
     Position initPos,
     Position finPos,
     Optional<Piece> pieceCaptured,
-    Optional<CastlingType> castlingInfo
+    Optional<CastlingType> castlingInfo,
+    Optional<Piece> pieceCrowned
 ) implements Serializable {
 
     /**
@@ -32,7 +33,7 @@ public record Play(
      * @param finPos Final {@link Position}.
      */
     public Play(Piece piece, Position initPos, Position finPos, CastlingType castlingInfo) {
-        this(piece, initPos, finPos, Optional.empty(), Optional.of(castlingInfo));
+        this(piece, initPos, finPos, Optional.empty(), Optional.of(castlingInfo), Optional.empty());
     }
     
     /**
@@ -44,7 +45,7 @@ public record Play(
      * @param pieceCaptured {@link Piece} captured.
      */
     public Play(Piece piece, Position initPos, Position finPos, Piece pieceCaptured) {
-        this(piece, initPos, finPos, Optional.of(pieceCaptured), Optional.empty());
+        this(piece, initPos, finPos, Optional.of(pieceCaptured), Optional.empty(), Optional.empty());
     }
     
     /**
@@ -56,7 +57,11 @@ public record Play(
      * @param pieceCaptured {@link Piece} captured wrapped in an Optional monad.
      */
     public Play(Piece piece, Position initPos, Position finPos, Optional<Piece> pieceCaptured) {
-        this(piece, initPos, finPos, pieceCaptured, Optional.empty());
+        this(piece, initPos, finPos, pieceCaptured, Optional.empty(), Optional.empty());
+    }
+    
+    public Play(Piece piece, Position initPos, Position finPos, Optional<Piece> pieceCaptured, Piece pieceCrowned) {
+        this(piece, initPos, finPos, pieceCaptured, Optional.empty(), Optional.of(pieceCrowned));
     }
     
 }

@@ -111,24 +111,28 @@ public class ChessController implements ActionListener {
                             }
                         }
                     }
-                }
+                }                
             }
                 
             if (!playDone) {
                 Optional<Chess> gameAfterMoveOrNot = game.tryToMove(piece, clickedPos);
                 if (gameAfterMoveOrNot.isPresent()) {
                     game = gameAfterMoveOrNot.get();
-                    //playDone = true;
-                    Optional<Play> lastPlay = game.getLastPlay();
-                    if (lastPlay.isPresent()) view.updatePlayHistory(lastPlay.get());
+                    playDone = true;
                 }
             }
             
-            view.updateBoard();
-            
-            piece = game.findPieceAt(clickedPos).orElse(piece);
-            if (piece instanceof Pawn && piece.getPosition().y() == game.config().crowningRow(activePlayer)) { // Pawn crowning
-                game = game.crownPawnChain(piece, view.pawnCrowningMenu(game.config().crownablePieces()));
+            if (playDone) {
+                view.updateBoard();
+
+                piece = game.findPieceAt(clickedPos).orElse(piece);
+                if (piece instanceof Pawn && piece.getPosition().y() == game.config().crowningRow(activePlayer)) { // Pawn crowning
+                    game = game.crownPawnChain(piece, view.pawnCrowningMenu(game.config().crownablePieces()));
+                    view.updateBoard();
+                }
+
+                Optional<Play> lastPlay = game.getLastPlay();
+                if (lastPlay.isPresent()) view.updatePlayHistory(lastPlay.get());
                 view.updateBoard();
             }
             
@@ -149,13 +153,14 @@ public class ChessController implements ActionListener {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to reset the game?");
         if (!userVerification) return;
         game = switch (game.config().typeOfGame()) {
-            /*case "Standard Chess"*/ default -> Chess.standardGame();
-//            case "Almost Chess" -> Chess.almostChessGame();
-//            case "Capablanca Chess" -> Chess.capablancaGame();
-//            case "Gothic Chess" -> Chess.gothicGame();
-//            case "Janus Chess" -> Chess.janusGame();
-//            case "Modern Chess" -> Chess.modernGame();
-//            case "Tutti Frutti Chess" -> Chess.tuttiFruttiGame();
+            case "Standard Chess" -> Chess.standardGame();
+            case "Almost Chess" -> Chess.almostChessGame();
+            case "Capablanca Chess" -> Chess.capablancaGame();
+            case "Gothic Chess" -> Chess.gothicGame();
+            case "Janus Chess" -> Chess.janusGame();
+            case "Modern Chess" -> Chess.modernGame();
+            case "Tutti Frutti Chess" -> Chess.tuttiFruttiGame();
+            default -> null;
         };
         view.updateBoard();
         view.updateActivePlayer();

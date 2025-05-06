@@ -40,7 +40,9 @@ import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 
 /**
  * Class to implement a GUI for chess.
@@ -113,8 +115,20 @@ public class ChessGUI extends JFrame {
         
         // Right panel - Play History
         rightPanel = new JPanel(new BorderLayout());
-        tableModel = new DefaultTableModel(new String[] {"Piece", "Initial Pos", "Final Pos", "Piece Captured"}, 0);
+        tableModel = new DefaultTableModel(new String[] {"Piece", "From", "To", "Piece Captured"}, 0);
         playHistoryArea = new JTable(tableModel);
+        
+        TableColumnModel columnModel = playHistoryArea.getColumnModel();
+        columnModel.getColumn(0).setPreferredWidth(140); // Piece
+        columnModel.getColumn(1).setPreferredWidth(40);  // Init pos
+        columnModel.getColumn(2).setPreferredWidth(40);  // Final pos
+        columnModel.getColumn(3).setPreferredWidth(140); // Piece captured
+        
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        playHistoryArea.getColumnModel().getColumn(1).setCellRenderer(centerRenderer); // Init pos
+        playHistoryArea.getColumnModel().getColumn(2).setCellRenderer(centerRenderer); // Final pos
+        
         scrollPane = new JScrollPane(playHistoryArea);
         rightPanel.add(scrollPane, BorderLayout.CENTER);
         rightPanel.setPreferredSize(new Dimension(400, 0));
@@ -322,7 +336,7 @@ public class ChessGUI extends JFrame {
             JOptionPane.QUESTION_MESSAGE,
             null,
             options,
-            options[0]); //default button title
+            options[0]);
         return options[n];
     }
     
@@ -331,12 +345,20 @@ public class ChessGUI extends JFrame {
     }
     
     public void updatePlayHistory(Play lastPlay) {
-        if (lastPlay.castlingInfo().isPresent()) {
+        if (lastPlay.pieceCrowned().isPresent()) {
+            tableModel.addRow(new Object[] {
+                lastPlay.piece().toString() + "* => "+lastPlay.pieceCrowned().get().getClass().getSimpleName(),
+                lastPlay.initPos(),
+                lastPlay.finPos(),
+                lastPlay.pieceCaptured().isPresent() ? lastPlay.pieceCaptured().get().toString() : ""
+            });
+        }
+        else if (lastPlay.castlingInfo().isPresent()) {
             tableModel.addRow(new Object[] {
                 lastPlay.piece().toString(),
                 lastPlay.initPos(),
                 lastPlay.finPos(),
-                lastPlay.castlingInfo().get() == CastlingType.LEFT ? "L.Castling" : "R.Castling"
+                lastPlay.castlingInfo().get() == CastlingType.LEFT ? "Left Castling" : "Right Castling"
             });
         } else {
             tableModel.addRow(new Object[] {

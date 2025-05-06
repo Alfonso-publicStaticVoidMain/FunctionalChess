@@ -24,17 +24,19 @@ public record Chess(
     GameState state
 ) implements Serializable {
     
-    /*
-    Notes to self:
-        * I have to be very careful with the usage of the activePlayer attribute
-    within Chess, specially when there are times that moves or checks are being
-    made before the update of the activePlayer takes place.
-    
-    */
-    
-    
     //<editor-fold defaultstate="collapsed" desc="Chess -> Optional<Chess> functions">
     
+    /**
+     * Attempts to perform a movement and returns the state of the game after it
+     * has been performed, or Optional.empty if it was illegal.
+     * @param initPos Initial {@link Position} of the movement.
+     * @param finPos Final {@link Position} of the movement.
+     * @param checkCheck State parameter to track whether or not we declare a
+     * movement illegal if it'd cause a check.
+     * @return The state of the game after the movement has been performed, or
+     * Optional.empty if that movement was illegal, or if the initial position
+     * contained no piece.
+     */
     public Optional<Chess> tryToMove(Position initPos, Position finPos, boolean checkCheck) {
         Optional<Piece> pieceOrNot = findPieceAt(initPos);
         if (pieceOrNot.isEmpty()) return Optional.empty();
@@ -51,16 +53,31 @@ public record Chess(
         updatedPieces.add(pieceMoved);
         
         List<Play> updatedPlays = new LinkedList<>(playHistory);
-        updatedPlays.add(new Play(pieceMoved, initPos, finPos, pieceCaptured, Optional.empty()));
+        updatedPlays.add(new Play(pieceMoved, initPos, finPos, pieceCaptured));
         
         Map<ChessColor, Map<CastlingType, Boolean>> updatedCastling = new EnumMap<>(ChessColor.class);
         for (ChessColor color : ChessColor.values()) {
             Map<CastlingType, Boolean> updatedCastlingForColor = new EnumMap<>(CastlingType.class);
             for (CastlingType type : CastlingType.values()) {
-                if (color.equals(playerMoving) && isCastlingAvailable(color, type) && (
-                    initPos.equals(config.rookInitPos(color, type)) || initPos.equals(config.kingInitPos(color))
-                )) updatedCastlingForColor.put(type, false);
+                
+                if (
+                    color.equals(playerMoving) // The color we're checking is the same as the piece that moved
+                    && isCastlingAvailable(color, type) // Casling was available before the movement for this color and type
+                    && ( // The initial position of the movement was the king or rook's initial position of the castling type we're checking
+                        initPos.equals(config.rookInitPos(color, type))
+                        || initPos.equals(config.kingInitPos(color))
+                    )
+                ) updatedCastlingForColor.put(type, false);
+                
+                else if (
+                    pieceCaptured.isPresent() // A piece was captured
+                    && isCastlingAvailable(color, type) // Castling was available before the movement for this color and type
+                    && color.equals(pieceCaptured.get().getColor()) // The color we're checking is the same as the captured piece
+                    && pieceCaptured.get().getPosition().equals(config.rookInitPos(color, type)) // The captured piece was in the rook initial position of the castling type we're checking
+                ) updatedCastlingForColor.put(type, false);
+                
                 else updatedCastlingForColor.put(type, isCastlingAvailable(color, type));
+                
             }
             updatedCastling.put(color, updatedCastlingForColor);
         }
@@ -106,7 +123,7 @@ public record Chess(
         Map<ChessColor, Map<CastlingType, Boolean>> updatedCastling = initialCastlingWith(false);
         
         List<Play> updatedPlays = new LinkedList<>(playHistory);
-        updatedPlays.add(new Play(kingMoved, kingInitPos, kingCastlingPos, Optional.empty(), Optional.of(type)));
+        updatedPlays.add(new Play(kingMoved, kingInitPos, kingCastlingPos, type));
         
         return Optional.of(new Chess(List.copyOf(updatedPieces), Map.copyOf(updatedCastling), List.copyOf(updatedPlays), activePlayer.opposite(), config, GameState.IN_PROGRESS));
     }
@@ -132,7 +149,9 @@ public record Chess(
     }
     
     public Optional<Chess> crownPawn(Piece piece, String newType) {
-        if (!(piece instanceof Pawn)) return Optional.empty();
+        if (!(piece instanceof Pawn) || playHistory.isEmpty()) return Optional.empty();
+        Play lastPlay = getLastPlay().get();
+        if (!piece.equals(lastPlay.piece())) return Optional.empty();
         Position pos = piece.getPosition();
         ChessColor color = piece.getColor();
         if (pos.y() != config.crowningRow(color)) return Optional.empty();
@@ -149,8 +168,27 @@ public record Chess(
             case "ArchBishop" -> updatedPieces.add(new ArchBishop(pos, color));
             default -> {return Optional.empty();}
         }
-        return Optional.of(new Chess(updatedPieces, castling, playHistory, activePlayer, config, GameState.IN_PROGRESS));
+        
+        List<Play> updatedPlays = new LinkedList<>(playHistory);
+        
+        updatedPlays.remove(playHistory.size() - 1);
+        updatedPlays.add(new Play(piece, lastPlay.initPos(), lastPlay.finPos(), lastPlay.pieceCaptured(), updatedPieces.get(updatedPieces.size() - 1)));
+        
+        return Optional.of(new Chess(List.copyOf(updatedPieces), castling, List.copyOf(updatedPlays), activePlayer, config, GameState.IN_PROGRESS));
     }
+    
+    public Optional<Chess> updateCrowningPlay(Piece piece) {
+        if (playHistory.isEmpty()) return Optional.empty();
+        Play lastPlay = getLastPlay().get();
+        Piece lastPieceMoved = lastPlay.piece();
+        if (!(lastPieceMoved instanceof Pawn) || piece instanceof Pawn) return Optional.empty();
+        List<Play> updatedPlays = new LinkedList<>(playHistory);
+        
+        updatedPlays.remove(playHistory.size() - 1);
+        updatedPlays.add(new Play(lastPieceMoved, lastPlay.initPos(), lastPlay.finPos(), lastPlay.pieceCaptured(), piece));
+        return Optional.of(new Chess(pieces, castling, List.copyOf(updatedPlays), activePlayer, config, state));
+    }
+    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Monad Functions">
