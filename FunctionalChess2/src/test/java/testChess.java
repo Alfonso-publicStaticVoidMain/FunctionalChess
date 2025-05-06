@@ -1,6 +1,7 @@
 
 import controller.ChessController;
 import functional_chess_model.*;
+import java.util.List;
 import java.util.Optional;
 import javax.swing.SwingUtilities;
 import org.junit.jupiter.api.Test;
@@ -110,9 +111,19 @@ public class testChess {
         assertEquals(GameState.BLACK_WINS, game.checkMateChain(ChessColor.WHITE).state());
     }
     
+    static Chess createTestGameWithPiece(Piece piece) {
+        return new Chess(
+            List.of(piece),
+            Chess.initialCastlingWith(true),
+            List.of(),
+            ChessColor.WHITE,
+            GameConfiguration.standardGame(),
+            GameState.NOT_STARTED
+        );
+    }
+    
     public static void main(String[] args) {
-        Chess game = STANDARDGAME
-            ;
+        Chess game = createTestGameWithPiece(new Nightrider(Position.of(3, 3), ChessColor.WHITE));
         SwingUtilities.invokeLater(() -> new ChessController(game, new ChessGUI(8, 8)));
     }
 }

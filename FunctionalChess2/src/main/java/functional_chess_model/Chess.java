@@ -1,6 +1,5 @@
 package functional_chess_model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -22,7 +21,7 @@ public record Chess(
     ChessColor activePlayer,
     GameConfiguration config,
     GameState state
-) implements Serializable {
+) {
     
     //<editor-fold defaultstate="collapsed" desc="Chess -> Optional<Chess> functions">
     
@@ -541,12 +540,13 @@ public record Chess(
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="Factory constructor methods">
+    
     public static Map<ChessColor, Map<CastlingType, Boolean>> initialCastlingWith(boolean value) {
         Map<ChessColor, Map<CastlingType, Boolean>> result = new EnumMap<>(ChessColor.class);
         for (ChessColor color : ChessColor.values()) {
             Map<CastlingType, Boolean> castlingForColor = new EnumMap<>(CastlingType.class);
             for (CastlingType type : CastlingType.values()) {
-                castlingForColor.put(type, true);
+                castlingForColor.put(type, value);
             }
             result.put(color, castlingForColor);
         }

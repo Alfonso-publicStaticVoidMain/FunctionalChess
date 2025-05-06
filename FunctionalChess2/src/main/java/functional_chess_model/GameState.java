@@ -1,12 +1,10 @@
 package functional_chess_model;
 
-import java.io.Serializable;
-
 /**
  *
- * @author agall
+ * @author Alfonso Gallego
  */
-public enum GameState implements Serializable {
+public enum GameState {
     NOT_STARTED,
     IN_PROGRESS,
     DRAW,

@@ -1,6 +1,5 @@
 package functional_chess_model;
 
-import java.io.Serializable;
 import java.util.Optional;
 
 /**
@@ -23,7 +22,7 @@ public record Play(
     Optional<Piece> pieceCaptured,
     Optional<CastlingType> castlingInfo,
     Optional<Piece> pieceCrowned
-) implements Serializable {
+) {
 
     /**
      * 4-parameter constructor, setting the pieceCaptured attribute to

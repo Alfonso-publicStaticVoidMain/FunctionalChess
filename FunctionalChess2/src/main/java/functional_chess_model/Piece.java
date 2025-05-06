@@ -1,6 +1,5 @@
 package functional_chess_model;
 
-import java.io.Serializable;
 import java.util.Objects;
 import javax.swing.ImageIcon;
 
@@ -8,7 +7,7 @@ import javax.swing.ImageIcon;
  *
  * @author Alfonso Gallego
  */
-public abstract class Piece implements Serializable {
+public abstract class Piece {
     private final Position position;
     private final ChessColor color;
     private final boolean royal;
