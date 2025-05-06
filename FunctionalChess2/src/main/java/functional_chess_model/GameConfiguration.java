@@ -19,13 +19,15 @@ import java.util.stream.IntStream;
  * row that Pawns of that color need to reach in order to crown.
  * @param rows Number of rows of the board.
  * @param cols Number of columns of the board.
+ * @param pieces List of {@link Piece}s found in the initial configuration.
  * @param kingInitCol Initial column of the King.
- * @param leftRookInitCol Initial column of the left Rook (the piece in that
- * column might not be a Rook!)
- * @param rightRookInitCol Initial column of the right Rook (the piece in that
- * column might not be a Rook!)
- * @param leftCastlingCol Column the King ends up in after doing left castling.
- * @param rightCastlingCol Column the King ends up in after doing right castling.
+ * @param rookInitCol Map mapping each castling type to the initial column of
+ * the rook on that side. (The piece in that column might not be a Rook on
+ * some configurations.)
+ * @param kingCastlingCol Map mapping each castling type to the column of the
+ * King when performing that type of castling.
+ * @param rookCastlingCol Map mapping each castling type to the column of the
+ * respective Rook when performing that type of castling.
  * @param crownablePieces Array of piece names that contain all pieces a Pawn
  * can crown into.
  * @param typeOfGame String representing the name of the chess variant being
@@ -88,7 +90,6 @@ public record GameConfiguration(
         return Map.copyOf(rookCastlingColMap);
     }
     
-    // TO DO non standard game configs
     public static GameConfiguration standardGame() {
         int rows = 8;
         int cols = 8;
@@ -409,56 +410,11 @@ public record GameConfiguration(
             rookInitColMap(cols),
             kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
             rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
-            new String[] {"Queen", "ArchBishop", "Knight", "Rook", "Bishop"},
+            new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"},
             "Tutti Frutti Chess"
         );
     }
     
-//    private static GameConfiguration configFactory(
-//        int maxRows,
-//        int maxCols,
-//        int leftMovementWhenCastling,
-//        int rightMovementWhenCastling,
-//        int kingInitCol,
-//        List<Piece> pieces,
-//        String[] crownablePieces,
-//        String typeOfGame
-//    ) {
-//        Map<ChessColor, Integer> initRowMap = new EnumMap<>(ChessColor.class);
-//        initRowMap.put(ChessColor.WHITE, 1);
-//        initRowMap.put(ChessColor.BLACK, maxRows);
-//        
-//        Map<ChessColor, Integer> initRowPawnMap = new EnumMap<>(ChessColor.class);
-//        initRowPawnMap.put(ChessColor.WHITE, 2);
-//        initRowPawnMap.put(ChessColor.BLACK, maxRows - 1);
-//        
-//        Map<ChessColor, Integer> crowningRowMap = new EnumMap<>(ChessColor.class);
-//        crowningRowMap.put(ChessColor.WHITE, maxRows);
-//        crowningRowMap.put(ChessColor.BLACK, 1);
-//        
-//        Map<CastlingType, Integer> rookInitColMap = new EnumMap<>(CastlingType.class);
-//        rookInitColMap.put(CastlingType.LEFT, 1);
-//        rookInitColMap.put(CastlingType.RIGHT, maxCols);
-//        
-//        Map<CastlingType, Integer> kingCastlingColMap = new EnumMap<>(CastlingType.class);
-//        kingCastlingColMap.put(CastlingType.LEFT, kingInitCol - leftMovementWhenCastling);
-//        kingCastlingColMap.put(CastlingType.RIGHT, kingInitCol + rightMovementWhenCastling);
-//        
-//        Map<CastlingType, Integer> rookCastlingColMap = new EnumMap<>(CastlingType.class);
-//        rookCastlingColMap.put(CastlingType.LEFT, kingInitCol - leftMovementWhenCastling + 1);
-//        rookCastlingColMap.put(CastlingType.RIGHT, kingInitCol + rightMovementWhenCastling - 1);
-//        
-//        return new GameConfiguration(initRowMap, initRowPawnMap, crowningRowMap, maxRows, maxCols, pieces, kingInitCol, rookInitColMap, kingCastlingColMap, rookCastlingColMap, crownablePieces, typeOfGame);
-//    }
-//    
-//    public static GameConfiguration standardGameConfig = configFactory(8, 8, 2, 2, 5, new String[] {"Queen", "Knight", "Rook", "Bishop"}, "Standard Chess");
-//    public static GameConfiguration almostChessConfig = configFactory(8, 8, 2, 2, 5, new String[] {"Chancellor", "Knight", "Rook", "Bishop"}, "Almost Chess");
-//    public static GameConfiguration capablancaConfig = configFactory(8, 10, 3, 3, 6, new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"}, "Capablanca Chess");
-//    public static GameConfiguration gothicConfig = configFactory(8, 10, 3, 3, 6, new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"}, "Gothic Chess");
-//    public static GameConfiguration janusConfig = configFactory(8, 10, 3, 4, 5, new String[] {"Queen", "ArchBishop", "Knight", "Rook", "Bishop"}, "Janus Chess");
-//    public static GameConfiguration modernConfig = configFactory(9, 9, 2, 2, 5, new String[] {"Queen", "ArchBishop", "Knight", "Rook", "Bishop"}, "Modern Chess");
-//    public static GameConfiguration tuttiFruttiConfig = configFactory(8, 8, 2, 2, 5, new String[] {"Amazon", "Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"}, "Tutti Frutti Chess");
-//    
     public int initRow(ChessColor color) {
         return initRow.get(color);
     }
