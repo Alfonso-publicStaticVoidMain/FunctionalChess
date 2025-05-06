@@ -21,14 +21,9 @@ public class Nightrider extends Piece {
         Position initPos = this.getPosition();
         int Xmovement = Position.xDist(initPos, finPos);
         int Ymovement = Position.yDist(initPos, finPos);
-        if (
-            (Xmovement % 3 != 0 && Xmovement % 2 != 0) ||
-            (Ymovement % 3 != 0 && Ymovement % 2 != 0) ||
-            (Xmovement % 3 == 0 && Ymovement % 3 == 0) ||
-            (Xmovement % 2 == 0 && Ymovement % 2 == 0)
-        ) return false;
-        int elementalXmov = Xmovement % 3 == 0 ? 3 : 2;
-        int elementalYmov = Ymovement % 3 == 0 ? 3 : 2;
+        if ((Ymovement == 0 || Xmovement != 2*Ymovement) && (Xmovement == 0 || Ymovement != 2*Xmovement)) return false;
+        int elementalXmov = Xmovement % 2 == 0 ? 2 : 1;
+        int elementalYmov = Ymovement % 2 == 0 ? 2 : 1;
         int steps = Xmovement / elementalXmov;
         return IntStream.range(1, steps)
             .mapToObj(n -> Position.of(initPos.x() + n * elementalXmov, initPos.y()+ n * elementalYmov))
@@ -42,7 +37,7 @@ public class Nightrider extends Piece {
     
     @Override
     public ImageIcon toIcon() {
-        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITEKNIGHT : ChessImages.BLACKKNIGHT;
+        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITENIGHTRIDER : ChessImages.BLACKNIGHTRIDER;
     }
     
 }

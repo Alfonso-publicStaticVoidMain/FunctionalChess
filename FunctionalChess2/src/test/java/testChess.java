@@ -123,7 +123,7 @@ public class testChess {
     }
     
     public static void main(String[] args) {
-        Chess game = createTestGameWithPiece(new Nightrider(Position.of(3, 3), ChessColor.WHITE));
+        Chess game = createTestGameWithPiece(new Nightrider(Position.of(1,1), ChessColor.WHITE));
         SwingUtilities.invokeLater(() -> new ChessController(game, new ChessGUI(8, 8)));
     }
 }

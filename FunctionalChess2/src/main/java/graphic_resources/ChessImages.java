@@ -22,7 +22,9 @@ public class ChessImages {
     public static final ImageIcon WHITECHANCELLOR = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/white_chancellor.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
     public static final ImageIcon WHITEARCHBISHOP = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/white_archbishop.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
     public static final ImageIcon WHITEMANN = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/white_mann.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
+    public static final ImageIcon WHITENIGHTRIDER = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/white_nightrider.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
 
+    
     // Standard Chess Pieces (Black)
     public static final ImageIcon BLACKKING = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/black_king.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
     public static final ImageIcon BLACKQUEEN = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/black_queen.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
@@ -36,5 +38,7 @@ public class ChessImages {
     public static final ImageIcon BLACKCHANCELLOR = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/black_chancellor.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
     public static final ImageIcon BLACKARCHBISHOP = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/black_archbishop.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
     public static final ImageIcon BLACKMANN = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/black_mann.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
+    public static final ImageIcon BLACKNIGHTRIDER = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/black_nightrider.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));
 
+    
 }
