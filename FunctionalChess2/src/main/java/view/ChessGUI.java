@@ -345,27 +345,27 @@ public class ChessGUI extends JFrame {
     }
     
     public void updatePlayHistory(Play lastPlay) {
-        if (lastPlay.pieceCrowned().isPresent()) {
+        if (lastPlay.pieceCrowned() != null) {
             tableModel.addRow(new Object[] {
-                lastPlay.piece().toString() + "* => "+lastPlay.pieceCrowned().get().getClass().getSimpleName(),
+                lastPlay.piece().toString() + "* => "+lastPlay.pieceCrowned().getClass().getSimpleName(),
                 lastPlay.initPos(),
                 lastPlay.finPos(),
-                lastPlay.pieceCaptured().isPresent() ? lastPlay.pieceCaptured().get().toString() : ""
+                lastPlay.pieceCaptured() != null ? lastPlay.pieceCaptured().toString() : ""
             });
         }
-        else if (lastPlay.castlingInfo().isPresent()) {
+        else if (lastPlay.castlingInfo() != null) {
             tableModel.addRow(new Object[] {
                 lastPlay.piece().toString(),
                 lastPlay.initPos(),
                 lastPlay.finPos(),
-                lastPlay.castlingInfo().get() == CastlingType.LEFT ? "Left Castling" : "Right Castling"
+                lastPlay.castlingInfo() == CastlingType.LEFT ? "Left Castling" : "Right Castling"
             });
         } else {
             tableModel.addRow(new Object[] {
                 lastPlay.piece().toString(),
                 lastPlay.initPos(),
                 lastPlay.finPos(),
-                lastPlay.pieceCaptured().isPresent() ? lastPlay.pieceCaptured().get().toString() : ""
+                lastPlay.pieceCaptured() != null ? lastPlay.pieceCaptured().toString() : ""
             });
         }
     }

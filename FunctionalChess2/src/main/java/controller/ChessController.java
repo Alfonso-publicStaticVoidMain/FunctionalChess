@@ -172,10 +172,8 @@ public class ChessController implements ActionListener {
     }
     
     /**
-     * @hidden
-     * @deprecated
+     * 
      */
-    @Deprecated
     public void saveClick() {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to save the state of the game?");
         if (!userVerification) return;
@@ -192,10 +190,8 @@ public class ChessController implements ActionListener {
     }
     
     /**
-     * @hidden
-     * @deprecated
+     * 
      */
-    @Deprecated
     public void loadClick() {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to load a saved game?");
         if (!userVerification) return;

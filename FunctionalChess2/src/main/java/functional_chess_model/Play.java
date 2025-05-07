@@ -19,9 +19,9 @@ public record Play(
     Piece piece,
     Position initPos,
     Position finPos,
-    Optional<Piece> pieceCaptured,
-    Optional<CastlingType> castlingInfo,
-    Optional<Piece> pieceCrowned
+    Piece pieceCaptured,
+    CastlingType castlingInfo,
+    Piece pieceCrowned
 ) {
 
     /**
@@ -32,7 +32,7 @@ public record Play(
      * @param finPos Final {@link Position}.
      */
     public Play(Piece piece, Position initPos, Position finPos, CastlingType castlingInfo) {
-        this(piece, initPos, finPos, Optional.empty(), Optional.of(castlingInfo), Optional.empty());
+        this(piece, initPos, finPos, null, castlingInfo, null);
     }
     
     /**
@@ -45,20 +45,7 @@ public record Play(
      * @param pieceCaptured {@link Piece} captured.
      */
     public Play(Piece piece, Position initPos, Position finPos, Piece pieceCaptured) {
-        this(piece, initPos, finPos, Optional.of(pieceCaptured), Optional.empty(), Optional.empty());
-    }
-    
-    /**
-     * 4-parameter constructor, storing a captured Piece and setting castlingInfo
-     * and pieceCrowned to {@code Optional.empty}, since capturing and 
-     * crowning is incompatible with castling.
-     * @param piece {@link Piece} moved.
-     * @param initPos Initial {@link Position}.
-     * @param finPos Final {@link Position}.
-     * @param pieceCaptured {@link Piece} captured.
-     */
-    public Play(Piece piece, Position initPos, Position finPos, Optional<Piece> pieceCaptured) {
-        this(piece, initPos, finPos, pieceCaptured, Optional.empty(), Optional.empty());
+        this(piece, initPos, finPos, pieceCaptured, null, null);
     }
     
     /**
@@ -72,8 +59,8 @@ public record Play(
      * @param pieceCrowned {@link Piece} that it was crowned into (with its
      * new type).
      */
-    public Play(Piece piece, Position initPos, Position finPos, Optional<Piece> pieceCaptured, Piece pieceCrowned) {
-        this(piece, initPos, finPos, pieceCaptured, Optional.empty(), Optional.of(pieceCrowned));
+    public Play(Piece piece, Position initPos, Position finPos, Piece pieceCaptured, Piece pieceCrowned) {
+        this(piece, initPos, finPos, pieceCaptured, null, pieceCrowned);
     }
     
 }
