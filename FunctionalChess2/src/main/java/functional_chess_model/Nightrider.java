@@ -21,7 +21,7 @@ public class Nightrider extends Piece {
         Position initPos = this.getPosition();
         int Xmovement = Position.xDist(initPos, finPos);
         int Ymovement = Position.yDist(initPos, finPos);
-        if ((Ymovement == 0 || Xmovement != 2*Ymovement) && (Xmovement == 0 || Ymovement != 2*Xmovement)) return false;
+        if (Xmovement != 2*Ymovement && Ymovement != 2*Xmovement) return false;
         int elementalXmov = Xmovement % 2 == 0 ? 2 : 1;
         int elementalYmov = Ymovement % 2 == 0 ? 2 : 1;
         int steps = Xmovement / elementalXmov;

@@ -9,10 +9,11 @@ import java.util.Optional;
  * @param piece {@link Piece} that was moved in the Play.
  * @param initPos Initial {@link Position} of the movement.
  * @param finPos Final {@link Position} of the movement.
- * @param pieceCaptured {@link Piece} captured in the Play, if any.
- * @param castlingInfo Integer representing if the {@code Play} represents a
- * castling movement, -1 meaning left castling, 1 right castling and 0 a
- * regular play.
+ * @param pieceCaptured Optional {@link Piece} captured in the Play, if any.
+ * @param castlingInfo Optional of the enum class {@link CastlingType}, with
+ * values LEFT and RIGHT, representing what type of castling was made, if any.
+ * @param pieceCrowned Optional {@link Piece} representing the piece the
+ * moved piece was crowned into, if any.
  */
 public record Play(
     Piece piece,
@@ -24,8 +25,8 @@ public record Play(
 ) {
 
     /**
-     * 4-parameter constructor, setting the pieceCaptured attribute to
-     * {@code null}.
+     * 4-parameter constructor, setting the {@code pieceCaptured} and
+     * {@code pieceCrowned} attribute to {@code Optional.empty}.
      * @param piece {@link Piece} moved.
      * @param initPos Initial {@link Position}.
      * @param finPos Final {@link Position}.
@@ -35,8 +36,9 @@ public record Play(
     }
     
     /**
-     * 4-parameter constructor, storing a captured Piece and setting castlingInfo
-     * to {@code null}, since capturing is incompatible with castling.
+     * 4-parameter constructor, storing a captured Piece and setting 
+     * {@code castlingInfo} and {@code pieceCrowned} to {@code Optional.empty},
+     * since capturing is incompatible with castling.
      * @param piece {@link Piece} moved.
      * @param initPos Initial {@link Position}.
      * @param finPos Final {@link Position}.
@@ -48,16 +50,28 @@ public record Play(
     
     /**
      * 4-parameter constructor, storing a captured Piece and setting castlingInfo
-     * to {@code null}, since capturing is incompatible with castling.
+     * and pieceCrowned to {@code Optional.empty}, since capturing and 
+     * crowning is incompatible with castling.
      * @param piece {@link Piece} moved.
      * @param initPos Initial {@link Position}.
      * @param finPos Final {@link Position}.
-     * @param pieceCaptured {@link Piece} captured wrapped in an Optional monad.
+     * @param pieceCaptured {@link Piece} captured.
      */
     public Play(Piece piece, Position initPos, Position finPos, Optional<Piece> pieceCaptured) {
         this(piece, initPos, finPos, pieceCaptured, Optional.empty(), Optional.empty());
     }
     
+    /**
+     * 5-parameter constructor, storing the Piece the Pawn was crowned into,
+     * and setting castlingInfo to {@code Optional.empty}, since crowning is
+     * incompatible with castling.
+     * @param piece {@link Piece} moved (when it was a {@link Pawn}).
+     * @param initPos Initial {@link Position}.
+     * @param finPos Final {@link Position}.
+     * @param pieceCaptured {@link Piece} captured.
+     * @param pieceCrowned {@link Piece} that it was crowned into (with its
+     * new type).
+     */
     public Play(Piece piece, Position initPos, Position finPos, Optional<Piece> pieceCaptured, Piece pieceCrowned) {
         this(piece, initPos, finPos, pieceCaptured, Optional.empty(), Optional.of(pieceCrowned));
     }
