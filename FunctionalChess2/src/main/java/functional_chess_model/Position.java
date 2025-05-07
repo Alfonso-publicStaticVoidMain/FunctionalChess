@@ -1,5 +1,7 @@
 package functional_chess_model;
 
+import java.io.Serializable;
+
 /**
  * Record representing the valid positions of a chess board. Contains two
  * int attributes x and y, representing the X and Y coordinate of the
@@ -8,7 +10,7 @@ package functional_chess_model;
  * @param x X coordinate of the Position.
  * @param y Y coordinate of the Position.
  */
-public record Position(int x, int y) {
+public record Position(int x, int y) implements Serializable {
     
     /**
      * Static factory method to create new Positions from a String representing

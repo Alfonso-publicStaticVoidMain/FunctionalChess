@@ -1,6 +1,6 @@
 package functional_chess_model;
 
-import java.util.Optional;
+import java.io.Serializable;
 
 /**
  * Record representing a Play in a chess game, storing the Piece that was moved,
@@ -22,7 +22,7 @@ public record Play(
     Piece pieceCaptured,
     CastlingType castlingInfo,
     Piece pieceCrowned
-) {
+) implements Serializable {
 
     /**
      * 4-parameter constructor, setting the {@code pieceCaptured} and

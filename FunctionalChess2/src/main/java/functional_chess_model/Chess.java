@@ -1,5 +1,6 @@
 package functional_chess_model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
@@ -32,7 +33,7 @@ public record Chess(
     ChessColor activePlayer,
     GameConfiguration config,
     GameState state
-) {
+) implements Serializable {
     
     //<editor-fold defaultstate="collapsed" desc="Update state functions">
     
@@ -382,8 +383,6 @@ public record Chess(
     /**
      * Monadic version of {@link Chess#tryToMove(Play, boolean)}.
      * @param play {@link Play} storing the movement.
-     * @param checkCheck State parameter to track whether or not we declare a
-     * movement illegal if it'd cause a check.
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
      */

@@ -1,5 +1,7 @@
 package functional_chess_model;
 
+import java.io.Serializable;
+
 /**
  * Enum class representing the two colors of chess: black and white. It has
  * int attributes storing the value of the initial row of the pieces in general
@@ -7,7 +9,7 @@ package functional_chess_model;
  * that color move, and the row they must reach in order to be able to crown.
  * @author Alfonso Gallego
  */
-public enum ChessColor {
+public enum ChessColor implements Serializable {
 
     /**
      * WHITE color of chess.

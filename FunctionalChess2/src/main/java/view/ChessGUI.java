@@ -167,7 +167,6 @@ public class ChessGUI extends JFrame {
 //        leftPanel.add(Box.createVerticalStrut(85)); // Space at bottom
 //        add(leftPanel, BorderLayout.WEST);
         
-        
         setVisible(true);
     }
         
@@ -177,6 +176,11 @@ public class ChessGUI extends JFrame {
         return String.format("%02d:%02d", mins, secs);
     }
     
+    /**
+     * Sets the argument controller as {@code this} view's controller
+     * attribute, and adds it as the action listener of each of its buttons.
+     * @param controller {@link ChessController} to set.
+     */
     public void setController(ChessController controller) {
         this.controller = controller;
         for (JButton[] buttonArray : boardButtons) {
@@ -217,6 +221,12 @@ public class ChessGUI extends JFrame {
 //        gameTimer.start();
     }
     
+    /**
+     * Initializes the board panel, adding each board button and sets their
+     * color, text for the left and lower borders, the action command "Board
+     * Button" for the board and the client properties "x" and "y" for tracking
+     * their coordinates.
+     */
     public void initializeBoard() {
         for (int row = rows; row >= 0; row--) {
             for (int col = 0; col <= cols; col++) {
@@ -250,6 +260,12 @@ public class ChessGUI extends JFrame {
         }
     }
 
+    /**
+     * Colors green the board buttons that the piece can legally move to,
+     * and orange the ones that it'd normally be able to but that movement
+     * would cause a check.
+     * @param piece {@link Piece} to move.
+     */
     public void highlightValidMoves(Piece piece) {
         Chess game = controller.getGame();
         for (int col = 1; col <= cols; col++) {
@@ -267,6 +283,11 @@ public class ChessGUI extends JFrame {
         }      
     }
     
+    /**
+     * Colors yellow during 1 second the board buttons that of the legal moves
+     * of a {@link Piece} of the opposing player.
+     * @param piece {@link Piece} to move.
+     */
     public void highlightMovesOfEnemyPiece(Piece piece) {
         Chess game = controller.getGame();
         for (int col = 1; col <= cols; col++) {
@@ -285,6 +306,13 @@ public class ChessGUI extends JFrame {
         }      
     }
     
+    /**
+     * Colors red during 1 second the board buttons that contain a {@link Piece}
+     * that can capture the King after the parameter pieces moves to the
+     * parameter position.
+     * @param piece {@link Piece} to move.
+     * @param finPos {@link Position} to move it to.
+     */
     public void highlightPiecesThatCanCaptureKing(Piece piece, Position finPos) {
         Chess gameAfterMovement = controller.getGame().tryToMoveChain(piece, finPos, false);
         ChessColor color = piece.getColor();
@@ -308,6 +336,9 @@ public class ChessGUI extends JFrame {
             });
     }
 
+    /**
+     * Clears all highlights and colors each board button with its default color.
+     */
     public void clearHighlights() {
         for (int col = 1; col <= cols; col++) {
             for (int row = 1; row <= rows; row++) {
@@ -316,6 +347,10 @@ public class ChessGUI extends JFrame {
         }
     }
 
+    /**
+     * Updates the current state of the board, putting the appropiate icon of
+     * the piece present on each board button, or an empty icon if empty.
+     */
     public void updateBoard() {
         for (int col = 1; col <= cols; col++) {
             for (int row = 1; row <= rows; row++) {
@@ -327,6 +362,12 @@ public class ChessGUI extends JFrame {
         }
     }
     
+    /**
+     * Prints a menu to let the player choose a type for crowning a Pawn.
+     * @param options String array containing the available crowning types.
+     * @return A string representing the type the player wants to crown a
+     * Pawn into.
+     */
     public String pawnCrowningMenu(String[] options) {
         int n = JOptionPane.showOptionDialog(
             this,
@@ -340,6 +381,10 @@ public class ChessGUI extends JFrame {
         return options[n];
     }
     
+    /**
+     * Updates the active player shown in the active player label, fetching
+     * the information directly from the game attribute of the controller.
+     */
     public void updateActivePlayer() {
         activePlayerLabel.setText("Active Player: "+controller.getGame().activePlayer());
     }
@@ -347,7 +392,7 @@ public class ChessGUI extends JFrame {
     public void updatePlayHistory(Play lastPlay) {
         if (lastPlay.pieceCrowned() != null) {
             tableModel.addRow(new Object[] {
-                lastPlay.piece().toString() + "* => "+lastPlay.pieceCrowned().getClass().getSimpleName(),
+                lastPlay.piece().toString() + " => "+lastPlay.pieceCrowned().getClass().getSimpleName(),
                 lastPlay.initPos(),
                 lastPlay.finPos(),
                 lastPlay.pieceCaptured() != null ? lastPlay.pieceCaptured().toString() : ""

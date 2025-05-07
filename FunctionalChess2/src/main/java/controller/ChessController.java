@@ -172,7 +172,10 @@ public class ChessController implements ActionListener {
     }
     
     /**
-     * 
+     * Shows a menu to ask confirmation from the user, then if they confirm,
+     * shows a menu to let them write some text that will be the file name
+     * that will be saved in savedgames/[name].dat, containing the information
+     * about the current state of the game.
      */
     public void saveClick() {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to save the state of the game?");
@@ -190,7 +193,15 @@ public class ChessController implements ActionListener {
     }
     
     /**
+     * Shows a menu to ask confirmation from the user, then if they confirm,
+     * loads a fileChooser to allow them to select a file stored in savedgames
+     * to set the game to the game stored in the file, then updating the board,
+     * active player and play history.
      * 
+     * If the stored game isn't of the same dimensions as the current game,
+     * shows an error message and cancels the load. If it's of the same
+     * dimensions but of a different type, lets the load happen but still
+     * shows a warning message.
      */
     public void loadClick() {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to load a saved game?");

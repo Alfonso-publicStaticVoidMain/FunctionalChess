@@ -1,13 +1,14 @@
 package graphic_resources;
 
 import java.awt.Image;
+import java.io.Serializable;
 import javax.swing.ImageIcon;
 
 /**
  * Class that containg static fields with the icons of each possible piece.
  * @author Alfonso Gallego
  */
-public class ChessImages {
+public class ChessImages implements Serializable {
     
     // Standard Chess Pieces (White)
     public static final ImageIcon WHITEKING = new ImageIcon(new ImageIcon(ChessImages.class.getClassLoader().getResource("ChessPieces/white_king.png")).getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH));

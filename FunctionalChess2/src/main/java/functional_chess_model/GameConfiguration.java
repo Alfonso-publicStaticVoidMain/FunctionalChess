@@ -1,5 +1,6 @@
 package functional_chess_model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -44,7 +45,7 @@ public record GameConfiguration(
     Map<CastlingType, Integer> rookCastlingCol,
     String[] crownablePieces,
     String typeOfGame
-) {
+) implements Serializable {
     
     private static Map<ChessColor, Integer> initRowMap(int maxRows) {
         Map<ChessColor, Integer> initRowMap = new EnumMap<>(ChessColor.class);

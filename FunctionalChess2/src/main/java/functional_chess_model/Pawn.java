@@ -56,5 +56,4 @@ public class Pawn extends Piece {
         return this.getColor() == ChessColor.WHITE ? ChessImages.WHITEPAWN : ChessImages.BLACKPAWN;
     }
     
-    
 }

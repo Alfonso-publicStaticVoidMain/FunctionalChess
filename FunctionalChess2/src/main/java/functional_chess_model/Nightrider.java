@@ -14,7 +14,6 @@ public class Nightrider extends Piece {
         super(position, color);
     }
     
-    // TO DO - Test and verify nightrider movement
     @Override
     public boolean isLegalMovement(Chess game, Position finPos, boolean checkCheck) {
         if (!basicLegalityChecks(game, finPos, checkCheck)) return false;
