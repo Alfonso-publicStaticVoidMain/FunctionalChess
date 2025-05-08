@@ -13,40 +13,40 @@ import view.Index;
  * @author Alfonso Gallego
  */
 public class IndexController implements ActionListener {
-    
-    public static ChessController initializeStandardGame() {
-        return new ChessController(Chess.standardGame(), new ChessGUI(8, 8));
-    }
-    
-    public static ChessController initializeAlmostChessGame() {
-        return new ChessController(Chess.almostChessGame(), new ChessGUI(8, 8));
-    }
-    
-    public static ChessController initializeCapablancaGame() {
-        return new ChessController(Chess.capablancaGame(), new ChessGUI(8, 10));
-    }
-    
-    public static ChessController initializeGothicGame() {
-        return new ChessController(Chess.gothicGame(), new ChessGUI(8, 10));
-    }
-    
-    public static ChessController initializeJanusGame() {
-        return new ChessController(Chess.janusGame(), new ChessGUI(8, 10));
-    }
-    
-    public static ChessController initializeModernGame() {
-        return new ChessController(Chess.modernGame(), new ChessGUI(9, 9));
-    }
 
-    public static ChessController initializeTuttiFruttiGame() {
-        return new ChessController(Chess.tuttiFruttiGame(), new ChessGUI(8, 8));
-    }
+    private final Index view;
 
-    private Index view;
-    
     public IndexController() {
         this.view = new Index();
         this.view.setController(this);
+    }
+
+    public static void initializeStandardGame() {
+        new ChessController(Chess.standardGame(), new ChessGUI(8, 8));
+    }
+    
+    public static void initializeAlmostChessGame() {
+        new ChessController(Chess.almostChessGame(), new ChessGUI(8, 8));
+    }
+    
+    public static void initializeCapablancaGame() {
+        new ChessController(Chess.capablancaGame(), new ChessGUI(8, 10));
+    }
+    
+    public static void initializeGothicGame() {
+        new ChessController(Chess.gothicGame(), new ChessGUI(8, 10));
+    }
+    
+    public static void initializeJanusGame() {
+        new ChessController(Chess.janusGame(), new ChessGUI(8, 10));
+    }
+    
+    public static void initializeModernGame() {
+        new ChessController(Chess.modernGame(), new ChessGUI(9, 9));
+    }
+
+    public static void initializeTuttiFruttiGame() {
+        new ChessController(Chess.tuttiFruttiGame(), new ChessGUI(8, 8));
     }
     
     @Override
@@ -103,9 +103,7 @@ public class IndexController implements ActionListener {
                 });
             }
             case "Exit" -> {
-                SwingUtilities.invokeLater(() -> {
-                    view.dispose();
-                });
+                SwingUtilities.invokeLater(view::dispose);
             }
         }
     }    

@@ -1,5 +1,7 @@
 package functional_chess_model;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 
 /**
@@ -117,7 +119,7 @@ public record Position(int x, int y) implements Serializable {
      * the digits of the y coordinate.
      */
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return "" + convertNumberToLetter(x) + y;
     }
     

@@ -11,7 +11,7 @@ import view.NewPieces;
  */
 public class NewPiecesController implements ActionListener {
     
-    private NewPieces view;
+    private final NewPieces view;
     
     public NewPiecesController() {
         this.view = new NewPieces();
@@ -22,13 +22,11 @@ public class NewPiecesController implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         System.out.println("[DEBUG] NewPiecesController action received: "+command);
-        switch (command) {
-            case "Back" -> {
-                SwingUtilities.invokeLater(() -> {
-                    view.dispose();
-                    new IndexController();
-                });
-            }
+        if (command.equals("Back")) {
+            SwingUtilities.invokeLater(() -> {
+                view.dispose();
+                new IndexController();
+            });
         }
     }
 }

@@ -42,7 +42,7 @@ public record Chess(
      * has been performed, or {@code Optional.empty} if it was illegal.
      * @param initPos Initial {@link Position} of the movement.
      * @param finPos Final {@link Position} of the movement.
-     * @param checkCheck State parameter to track whether or not we declare a
+     * @param checkCheck State parameter to track whether we declare a
      * movement illegal if it'd cause a check.
      * @return The state of the game after the movement has been performed, or
      * {@code Optional.empty} if that movement was illegal, or if the initial
@@ -53,7 +53,7 @@ public record Chess(
      * <li>If no piece is found in {@code initPos}, {@code Optional.empty} is
      * returned. Otherwise, that piece is stored in {@code piece}.</li>
      * <li>If {@code piece} can't legally move to {@code finPos} (with the
-     * appropiate {@code checkCheck} parameter), {@code Optional.empty} is
+     * appropriate {@code checkCheck} parameter), {@code Optional.empty} is
      * returned.</li>
      * <li>Then a new pieces list is created and properly updated, taking into
      * account the possibility of a captured piece and an en passant capture.</li>
@@ -61,7 +61,7 @@ public record Chess(
      * <li>Then a new castling map is created and properly updated, setting to
      * false the possibility of castling for the active player if they moved
      * from the initial position of their king or rook on the appropiate side,
-     * or for the nonactive player if the rook of the appropiate side was
+     * or for the nonactive player if the rook of the appropriate side was
      * captured in the movement.</li>
      * <li>Finally, a new {@code Chess} game is created and returned, copying
      * the lists and map created within the method to ensure immutability, and
@@ -97,7 +97,7 @@ public record Chess(
      * has been performed, or {@code Optional.empty} if it was illegal.
      * @param piece {@link Piece} to move.
      * @param finPos {@link Position} to move the piece to.
-     * @param checkCheck State parameter to track whether or not we declare a
+     * @param checkCheck State parameter to track whether we declare a
      * movement illegal if it'd cause a check.
      * @return The state of the game after the movement has been performed, or
      * {@code Optional.empty} if that movement was illegal.
@@ -110,7 +110,7 @@ public record Chess(
         if (!piece.isLegalMovement(this, finPos, checkCheck)) return Optional.empty();
         
         List<Piece> updatedPieces = new ArrayList<>(pieces);
-        if (pieceCaptured.isPresent()) updatedPieces.remove(pieceCaptured.get());
+        pieceCaptured.ifPresent(updatedPieces::remove);
         updatedPieces.remove(piece);
         Piece pieceMoved = piece.moveTo(finPos);
         updatedPieces.add(pieceMoved);
@@ -195,7 +195,7 @@ public record Chess(
      * @return An {@code Optional} object containing the state of the game
      * after the castling has been performed, or {@code Optional.empty} if it
      * was illegal. Updates the values of {@code pieces}, {@code playHistory},
-     * {@link activePlayer} and {@link castling} for the returned game
+     * {@code activePlayer} and {@code castling} for the returned game
      * accordingly.
      */
     public Optional<Chess> tryToCastle(ChessColor player, CastlingType castlingType) {
@@ -298,7 +298,7 @@ public record Chess(
         List<Play> updatedPlays = new LinkedList<>(playHistory);
         
         updatedPlays.remove(playHistory.size() - 1);
-        updatedPlays.add(new Play(piece, lastPlay.initPos(), lastPlay.finPos(), lastPlay.pieceCaptured(), updatedPieces.get(updatedPieces.size() - 1)));
+        updatedPlays.add(new Play(piece, lastPlay.initPos(), lastPlay.finPos(), lastPlay.pieceCaptured(), updatedPieces.getLast()));
         
         return Optional.of(new Chess(List.copyOf(updatedPieces), castling, List.copyOf(updatedPlays), activePlayer, config, GameState.IN_PROGRESS));
     }
@@ -436,7 +436,7 @@ public record Chess(
      */
     public Optional<Play> getLastPlay() {
         if (playHistory.isEmpty()) return Optional.empty();
-        return Optional.of(playHistory.get(playHistory.size() - 1));
+        return Optional.of(playHistory.getLast());
     }
     
     /**
@@ -506,7 +506,7 @@ public record Chess(
      * @param finPos {@link Position} to move the piece to.
      * @return The {@link Piece} that would be captured by the proposed move, or
      * {@code Optional.empty} it none would be. Ie, the piece present at
-     * {@code finPos} for a regular capture, or in the appropiate position for
+     * {@code finPos} for a regular capture, or in the appropriate position for
      * an en passant capture for {@link Pawn}s.
      */
     public Optional<Piece> pieceCapturedByMove(Piece piece, Position finPos) {
@@ -525,7 +525,7 @@ public record Chess(
      * @return The {@link Piece} that would be captured by the proposed move, or
      * {@code Optional.empty} it none would be, or if there's no piece in the
      * initial position. Ie, the piece present at {@code finPos} for a regular
-     * capture, or in the appropiate position for an en passant capture for
+     * capture, or in the appropriate position for an en passant capture for
      * {@link Pawn}s.
      */
     public Optional<Piece> pieceCapturedByMove(Position initPos, Position finPos) {
@@ -535,7 +535,7 @@ public record Chess(
     }
     
     /**
-     * Shows the kind of casling the movement is representing, accounting for
+     * Shows the kind of castling the movement is representing, accounting for
      * the legality of said castling.
      * @param initPos Initial {@link Position} of the movement.
      * @param finPos Final {@link Position} of the movement.
@@ -556,7 +556,7 @@ public record Chess(
     }
     
     /**
-     * Shows the kind of casling the movement is representing, accounting for
+     * Shows the kind of castling the movement is representing, accounting for
      * the legality of said castling.
      * @param piece Piece to move.
      * @param finPos Position to move the piece to.
@@ -630,9 +630,8 @@ public record Chess(
      */
     public boolean isPlayerInCheck(ChessColor color) {
         Optional<Piece> royalPieceOrNot = findRoyalPiece(color);
-        if (royalPieceOrNot.isEmpty()) return false;
-        return pieces.stream()
-                .anyMatch(piece -> piece.getColor() != color && piece.isLegalMovement(this, royalPieceOrNot.get().getPosition(), false));
+        return royalPieceOrNot.filter(royalPiece -> pieces.stream()
+                .anyMatch(piece -> piece.getColor() != color && piece.isLegalMovement(this, royalPiece.getPosition(), false))).isPresent();
     }
     
     /**
@@ -645,8 +644,7 @@ public record Chess(
      */
     public boolean doesThisMovementCauseACheck(Piece piece, Position finPos) {
         Optional<Chess> gameAfterMovementOrNot = tryToMove(piece.getPosition(), finPos, false);
-        if (gameAfterMovementOrNot.isEmpty()) return false;
-        return gameAfterMovementOrNot.get().isPlayerInCheck(piece.getColor());
+        return gameAfterMovementOrNot.map(chess -> chess.isPlayerInCheck(piece.getColor())).orElse(false);
     }
     
     /**
@@ -659,8 +657,7 @@ public record Chess(
      */
     public boolean doesThisMovementCauseACheck(Position initPos, Position finPos) {
         Optional<Piece> pieceOrNot = findPieceAt(initPos);
-        if (pieceOrNot.isEmpty()) return false;
-        return doesThisMovementCauseACheck(pieceOrNot.get(), finPos);
+        return pieceOrNot.filter(piece -> doesThisMovementCauseACheck(piece, finPos)).isPresent();
     }
     
     /**
@@ -725,13 +722,13 @@ public record Chess(
     public boolean isPathClear(int initX, int initY, int Xmovement, int Ymovement) {
         if (!isBishopLikePath(Xmovement, Ymovement) && !isRookLikePath(Xmovement, Ymovement)) return false;
         
-        int Xdirection = (Xmovement > 0) ? 1 : (Xmovement < 0) ? -1 : 0;
-        int Ydirection = (Ymovement > 0) ? 1 : (Ymovement < 0) ? -1 : 0;
+        int Xdirection = Integer.compare(Xmovement, 0);
+        int Ydirection = Integer.compare(Ymovement, 0);
         int steps = Math.max(Math.abs(Xmovement), Math.abs(Ymovement));
         
         return IntStream.range(1, steps)
             .mapToObj(n -> Position.of(initX + n*Xdirection, initY + n*Ydirection))
-            .noneMatch(position -> checkPieceAt(position));
+            .noneMatch(this::checkPieceAt);
     }
     
     /**

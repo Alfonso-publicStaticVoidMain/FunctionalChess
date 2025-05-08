@@ -38,11 +38,11 @@ public class ChessController implements ActionListener {
     /**
      * {@link ChessGUI} view the controller is controlling.
      */
-    private ChessGUI view;
+    private final ChessGUI view;
     /**
      * {@link Position} stored to fetch a piece to move from it.
      */
-    private Optional<Position> selectedPosition;
+    private Position selectedPosition;
 
     /**
      * Standard constructor for the {@code ChessController} class, setting the
@@ -50,15 +50,15 @@ public class ChessController implements ActionListener {
      * controller attribute of that view, then initializing its board by 
      * giving its buttons the appropiate actionLister and finally updating the
      * board.
-     * @param game
-     * @param view 
+     * @param game {@link Chess} game this controller is controlling.
+     * @param view  {@link ChessGUI} view this controller is controlling.
      */
     public ChessController(Chess game, ChessGUI view) {
         this.game = game;
         this.view = view;
         this.view.setController(this);
         this.view.updateBoard();
-        this.selectedPosition = Optional.empty();
+        this.selectedPosition = null;
     }
 
     /**
@@ -80,18 +80,18 @@ public class ChessController implements ActionListener {
         Position clickedPos = Position.of(x, y);
         ChessColor activePlayer = game.activePlayer();
         
-        if (selectedPosition.isEmpty()) { // First click stores the selected piece.
+        if (selectedPosition == null) { // First click stores the selected piece.
             if (game.checkPieceAt(clickedPos)) {
                 Piece piece = game.findPieceAt(clickedPos).get();
                 if (piece.getColor() == activePlayer) {
-                    selectedPosition = Optional.of(clickedPos);
+                    selectedPosition = clickedPos;
                     view.highlightValidMoves(piece);
                 } else {
                     view.highlightMovesOfEnemyPiece(piece);
                 }
             }
         } else { // Second click attempts to do the movement.
-            Piece piece = game.findPieceAt(selectedPosition.get()).get();
+            Piece piece = game.findPieceAt(selectedPosition).get();
             boolean playDone = false;
             
             if (!piece.isLegalMovement(game, clickedPos)) {
@@ -131,13 +131,13 @@ public class ChessController implements ActionListener {
                 }
 
                 Optional<Play> lastPlay = game.getLastPlay();
-                if (lastPlay.isPresent()) view.updatePlayHistory(lastPlay.get());
+                lastPlay.ifPresent(view::updatePlayHistory);
                 view.updateBoard();
             }
             
             view.updateActivePlayer();   
             
-            selectedPosition = Optional.empty();           
+            selectedPosition = null;
             
             game = game.checkMateChain(activePlayer);
             if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {
@@ -197,7 +197,7 @@ public class ChessController implements ActionListener {
      * loads a fileChooser to allow them to select a file stored in savedgames
      * to set the game to the game stored in the file, then updating the board,
      * active player and play history.
-     * 
+     * <br><br>
      * If the stored game isn't of the same dimensions as the current game,
      * shows an error message and cancels the load. If it's of the same
      * dimensions but of a different type, lets the load happen but still
@@ -207,16 +207,15 @@ public class ChessController implements ActionListener {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to load a saved game?");
         if (!userVerification) return;
         try (
-            FileInputStream fis = new FileInputStream(view.fileChooser("."+File.separator+"savedgames"));
-            BufferedInputStream bufis = new BufferedInputStream(fis);
-            ObjectInputStream ois = new ObjectInputStream(bufis))
-        {
+                FileInputStream fis = new FileInputStream(view.fileChooser("." + File.separator + "savedgames"));
+                BufferedInputStream bufis = new BufferedInputStream(fis);
+                ObjectInputStream ois = new ObjectInputStream(bufis)) {
             Chess chessGame = (Chess) ois.readObject();
             if (chessGame.config().rows() == game.config().rows() && chessGame.config().cols() == game.config().cols()) {
                 boolean playerChoice = true;
                 if (!chessGame.config().typeOfGame().equals(game.config().typeOfGame())) {
-                    playerChoice = view.areYouSureYouWantToDoThis("The game you wanted to load is of type: "+chessGame.config().typeOfGame()+", while you're playing "+game.config().typeOfGame()+
-                    "\nBut thankfully they are compatible in size. Do you still want to load that game?");
+                    playerChoice = view.areYouSureYouWantToDoThis("The game you wanted to load is of type: " + chessGame.config().typeOfGame() + ", while you're playing " + game.config().typeOfGame() +
+                            "\nBut thankfully they are compatible in size. Do you still want to load that game?");
                 }
                 if (playerChoice) {
                     game = chessGame;
@@ -225,34 +224,15 @@ public class ChessController implements ActionListener {
                     view.reloadPlayHistory();
                 }
             } else {
-                view.informPlayer("Incompatible dimensions", "Your selected game is of type "+chessGame.config().typeOfGame()+" ("+chessGame.config().rows()+"x"+chessGame.config().cols()+"), while your current one is "+
-                game.config().typeOfGame()+" ("+game.config().rows()+"x"+game.config().cols()+")");
+                view.informPlayer("Incompatible dimensions", "Your selected game is of type " + chessGame.config().typeOfGame() + " (" + chessGame.config().rows() + "x" + chessGame.config().cols() + "), while your current one is " +
+                        game.config().typeOfGame() + " (" + game.config().rows() + "x" + game.config().cols() + ")");
             }
-            
+
+        } catch (IOException ex) {
+            System.err.println("I/O error: " + ex.getMessage());
+        } catch (ClassNotFoundException ex) {
+            System.err.println("Class not found: " + ex.getMessage());
         }
-        catch (IOException ex) {System.err.println("I/O error: " + ex.getMessage());}
-        catch (ClassNotFoundException ex) {System.err.println("Class not found: " + ex.getMessage());}
-    }
-    
-    /**
-     * Static method to convert a letter to a number.
-     * @param letter Letter to convert.
-     * @return The integer number representning its position in the english
-     * alphabet.
-     * @hidden 
-     */
-    public static int convertLetterToNumber(char letter) {
-        return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(Character.toUpperCase(letter))+1;
-    }
-    
-    /**
-     * Static method to convert a number to a letter.
-     * @param num Number to convert to a letter.
-     * @return The letter in the number's position in the english alphabet.
-     * @hidden 
-     */
-    public static char convertNumberToLetter(int num) {
-        return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".charAt(num-1);
     }
 
     @Override
@@ -271,8 +251,8 @@ public class ChessController implements ActionListener {
             case "Save" -> saveClick();
             case "Load" -> loadClick();
             case "Back" -> SwingUtilities.invokeLater( () -> {
-                boolean userVerification = game.state() == GameState.NOT_STARTED ? true :
-                view.areYouSureYouWantToDoThis("Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
+                boolean userVerification = game.state() == GameState.NOT_STARTED
+                        || view.areYouSureYouWantToDoThis("Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
                 if (userVerification) {
                     view.dispose();
                     new IndexController();

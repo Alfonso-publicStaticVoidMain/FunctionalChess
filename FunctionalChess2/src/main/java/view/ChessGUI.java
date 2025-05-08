@@ -236,7 +236,7 @@ public class ChessGUI extends JFrame {
                     button.setText("");
                     button.setEnabled(false);
                 } else if (row == 0) {
-                    button.setText(""+ ChessController.convertNumberToLetter(col));
+                    button.setText(""+ Position.convertNumberToLetter(col));
                     button.setFont(new Font("Arial", Font.BOLD, 16));
                     button.setEnabled(false);
                 } else if (col == 0) {
@@ -416,7 +416,7 @@ public class ChessGUI extends JFrame {
     }
     
     public void informPlayer(String title, String message) {
-        JOptionPane.showMessageDialog(this, message, title, NORMAL);
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }
     
     public void checkMessage(ChessColor activePlayer) {
@@ -491,8 +491,8 @@ public class ChessGUI extends JFrame {
     }
     
     public static class SquareGridLayout implements LayoutManager {
-        private int rows;
-        private int cols;
+        private final int rows;
+        private final int cols;
 
         public SquareGridLayout(int rows, int cols) {
             this.rows = rows;

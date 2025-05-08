@@ -38,7 +38,7 @@ public abstract class Piece implements Serializable {
      * @param game {@link Chess} Game where {@code this} {@link Piece} is
      * moving.
      * @param finPos {@link Position} the piece is moving to.
-     * @param checkCheck State parameter to track whether or not we will declare
+     * @param checkCheck State parameter to track whether we will declare
      * a movement illegal if it causes a check.
      * @return False if either of the following happens:
      * <ul>
