@@ -15,14 +15,6 @@ import view.ChessGUI;
  */
 public class testChess {
     
-    // Note to self: assertAll
-    /*
-    assertAll("person",
-        () -> assertEquals("Jane", person.getFirstName()),
-        () -> assertEquals("Doe", person.getLastName())
-    );
-    */
-    
     static final Chess STANDARDGAME = Chess.standardGame();
     
     @Test
