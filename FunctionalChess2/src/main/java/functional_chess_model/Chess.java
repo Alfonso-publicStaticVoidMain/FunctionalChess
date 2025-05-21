@@ -125,7 +125,7 @@ public record Chess(
                 
                 if (
                     color.equals(playerMoving) // The color we're checking is the same as the piece that moved
-                    && isCastlingAvailable(color, type) // Casling was available before the movement for this color and type
+                    && isCastlingAvailable(color, type) // Castling was available before the movement for this color and type
                     && ( // The initial position of the movement was the king or rook's initial position of the castling type we're checking
                         initPos.equals(config.rookInitPos(color, type))
                         || initPos.equals(config.kingInitPos(color))
@@ -165,7 +165,7 @@ public record Chess(
      * of the game after it has been performed, or {@code Optional.empty} if it
      * was illegal.
      * @param play {@link Play} containing the movement.
-     * @param checkCheck State parameter to track whether or not we declare a
+     * @param checkCheck State parameter to track whether we declare a
      * movement illegal if it'd cause a check.
      * @return The state of the game after the movement has been performed, or
      * {@code Optional.empty} if that movement was illegal.
