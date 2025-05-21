@@ -22,3 +22,5 @@ Each of this methods returns an object of Optional<Chess>, returning Optional.em
 **Piece** is an abstract class with attributes Position position, ChessColor color and boolean isRoyal, representing where it is on the board, the player who controls it and if it's a royal piece (by default only the King is royal, but some variants I might implement in the future include the possibility of other kinds of pieces being the one the player needs to maintain alive at all costs). It has abstract methods:
 * boolean isLegalMovement: Checks if a proposed movement is valid.
 * Piece moveTo: Returns a piece with the same attributes and class but in a new Position.
+* ImageIcon toIcon: Returns the ImageIcon representing the piece, stored within the ChessImages class.
+
