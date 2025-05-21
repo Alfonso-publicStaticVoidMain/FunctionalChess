@@ -284,16 +284,7 @@ public record Chess(
         
         List<Piece> updatedPieces = new ArrayList<>(pieces);
         updatedPieces.remove(piece);
-        switch (newType) {
-            case "Queen" -> updatedPieces.add(new Queen(pos, color));
-            case "Knight" -> updatedPieces.add(new Knight(pos, color));
-            case "Rook" -> updatedPieces.add(new Rook(pos, color));
-            case "Bishop" -> updatedPieces.add(new Bishop(pos, color));
-            case "Amazon" -> updatedPieces.add(new Amazon(pos, color));
-            case "Chancellor" -> updatedPieces.add(new Chancellor(pos, color));
-            case "ArchBishop" -> updatedPieces.add(new ArchBishop(pos, color));
-            default -> {return Optional.empty();}
-        }
+        updatedPieces.add(PieceType.valueOf(newType.toUpperCase()).constructor().apply(pos, color));
         
         List<Play> updatedPlays = new LinkedList<>(playHistory);
         
