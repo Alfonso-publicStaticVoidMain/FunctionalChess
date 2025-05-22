@@ -10,6 +10,8 @@ import functional_chess_model.Piece;
 import functional_chess_model.Play;
 import functional_chess_model.Position;
 import view.ChessGUI;
+
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
@@ -21,8 +23,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Optional;
-import javax.swing.JButton;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 /**
  * Class that controls the {@link ChessGUI} view of a given chess game
@@ -44,6 +45,9 @@ public class ChessController implements ActionListener {
      */
     private Position selectedPosition;
 
+    private int whiteSecondsLeft;
+    private int blackSecondsLeft;
+
     /**
      * Standard constructor for the {@code ChessController} class, setting the
      * {@link Chess} game, its {@link ChessGUI} view and setting itself as the
@@ -61,12 +65,55 @@ public class ChessController implements ActionListener {
         this.selectedPosition = null;
     }
 
+    public static String formatTime(int seconds) {
+        int mins = seconds / 60;
+        int secs = seconds % 60;
+        return String.format("%02d:%02d", mins, secs);
+    }
+
     /**
      * Getter for the game attribute of the controller.
      * @return The {@link Chess} game the controller is controlling.
      */
     public Chess getGame() {return game;}
-    
+
+    public int getWhiteSecondsLeft() {return whiteSecondsLeft;}
+    public int getBlackSecondsLeft() {return blackSecondsLeft;}
+    public void consumeWhiteSecond() {whiteSecondsLeft--;}
+    public void consumeBlackSecond() {blackSecondsLeft--;}
+
+    public Timer viewTimer() {
+        return new Timer(1000, e -> {
+            Chess game = this.game;
+            if (game.state() == GameState.IN_PROGRESS) {
+                JLabel whiteTimer = view.timerForPlayer(ChessColor.WHITE).get();
+                JLabel blackTimer = view.timerForPlayer(ChessColor.BLACK).get();
+
+                if (game.activePlayer() == ChessColor.WHITE) {
+                    consumeWhiteSecond();
+                    blackTimer.setForeground(Color.BLACK);
+                    whiteTimer.setForeground(Color.RED);
+                    whiteTimer.setText(formatTime(whiteSecondsLeft));
+                    if (whiteSecondsLeft <= 0) {
+                        ((Timer) e.getSource()).stop();
+                        JOptionPane.showMessageDialog(view, "White ran out of time!");
+                        this.game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.config(), GameState.BLACK_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
+                    }
+                } else {
+                    consumeBlackSecond();
+                    blackTimer.setForeground(Color.RED);
+                    whiteTimer.setForeground(Color.BLACK);
+                    blackTimer.setText(formatTime(blackSecondsLeft));
+                    if (blackSecondsLeft <= 0) {
+                        ((Timer) e.getSource()).stop();
+                        JOptionPane.showMessageDialog(view, "Black ran out of time!");
+                        this.game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.config(), GameState.WHITE_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
+                    }
+                }
+            }
+        });
+    }
+
     /**
      * Part of the action listener for the view's buttons on the chess board.
      * @param x X coordinate of the button clicked.

@@ -4,7 +4,11 @@ package controller;
 import functional_chess_model.Chess;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.util.Arrays;
 import javax.swing.SwingUtilities;
+
+import functional_chess_model.GameVariants;
 import view.ChessGUI;
 import view.Index;
 
@@ -15,45 +19,56 @@ import view.Index;
 public class IndexController implements ActionListener {
 
     private final Index view;
+    private boolean isTimed = false;
 
     public IndexController() {
         this.view = new Index();
         this.view.setController(this);
     }
+/*
+    public void initializeStandardGame() {
+        new ChessController(Chess.standardGame(isTimed), new ChessGUI(8, 8, isTimed));
+    }
+    
+    public void initializeAlmostChessGame() {
+        new ChessController(Chess.almostChessGame(isTimed), new ChessGUI(8, 8, isTimed));
+    }
+    
+    public void initializeCapablancaGame() {
+        new ChessController(Chess.capablancaGame(isTimed), new ChessGUI(8, 10, isTimed));
+    }
+    
+    public void initializeGothicGame() {
+        new ChessController(Chess.gothicGame(isTimed), new ChessGUI(8, 10, isTimed));
+    }
+    
+    public void initializeJanusGame() {
+        new ChessController(Chess.janusGame(isTimed), new ChessGUI(8, 10, isTimed));
+    }
+    
+    public void initializeModernGame() {
+        new ChessController(Chess.modernGame(isTimed), new ChessGUI(9, 9, isTimed));
+    }
 
-    public static void initializeStandardGame() {
-        new ChessController(Chess.standardGame(), new ChessGUI(8, 8));
+    public void initializeTuttiFruttiGame() {
+        new ChessController(Chess.tuttiFruttiGame(isTimed), new ChessGUI(8, 8, isTimed));
     }
-    
-    public static void initializeAlmostChessGame() {
-        new ChessController(Chess.almostChessGame(), new ChessGUI(8, 8));
-    }
-    
-    public static void initializeCapablancaGame() {
-        new ChessController(Chess.capablancaGame(), new ChessGUI(8, 10));
-    }
-    
-    public static void initializeGothicGame() {
-        new ChessController(Chess.gothicGame(), new ChessGUI(8, 10));
-    }
-    
-    public static void initializeJanusGame() {
-        new ChessController(Chess.janusGame(), new ChessGUI(8, 10));
-    }
-    
-    public static void initializeModernGame() {
-        new ChessController(Chess.modernGame(), new ChessGUI(9, 9));
-    }
-
-    public static void initializeTuttiFruttiGame() {
-        new ChessController(Chess.tuttiFruttiGame(), new ChessGUI(8, 8));
-    }
-    
+*/
     @Override
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         System.out.println("[DEBUG] IndexController action received: "+command);
+
+        if (Arrays.asList(GameVariants.variantNames()).contains(command)) {
+            SwingUtilities.invokeLater(() -> {
+                    view.dispose();
+                    GameVariants.valueOf(command).getControllerGenerator().accept(isTimed);
+                }
+            );
+        }
+
         switch (command) {
+            /*
             case "Standard Chess" -> {
                 SwingUtilities.invokeLater(() -> {
                     view.dispose();
@@ -96,11 +111,15 @@ public class IndexController implements ActionListener {
                     initializeTuttiFruttiGame();
                 });
             }
+            */
             case "New Pieces" -> {
                 SwingUtilities.invokeLater(() -> {
                     view.dispose();
                     new NewPiecesController();
                 });
+            }
+            case "timer" -> {
+                isTimed = !isTimed;
             }
             case "Exit" -> {
                 SwingUtilities.invokeLater(view::dispose);
