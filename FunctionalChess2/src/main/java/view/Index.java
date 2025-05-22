@@ -1,6 +1,7 @@
 package view;
 
 import controller.IndexController;
+import functional_chess_model.GameVariants;
 import graphic_resources.Buttons;
 import graphic_resources.ChessImages;
 import java.awt.BorderLayout;
@@ -10,13 +11,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionListener;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 
 /**
  *
@@ -29,6 +24,10 @@ public class Index extends JFrame {
     private final JLabel title;
     private final JLabel subTitle;
     private final JButton[] buttons;
+    private final JCheckBox timedCheckbox;
+    private final JPanel checkboxPanel;
+    private final JPanel bottomTopPanel;
+    public JPanel iconsPanel;
     private JButton newPieces;
     private final JButton exitButton;
     private static final String[] variantNames = {"Standard Chess", "Almost Chess", "Capablanca Chess", "Gothic Chess", "Janus Chess", "Modern Chess", "Tutti Frutti Chess"};
@@ -52,16 +51,35 @@ public class Index extends JFrame {
         topPanel.add(title, BorderLayout.NORTH);
         topPanel.add(subTitle, BorderLayout.CENTER);
 
+        timedCheckbox = new JCheckBox("Timed Game");
+        timedCheckbox.setActionCommand("timer");
+        timedCheckbox.setFont(new Font("Arial", Font.PLAIN, 16));
+        timedCheckbox.setHorizontalAlignment(SwingConstants.CENTER);
+        timedCheckbox.setOpaque(false);
+
+        // Center the checkbox using a wrapper panel
+        checkboxPanel = new JPanel();
+        checkboxPanel.setOpaque(false);
+        checkboxPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        checkboxPanel.add(timedCheckbox);
+        
+        bottomTopPanel = new JPanel();
+        bottomTopPanel.setLayout(new BoxLayout(bottomTopPanel, BoxLayout.Y_AXIS));
+        bottomTopPanel.setOpaque(false);
+        bottomTopPanel.add(checkboxPanel);
+        bottomTopPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+
+        topPanel.add(bottomTopPanel, BorderLayout.SOUTH);
+
         add(topPanel, BorderLayout.NORTH);
-        topPanel.add(Box.createRigidArea(new Dimension(0, 30)), BorderLayout.SOUTH);
         
         buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
         buttons = new JButton[variantNames.length+2];
 
         for (int i = 0; i < variantNames.length; i++) {
-            String variant = variantNames[i];
-
+            String variant = variantNames[i] + " (" + variantSizes[i] + ")";
+            String variantActionCommand = GameVariants.variantNames()[i];
             // Row panel: one row per button+icons, horizontal layout
             JPanel rowPanel = new JPanel();
             rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
@@ -69,7 +87,7 @@ public class Index extends JFrame {
             rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
 
             // Button creation
-            JButton button = Buttons.standardButton(variant + " (" + variantSizes[i] + ")", variant);
+            JButton button = Buttons.standardButton(variant, variantActionCommand);
             button.setMaximumSize(new Dimension(250, 50)); 
             button.setMinimumSize(new Dimension(250, 50));
             button.setPreferredSize(new Dimension(250, 50));
@@ -140,11 +158,6 @@ public class Index extends JFrame {
         add(Box.createRigidArea(new Dimension(0, 20)), BorderLayout.SOUTH);
         setVisible(true);
     }
-    public JPanel iconsPanel;
-
-    public static String[] getVariantNames() {
-        return variantNames;
-    }
     
     public void setController(IndexController controller) {
         this.controller = controller;
@@ -154,6 +167,6 @@ public class Index extends JFrame {
             }
             button.addActionListener(controller);
         }
-        
+        timedCheckbox.addActionListener(controller);
     }
 }

@@ -37,7 +37,7 @@ public class Buttons {
     /**
      * Overloaded version of {@link Buttons#standardButton(String, String)},
      * defaulting actionCommand to label.
-     * @param label
+     * @param label String to be displayed inside the button.
      * @return A button with text and action command label in the style of
      * {@link Buttons#standardButton(String, String)}.
      */

@@ -1,5 +1,7 @@
 package functional_chess_model;
 
+import functional_chess_model.Pieces.Pawn;
+
 import java.io.Serializable;
 
 /**

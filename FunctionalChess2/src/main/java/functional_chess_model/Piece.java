@@ -31,6 +31,7 @@ public abstract class Piece implements Serializable {
         return isLegalMovement(game, finPos, true);
     }
     public abstract Piece moveTo(Position finPos);
+    public abstract ImageIcon toIcon();
 
     /**
      * Performs some common legality checks that will be referenced by each
@@ -57,8 +58,6 @@ public abstract class Piece implements Serializable {
         );
     }
     
-    public abstract ImageIcon toIcon();
-    
     /**
      * Returns String representing {@code this}'s color and type.
      * @return A concatenation of the name of the color of {@code this} Piece,
@@ -83,7 +82,5 @@ public abstract class Piece implements Serializable {
         final Piece other = (Piece) obj;
         return (this.color == other.color && this.royal == other.royal && this.position.equals(other.position));
     }
-    
-    
-    
+
 }

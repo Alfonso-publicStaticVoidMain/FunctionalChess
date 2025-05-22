@@ -1,13 +1,8 @@
 package view;
 
 import controller.ChessController;
-import functional_chess_model.CastlingType;
-import functional_chess_model.Chess;
-import functional_chess_model.ChessColor;
-import functional_chess_model.King;
-import functional_chess_model.Piece;
-import functional_chess_model.Play;
-import functional_chess_model.Position;
+import functional_chess_model.*;
+import functional_chess_model.Pieces.King;
 
 import graphic_resources.Buttons;
 
@@ -68,16 +63,18 @@ public class ChessGUI extends JFrame {
     private final DefaultTableModel tableModel;    
     
 //    private final JPanel leftPanel;
-//    private final JLabel whiteTimer;
-//    private final JLabel blackTimer;
-//    private Timer gameTimer;
+    private JLabel whiteTimer;
+    private JLabel blackTimer;
+    private Timer gameTimer;
+    private boolean isTimed;
     
     private final int rows;
     private final int cols;
     
     private ChessController controller;
 
-    public ChessGUI(int rows, int cols) {
+    public ChessGUI(int rows, int cols, boolean isTimed) {
+        this.isTimed = isTimed;
         setTitle("Chess Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1100+80*(cols-7), 650+80*(rows-7));
@@ -151,31 +148,27 @@ public class ChessGUI extends JFrame {
         add(boardPanel, BorderLayout.CENTER);
 
         // Left panel - timers
-//        leftPanel = new JPanel();
-//        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-//        leftPanel.setPreferredSize(new Dimension(100, 0));
-//        whiteTimer = new JLabel(formatTime(300), SwingConstants.CENTER);
-//        whiteTimer.setFont(new Font("Arial", Font.BOLD, 16));
-//        whiteTimer.setAlignmentX(Component.RIGHT_ALIGNMENT);
-//        blackTimer = new JLabel(formatTime(300), SwingConstants.CENTER);
-//        blackTimer.setFont(new Font("Arial", Font.BOLD, 16));
-//        blackTimer.setAlignmentX(Component.RIGHT_ALIGNMENT);
-//        leftPanel.add(Box.createVerticalStrut(25)); // Space from top
-//        leftPanel.add(blackTimer);
-//        leftPanel.add(Box.createVerticalGlue());
-//        leftPanel.add(whiteTimer);
-//        leftPanel.add(Box.createVerticalStrut(85)); // Space at bottom
-//        add(leftPanel, BorderLayout.WEST);
-        
+        if (isTimed) {
+            JPanel leftPanel = new JPanel();
+            leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+            leftPanel.setPreferredSize(new Dimension(100, 0));
+            whiteTimer = new JLabel(ChessController.formatTime(300), SwingConstants.CENTER);
+            whiteTimer.setFont(new Font("Arial", Font.BOLD, 16));
+            whiteTimer.setAlignmentX(Component.RIGHT_ALIGNMENT);
+            blackTimer = new JLabel(ChessController.formatTime(300), SwingConstants.CENTER);
+            blackTimer.setFont(new Font("Arial", Font.BOLD, 16));
+            blackTimer.setAlignmentX(Component.RIGHT_ALIGNMENT);
+            leftPanel.add(Box.createVerticalStrut(25)); // Space from top
+            leftPanel.add(blackTimer);
+            leftPanel.add(Box.createVerticalGlue());
+            leftPanel.add(whiteTimer);
+            leftPanel.add(Box.createVerticalStrut(85)); // Space at bottom
+            add(leftPanel, BorderLayout.WEST);
+        }
+
         setVisible(true);
     }
-        
-    private static String formatTime(int seconds) {
-        int mins = seconds / 60;
-        int secs = seconds % 60;
-        return String.format("%02d:%02d", mins, secs);
-    }
-    
+
     /**
      * Sets the argument controller as {@code this} view's controller
      * attribute, and adds it as the action listener of each of its buttons.
@@ -192,35 +185,17 @@ public class ChessGUI extends JFrame {
         saveButton.addActionListener(this.controller);
         loadButton.addActionListener(this.controller);
         backButton.addActionListener(this.controller);
-//        gameTimer = new Timer(1000, e -> {
-//            Chess game = this.controller.getGame();
-//            if (game.isGameStarted()) {
-//                if (controller.getGame().activePlayer() == ChessColor.WHITE) {
-//                    game.consumeWhiteSecond();
-//                    blackTimer.setForeground(Color.BLACK);
-//                    whiteTimer.setForeground(Color.RED);
-//                    whiteTimer.setText(formatTime(game.getWhiteSeconds()));
-//                    if (game.getWhiteSeconds() <= 0) {
-//                        ((Timer) e.getSource()).stop();
-//                        JOptionPane.showMessageDialog(this, "White ran out of time!");
-//                        controller.getGame().finishGame();
-//                    }
-//                } else {
-//                    game.consumeBlackSecond();
-//                    blackTimer.setForeground(Color.RED);
-//                    whiteTimer.setForeground(Color.BLACK);
-//                    blackTimer.setText(formatTime(game.getBlackSeconds()));
-//                    if (game.getBlackSeconds() <= 0) {
-//                        ((Timer) e.getSource()).stop();
-//                        JOptionPane.showMessageDialog(this, "Black ran out of time!");
-//                        controller.getGame().finishGame();
-//                    }
-//                }
-//            }
-//        });
-//        gameTimer.start();
+        if (isTimed) {
+            gameTimer = controller.viewTimer();
+            gameTimer.start();
+        }
     }
-    
+
+    public Optional<JLabel> timerForPlayer(ChessColor activePlayer) {
+        if (!isTimed) return Optional.empty();
+        return Optional.of(activePlayer == ChessColor.WHITE ? whiteTimer : blackTimer);
+    }
+
     /**
      * Initializes the board panel, adding each board button and sets their
      * color, text for the left and lower borders, the action command "Board

@@ -1,5 +1,7 @@
 package functional_chess_model;
 
+import functional_chess_model.Pieces.*;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -33,6 +35,9 @@ import java.util.stream.IntStream;
  * played.
  */
 public record GameConfiguration(
+    boolean isTimed,
+    int whiteSecondsMax,
+    int blackSecondsMax,
     Map<ChessColor, Integer> initRow,
     Map<ChessColor, Integer> initRowPawn,
     Map<ChessColor, Integer> crowningRow,
@@ -90,6 +95,14 @@ public record GameConfiguration(
     }
     
     public static GameConfiguration standardGame() {
+        return standardGame(false, -1);
+    }
+
+    public static GameConfiguration standardGame(boolean isTimed) {
+        return standardGame(isTimed, isTimed ? 300 : -1);
+    }
+
+    public static GameConfiguration standardGame(boolean isTimed, int seconds) {
         int rows = 8;
         int cols = 8;
         int kingInitCol = 5;
@@ -102,7 +115,7 @@ public record GameConfiguration(
             int initRowPawn = initRowPawnMap.get(color);
             // Add Pawns
             IntStream.rangeClosed(1, 8)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+                    .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             // Add Rooks
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(8, initRow), color));
@@ -118,6 +131,9 @@ public record GameConfiguration(
             pieces.add(new King(Position.of(5, initRow), color));
         }
         return new GameConfiguration(
+            isTimed,
+            seconds,
+            seconds,
             initRowMap,
             initRowPawnMap,
             crowningRowMap(rows),
@@ -129,11 +145,19 @@ public record GameConfiguration(
             kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
             rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
             new String[] {"Queen", "Knight", "Rook", "Bishop"},
-            "Standard Chess"
+            "Standard"
         );
     }
-           
+
     public static GameConfiguration almostChess() {
+        return almostChess(false, -1);
+    }
+
+    public static GameConfiguration almostChess(boolean isTimed) {
+        return almostChess(isTimed, isTimed ? 300 : -1);
+    }
+
+    public static GameConfiguration almostChess(boolean isTimed, int seconds) {
         int rows = 8;
         int cols = 8;
         int kingInitCol = 5;
@@ -162,6 +186,9 @@ public record GameConfiguration(
             pieces.add(new King(Position.of(5, initRow), color));
         }
         return new GameConfiguration(
+            isTimed,
+            seconds,
+            seconds,
             initRowMap,
             initRowPawnMap,
             crowningRowMap(rows),
@@ -173,11 +200,19 @@ public record GameConfiguration(
             kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
             rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
             new String[] {"Chancellor", "Knight", "Rook", "Bishop"},
-            "Almost Chess"
+            "Almostchess"
         );
     }
-    
+
     public static GameConfiguration capablancaChess() {
+        return capablancaChess(false, -1);
+    }
+
+    public static GameConfiguration capablancaChess(boolean isTimed) {
+        return capablancaChess(isTimed, isTimed ? 300 : -1);
+    }
+
+    public static GameConfiguration capablancaChess(boolean isTimed, int seconds) {
         int rows = 8;
         int cols = 10;
         int kingInitCol = 6;
@@ -188,44 +223,46 @@ public record GameConfiguration(
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRowMap.get(color);
             int initRowPawn = initRowPawnMap.get(color);
-            // Add Pawns
-            IntStream.rangeClosed(1, 10)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            // Add Rooks
+            IntStream.rangeClosed(1, 10).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(10, initRow), color));
-            // Add Knights
             pieces.add(new Knight(Position.of(2, initRow), color));
             pieces.add(new Knight(Position.of(9, initRow), color));
-            // Add Bishops
             pieces.add(new Bishop(Position.of(4, initRow), color));
             pieces.add(new Bishop(Position.of(7, initRow), color));
-            // Add Chancellor
             pieces.add(new Chancellor(Position.of(8, initRow), color));
-            // Add ArchBishop
             pieces.add(new ArchBishop(Position.of(3, initRow), color));
-            // Add Queen
             pieces.add(new Queen(Position.of(5, initRow), color));
-            // Add King
             pieces.add(new King(Position.of(6, initRow), color));
         }
         return new GameConfiguration(
-            initRowMap,
-            initRowPawnMap,
-            crowningRowMap(rows),
-            rows,
-            cols,
-            List.copyOf(pieces),
-            kingInitCol,
-            rookInitColMap(cols),
-            kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
-            rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
-            new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"},
-            "Capablanca Chess"
+                isTimed,
+                seconds,
+                seconds,
+                initRowMap,
+                initRowPawnMap,
+                crowningRowMap(rows),
+                rows,
+                cols,
+                List.copyOf(pieces),
+                kingInitCol,
+                rookInitColMap(cols),
+                kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
+                rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
+                new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"},
+                "Capablanca"
         );
     }
-    
+
     public static GameConfiguration gothicChess() {
+        return gothicChess(false, -1);
+    }
+
+    public static GameConfiguration gothicChess(boolean isTimed) {
+        return gothicChess(isTimed, isTimed ? 300 : -1);
+    }
+
+    public static GameConfiguration gothicChess(boolean isTimed, int seconds) {
         int rows = 8;
         int cols = 10;
         int kingInitCol = 6;
@@ -236,44 +273,46 @@ public record GameConfiguration(
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRowMap.get(color);
             int initRowPawn = initRowPawnMap.get(color);
-            // Add Pawns
-            IntStream.rangeClosed(1, 10)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            // Add Rooks
+            IntStream.rangeClosed(1, 10).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(10, initRow), color));
-            // Add Knights
             pieces.add(new Knight(Position.of(2, initRow), color));
             pieces.add(new Knight(Position.of(9, initRow), color));
-            // Add Bishops
             pieces.add(new Bishop(Position.of(3, initRow), color));
             pieces.add(new Bishop(Position.of(8, initRow), color));
-            // Add Chancellor
             pieces.add(new Chancellor(Position.of(5, initRow), color));
-            // Add ArchBishop
             pieces.add(new ArchBishop(Position.of(7, initRow), color));
-            // Add Queen
             pieces.add(new Queen(Position.of(4, initRow), color));
-            // Add King
             pieces.add(new King(Position.of(6, initRow), color));
         }
         return new GameConfiguration(
-            initRowMap,
-            initRowPawnMap,
-            crowningRowMap(rows),
-            rows,
-            cols,
-            List.copyOf(pieces),
-            kingInitCol,
-            rookInitColMap(cols),
-            kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
-            rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
-            new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"},
-            "Gothic Chess"
+                isTimed,
+                seconds,
+                seconds,
+                initRowMap,
+                initRowPawnMap,
+                crowningRowMap(rows),
+                rows,
+                cols,
+                List.copyOf(pieces),
+                kingInitCol,
+                rookInitColMap(cols),
+                kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
+                rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
+                new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"},
+                "Gothic"
         );
     }
-    
+
     public static GameConfiguration janusChess() {
+        return janusChess(false, -1);
+    }
+
+    public static GameConfiguration janusChess(boolean isTimed) {
+        return janusChess(isTimed, isTimed ? 300 : -1);
+    }
+
+    public static GameConfiguration janusChess(boolean isTimed, int seconds) {
         int rows = 8;
         int cols = 10;
         int kingInitCol = 5;
@@ -285,43 +324,46 @@ public record GameConfiguration(
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRowMap.get(color);
             int initRowPawn = initRowPawnMap.get(color);
-            // Add Pawns
-            IntStream.rangeClosed(1, 10)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            // Add Rooks
+            IntStream.rangeClosed(1, 10).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(10, initRow), color));
-            // Add Knights
             pieces.add(new Knight(Position.of(3, initRow), color));
             pieces.add(new Knight(Position.of(8, initRow), color));
-            // Add Bishops
             pieces.add(new Bishop(Position.of(4, initRow), color));
             pieces.add(new Bishop(Position.of(7, initRow), color));
-            // Add ArchBishops
             pieces.add(new ArchBishop(Position.of(2, initRow), color));
             pieces.add(new ArchBishop(Position.of(9, initRow), color));
-            // Add Queen
             pieces.add(new Queen(Position.of(6, initRow), color));
-            // Add King
             pieces.add(new King(Position.of(5, initRow), color));
         }
         return new GameConfiguration(
-            initRowMap,
-            initRowPawnMap,
-            crowningRowMap(rows),
-            rows,
-            cols,
-            List.copyOf(pieces),
-            kingInitCol,
-            rookInitColMap(cols),
-            kingCastlingColMap(kingInitCol, leftMovementWhenCastling, rightMovementWhenCastling),
-            rookCastlingColMap(kingInitCol, leftMovementWhenCastling, rightMovementWhenCastling),
-            new String[] {"Queen", "ArchBishop", "Knight", "Rook", "Bishop"},
-            "Janus Chess"
+                isTimed,
+                seconds,
+                seconds,
+                initRowMap,
+                initRowPawnMap,
+                crowningRowMap(rows),
+                rows,
+                cols,
+                List.copyOf(pieces),
+                kingInitCol,
+                rookInitColMap(cols),
+                kingCastlingColMap(kingInitCol, leftMovementWhenCastling, rightMovementWhenCastling),
+                rookCastlingColMap(kingInitCol, leftMovementWhenCastling, rightMovementWhenCastling),
+                new String[] {"Queen", "ArchBishop", "Knight", "Rook", "Bishop"},
+                "Janus"
         );
     }
-    
+
     public static GameConfiguration modernChess() {
+        return modernChess(false, -1);
+    }
+
+    public static GameConfiguration modernChess(boolean isTimed) {
+        return modernChess(isTimed, isTimed ? 300 : -1);
+    }
+
+    public static GameConfiguration modernChess(boolean isTimed, int seconds) {
         int rows = 9;
         int cols = 9;
         int kingInitCol = 5;
@@ -332,42 +374,45 @@ public record GameConfiguration(
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRowMap.get(color);
             int initRowPawn = initRowPawnMap.get(color);
-            // Add Pawns
-            IntStream.rangeClosed(1, 9)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            // Add Rooks
+            IntStream.rangeClosed(1, 9).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(9, initRow), color));
-            // Add Knights
             pieces.add(new Knight(Position.of(2, initRow), color));
             pieces.add(new Knight(Position.of(8, initRow), color));
-            // Add Bishops
             pieces.add(new Bishop(Position.of(3, initRow), color));
             pieces.add(new Bishop(Position.of(7, initRow), color));
-            // Add ArchBishops
             pieces.add(new ArchBishop(Position.of(6, initRow), color));
-            // Add Queen
             pieces.add(new Queen(Position.of(4, initRow), color));
-            // Add King
             pieces.add(new King(Position.of(5, initRow), color));
         }
         return new GameConfiguration(
-            initRowMap,
-            initRowPawnMap,
-            crowningRowMap(rows),
-            rows,
-            cols,
-            List.copyOf(pieces),
-            kingInitCol,
-            rookInitColMap(cols),
-            kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
-            rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
-            new String[] {"Queen", "ArchBishop", "Knight", "Rook", "Bishop"},
-            "Modern Chess"
+                isTimed,
+                seconds,
+                seconds,
+                initRowMap,
+                initRowPawnMap,
+                crowningRowMap(rows),
+                rows,
+                cols,
+                List.copyOf(pieces),
+                kingInitCol,
+                rookInitColMap(cols),
+                kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
+                rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
+                new String[] {"Queen", "ArchBishop", "Knight", "Rook", "Bishop"},
+                "Modern"
         );
     }
-    
+
     public static GameConfiguration tuttiFruttiChess() {
+        return tuttiFruttiChess(false, -1);
+    }
+
+    public static GameConfiguration tuttiFruttiChess(boolean isTimed) {
+        return tuttiFruttiChess(isTimed, isTimed ? 300 : -1);
+    }
+
+    public static GameConfiguration tuttiFruttiChess(boolean isTimed, int seconds) {
         int rows = 8;
         int cols = 8;
         int kingInitCol = 5;
@@ -378,80 +423,44 @@ public record GameConfiguration(
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRowMap.get(color);
             int initRowPawn = initRowPawnMap.get(color);
-            // Add Pawns
-            IntStream.rangeClosed(1, 8)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            // Add Chancellor
+            IntStream.rangeClosed(1, 8).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Chancellor(Position.of(1, initRow), color));
-            // Add Rook
             pieces.add(new Rook(Position.of(8, initRow), color));
-            // Add Knight
             pieces.add(new Knight(Position.of(2, initRow), color));
-            // Add ArchBishop
             pieces.add(new ArchBishop(Position.of(7, initRow), color));
-            // Add Bishop
             pieces.add(new Bishop(Position.of(3, initRow), color));
-            // Add Amazon
             pieces.add(new Amazon(Position.of(4, initRow), color));
-            // Add Queen
             pieces.add(new Queen(Position.of(6, initRow), color));
-            // Add King
             pieces.add(new King(Position.of(5, initRow), color));
         }
         return new GameConfiguration(
-            initRowMap,
-            initRowPawnMap,
-            crowningRowMap(rows),
-            rows,
-            cols,
-            List.copyOf(pieces),
-            kingInitCol,
-            rookInitColMap(cols),
-            kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
-            rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
-            new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"},
-            "Tutti Frutti Chess"
+                isTimed,
+                seconds,
+                seconds,
+                initRowMap,
+                initRowPawnMap,
+                crowningRowMap(rows),
+                rows,
+                cols,
+                List.copyOf(pieces),
+                kingInitCol,
+                rookInitColMap(cols),
+                kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
+                rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
+                new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"},
+                "Tuttifrutti"
         );
     }
-    
-    public int initRow(ChessColor color) {
-        return initRow.get(color);
-    }
-    
-    public int initRowPawn(ChessColor color) {
-        return initRowPawn.get(color);
-    }
-    
-    public int crowningRow(ChessColor color) {
-        return crowningRow.get(color);
-    }
-    
-    public int kingCastlingCol(CastlingType type) {
-        return kingCastlingCol.get(type);
-    }
-    
-    public int rookInitCol(CastlingType type) {
-        return rookInitCol.get(type);
-    }
-    
-    public int rookCastlingCol(CastlingType type) {
-        return rookCastlingCol.get(type);
-    }
-    
-    public Position kingInitPos(ChessColor color) {
-        return Position.of(kingInitCol, initRow(color));
-    }
-    
-    public Position kingCastlingPos(ChessColor color, CastlingType type) {
-        return Position.of(kingCastlingCol.get(type), initRow(color));
-    }
-    
-    public Position rookInitPos(ChessColor color, CastlingType type) {
-        return Position.of(rookInitCol.get(type), initRow(color));
-    }
-    
-    public Position rookCastlingPos(ChessColor color, CastlingType type) {
-        return Position.of(rookCastlingCol.get(type), initRow(color));
-    }
+
+    public int initRow(ChessColor color) {return initRow.get(color);}
+    public int initRowPawn(ChessColor color) {return initRowPawn.get(color);}
+    public int crowningRow(ChessColor color) {return crowningRow.get(color);}
+    public int kingCastlingCol(CastlingType type) {return kingCastlingCol.get(type);}
+    public int rookInitCol(CastlingType type) {return rookInitCol.get(type);}
+    public int rookCastlingCol(CastlingType type) {return rookCastlingCol.get(type);}
+    public Position kingInitPos(ChessColor color) {return Position.of(kingInitCol, initRow(color));}
+    public Position kingCastlingPos(ChessColor color, CastlingType type) {return Position.of(kingCastlingCol.get(type), initRow(color));}
+    public Position rookInitPos(ChessColor color, CastlingType type) {return Position.of(rookInitCol.get(type), initRow(color));}
+    public Position rookCastlingPos(ChessColor color, CastlingType type) {return Position.of(rookCastlingCol.get(type), initRow(color));}
     
 }
