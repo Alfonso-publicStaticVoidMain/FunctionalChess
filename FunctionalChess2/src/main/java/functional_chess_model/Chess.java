@@ -219,7 +219,7 @@ public record Chess(
             Map<CastlingType, Boolean> updatedCastlingForColor = new EnumMap<>(CastlingType.class);
             for (CastlingType type : CastlingType.values()) {
                 if (color == player) updatedCastlingForColor.put(type, false);
-                else  updatedCastlingForColor.put(type, isCastlingAvailable(color, type));
+                else updatedCastlingForColor.put(type, isCastlingAvailable(color, type));
             }
             updatedCastling.put(color, Map.copyOf(updatedCastlingForColor));
         }
