@@ -1,5 +1,6 @@
 package view;
 
+import configparams.ConfigParameters;
 import controller.ChessController;
 import functional_chess_model.*;
 import functional_chess_model.Pieces.King;
@@ -91,10 +92,10 @@ public class ChessGUI extends JFrame {
         activePlayerLabel.setFont(new Font("Arial", Font.BOLD, 18));
         activePlayerLabel.setPreferredSize(new Dimension(250, 30));
         
-        resetButton = Buttons.standardButton("Reset");       
-        saveButton = Buttons.standardButton("Save");      
-        loadButton = Buttons.standardButton("Load");
-        backButton = Buttons.standardButton("Back");
+        resetButton = Buttons.standardButton("Reset", ConfigParameters.resetButtonActionCommand);
+        saveButton = Buttons.standardButton("Save", ConfigParameters.saveButtonActionCommand);
+        loadButton = Buttons.standardButton("Load", ConfigParameters.loadButtonActionCommand);
+        backButton = Buttons.standardButton("Back", ConfigParameters.backButtonActionCommand);
         
         topPanel.add(Box.createHorizontalStrut(150));
         topPanel.add(activePlayerLabel);
@@ -228,7 +229,7 @@ public class ChessGUI extends JFrame {
                         button.setBackground(Color.GRAY);
                     }
                     button.setFont(new Font("Dialog", Font.PLAIN, 24));
-                    button.setActionCommand("Board Button");
+                    button.setActionCommand(ConfigParameters.boardButtonActionCommand);
                     button.putClientProperty("x", col);
                     button.putClientProperty("y", row);
                 }
@@ -285,7 +286,7 @@ public class ChessGUI extends JFrame {
     
     /**
      * Colors red during 1 second the board buttons that contain a {@link Piece}
-     * that can capture the King after the parameter pieces moves to the
+     * that can capture the King after the parameter initPieces moves to the
      * parameter position.
      * @param piece {@link Piece} to move.
      * @param finPos {@link Position} to move it to.
@@ -297,7 +298,7 @@ public class ChessGUI extends JFrame {
         if (royalPieceOrNot.isEmpty()) return;
         
         gameAfterMovement.pieces().stream()
-            .filter(p -> // Filter for the pieces of a different color than active player that can move to capture active player's King.
+            .filter(p -> // Filter for the initPieces of a different color than active player that can move to capture active player's King.
                 p.getColor() != color &&
                 p.isLegalMovement(gameAfterMovement, royalPieceOrNot.get().getPosition(), false)
             )
@@ -340,9 +341,9 @@ public class ChessGUI extends JFrame {
     }
     
     /**
-     * Prints a menu to let the player choose a type for crowning a Pawn.
+     * Prints a menu to let the player choose a variant for crowning a Pawn.
      * @param options String array containing the available crowning types.
-     * @return A string representing the type the player wants to crown a
+     * @return A string representing the variant the player wants to crown a
      * Pawn into.
      */
     public String pawnCrowningMenu(String[] options) {

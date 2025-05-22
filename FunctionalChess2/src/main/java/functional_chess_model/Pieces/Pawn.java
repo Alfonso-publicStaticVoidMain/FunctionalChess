@@ -25,7 +25,7 @@ public class Pawn extends Piece {
         int Xmovement = Position.xDist(initPos, finPos);
         int Ymovement = Position.yDist(initPos, finPos);
         int Ydirection = this.getColor().yDirection();
-        int initRow = game.config().initRowPawn(this.getColor());
+        int initRow = game.variant().initRowPawn(this.getColor());
         
         if (Ymovement * Ydirection <= 0) return false;
         

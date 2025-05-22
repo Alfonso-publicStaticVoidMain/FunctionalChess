@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 /**
  * Enum class representing the two colors of chess: black and white. It has
- * int attributes storing the value of the initial row of the pieces in general
+ * int attributes storing the value of the initial row of the initPieces in general
  * and of the pawns in particular of that color, the direction the pawns of 
  * that color move, and the row they must reach in order to be able to crown.
  * @author Alfonso Gallego

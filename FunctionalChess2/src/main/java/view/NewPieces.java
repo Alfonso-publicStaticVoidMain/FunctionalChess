@@ -4,6 +4,7 @@
  */
 package view;
 
+import configparams.ConfigParameters;
 import controller.NewPiecesController;
 import graphic_resources.Buttons;
 import javax.swing.*;
@@ -12,7 +13,7 @@ import graphic_resources.ChessImages;
 
 public class NewPieces extends JFrame {
 
-    // Using the predefined icons from ChessImages class for white and black pieces
+    // Using the predefined icons from ChessImages class for white and black initPieces
     private static final ImageIcon WHITE_AMAZON_ICON = ChessImages.WHITEAMAZON;
     private static final ImageIcon BLACK_AMAZON_ICON = ChessImages.BLACKAMAZON;
 
@@ -50,7 +51,7 @@ public class NewPieces extends JFrame {
         chancellorPanel = new JPanel();
         scrollPane = new JScrollPane(piecesPanel);
         
-        // Add pieces and their descriptions
+        // Add initPieces and their descriptions
         addPiecePanel(amazonPanel, "Amazon", WHITE_AMAZON_ICON, BLACK_AMAZON_ICON, 
           "Moves like a Queen or a Knight.", 
           AMAZON_MOVE);
@@ -65,10 +66,9 @@ public class NewPieces extends JFrame {
         add(scrollPane, BorderLayout.CENTER);
         
         buttonPanel = new JPanel();
-        backButton = Buttons.standardButton("Back");
+        backButton = Buttons.standardButton("Back", ConfigParameters.backButtonActionCommand);
         buttonPanel.add(backButton);
         add(buttonPanel, BorderLayout.SOUTH);
-        
         
         setVisible(true);
     }

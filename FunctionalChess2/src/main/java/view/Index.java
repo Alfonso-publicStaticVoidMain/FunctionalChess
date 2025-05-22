@@ -1,7 +1,8 @@
 package view;
 
+import configparams.ConfigParameters;
 import controller.IndexController;
-import functional_chess_model.GameVariants;
+import functional_chess_model.GameVariant;
 import graphic_resources.Buttons;
 import graphic_resources.ChessImages;
 import java.awt.BorderLayout;
@@ -24,14 +25,12 @@ public class Index extends JFrame {
     private final JLabel title;
     private final JLabel subTitle;
     private final JButton[] buttons;
-    private final JCheckBox timedCheckbox;
+    private final JCheckBox timerToggleCheckbox;
     private final JPanel checkboxPanel;
     private final JPanel bottomTopPanel;
     public JPanel iconsPanel;
     private JButton newPieces;
     private final JButton exitButton;
-    private static final String[] variantNames = {"Standard Chess", "Almost Chess", "Capablanca Chess", "Gothic Chess", "Janus Chess", "Modern Chess", "Tutti Frutti Chess"};
-    private static final String[] variantSizes = {"8x8", "8x8", "8x10", "8x10", "8x10", "9x9", "8x8"};
     
     private IndexController controller;
     
@@ -51,17 +50,17 @@ public class Index extends JFrame {
         topPanel.add(title, BorderLayout.NORTH);
         topPanel.add(subTitle, BorderLayout.CENTER);
 
-        timedCheckbox = new JCheckBox("Timed Game");
-        timedCheckbox.setActionCommand("timer");
-        timedCheckbox.setFont(new Font("Arial", Font.PLAIN, 16));
-        timedCheckbox.setHorizontalAlignment(SwingConstants.CENTER);
-        timedCheckbox.setOpaque(false);
+        timerToggleCheckbox = new JCheckBox("Timed Game");
+        timerToggleCheckbox.setActionCommand(ConfigParameters.timerToggleActionCommand);
+        timerToggleCheckbox.setFont(new Font("Arial", Font.PLAIN, 16));
+        timerToggleCheckbox.setHorizontalAlignment(SwingConstants.CENTER);
+        timerToggleCheckbox.setOpaque(false);
 
         // Center the checkbox using a wrapper panel
         checkboxPanel = new JPanel();
         checkboxPanel.setOpaque(false);
         checkboxPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        checkboxPanel.add(timedCheckbox);
+        checkboxPanel.add(timerToggleCheckbox);
         
         bottomTopPanel = new JPanel();
         bottomTopPanel.setLayout(new BoxLayout(bottomTopPanel, BoxLayout.Y_AXIS));
@@ -75,11 +74,11 @@ public class Index extends JFrame {
         
         buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
-        buttons = new JButton[variantNames.length+2];
+        buttons = new JButton[ConfigParameters.variantNames.length+2];
 
-        for (int i = 0; i < variantNames.length; i++) {
-            String variant = variantNames[i] + " (" + variantSizes[i] + ")";
-            String variantActionCommand = GameVariants.variantNames()[i];
+        for (int i = 0; i < ConfigParameters.variantNames.length; i++) {
+            String variant = ConfigParameters.variantNames[i] + " (" + ConfigParameters.variantSizes[i] + ")";
+            String variantActionCommand = ConfigParameters.variantNamesUpperCase.get(i);
             // Row panel: one row per button+icons, horizontal layout
             JPanel rowPanel = new JPanel();
             rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
@@ -104,16 +103,16 @@ public class Index extends JFrame {
             iconsPanel.setAlignmentY(Component.CENTER_ALIGNMENT);
 
             // Add icons based on variant
-            switch (variant) {
-                case "Almost Chess" -> iconsPanel.add(new JLabel(ChessImages.WHITECHANCELLOR));
-                case "Capablanca Chess", "Gothic Chess" -> {
+            switch (variantActionCommand) {
+                case "ALMOSTCHESS" -> iconsPanel.add(new JLabel(ChessImages.WHITECHANCELLOR));
+                case "CAPABLANCA", "GOTHIC" -> {
                     iconsPanel.add(new JLabel(ChessImages.WHITECHANCELLOR));
                     iconsPanel.add(Box.createRigidArea(new Dimension(5, 0)));
                     iconsPanel.add(new JLabel(ChessImages.WHITEARCHBISHOP));
                 }
-                case "Janus Chess" -> iconsPanel.add(new JLabel(ChessImages.WHITEARCHBISHOP));
-                case "Modern Chess" -> iconsPanel.add(new JLabel(ChessImages.WHITEARCHBISHOP));
-                case "Tutti Frutti Chess" -> {
+                case "JANUS" -> iconsPanel.add(new JLabel(ChessImages.WHITEARCHBISHOP));
+                case "MODERN" -> iconsPanel.add(new JLabel(ChessImages.WHITEARCHBISHOP));
+                case "TUTTIFRUTTI" -> {
                     iconsPanel.add(new JLabel(ChessImages.WHITEAMAZON));
                     iconsPanel.add(Box.createRigidArea(new Dimension(5, 0)));
                     iconsPanel.add(new JLabel(ChessImages.WHITECHANCELLOR));
@@ -142,16 +141,16 @@ public class Index extends JFrame {
 
         buttonsPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         
-        newPieces = Buttons.standardButton("New Pieces");
+        newPieces = Buttons.standardButton("New Pieces", ConfigParameters.newPiecesButtonActionCommand);
         newPieces.setAlignmentX(Component.CENTER_ALIGNMENT);
-        buttons[variantNames.length] = newPieces;
+        buttons[ConfigParameters.variantNames.length] = newPieces;
         buttonsPanel.add(newPieces);
         
         buttonsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         
-        exitButton = Buttons.standardButton("Exit");
+        exitButton = Buttons.standardButton("Exit", ConfigParameters.exitButtonActionCommand);
         exitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        buttons[variantNames.length+1] = exitButton;
+        buttons[ConfigParameters.variantNames.length+1] = exitButton;
         buttonsPanel.add(exitButton);
         
         add(buttonsPanel, BorderLayout.CENTER);
@@ -167,6 +166,6 @@ public class Index extends JFrame {
             }
             button.addActionListener(controller);
         }
-        timedCheckbox.addActionListener(controller);
+        timerToggleCheckbox.addActionListener(controller);
     }
 }

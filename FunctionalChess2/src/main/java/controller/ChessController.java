@@ -1,5 +1,6 @@
 package controller;
 
+import configparams.ConfigParameters;
 import functional_chess_model.*;
 import functional_chess_model.Pieces.King;
 import functional_chess_model.Pieces.Pawn;
@@ -90,7 +91,7 @@ public class ChessController implements ActionListener {
                     if (whiteSecondsLeft <= 0) {
                         ((Timer) e.getSource()).stop();
                         JOptionPane.showMessageDialog(view, "White ran out of time!");
-                        game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.config(), GameState.BLACK_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
+                        game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.variant(), GameState.BLACK_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
                     }
                 } else {
                     consumeBlackSecond();
@@ -100,7 +101,7 @@ public class ChessController implements ActionListener {
                     if (blackSecondsLeft <= 0) {
                         ((Timer) e.getSource()).stop();
                         JOptionPane.showMessageDialog(view, "Black ran out of time!");
-                        game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.config(), GameState.WHITE_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
+                        game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.variant(), GameState.WHITE_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
                     }
                 }
             }
@@ -164,9 +165,9 @@ public class ChessController implements ActionListener {
             if (playDone) {
 
                 piece = game.findPieceAt(clickedPos).orElse(piece);
-                if (piece instanceof Pawn && piece.getPosition().y() == game.config().crowningRow(activePlayer)) { // Pawn crowning
+                if (piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(activePlayer)) { // Pawn crowning
                     view.updateBoard();
-                    game = game.crownPawnChain(piece, view.pawnCrowningMenu(game.config().crownablePieces()));
+                    game = game.crownPawnChain(piece, view.pawnCrowningMenu(game.variant().crownablePieces()));
                 }
 
                 Optional<Play> lastPlay = game.getLastPlay();
@@ -196,7 +197,7 @@ public class ChessController implements ActionListener {
     public void resetClick() {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to reset the game?");
         if (!userVerification) return;
-        game = GameVariants.valueOf(game.config().typeOfGame()).getGameGenerator().apply(game.isTimed());
+        game = GameVariant.valueOf(game.variant().toString()).game(game.isTimed());
         if (game.isTimed()) {
             whiteSecondsLeft = game.whiteSeconds();
             blackSecondsLeft = game.blackSeconds();
@@ -235,7 +236,7 @@ public class ChessController implements ActionListener {
      * <br><br>
      * If the stored game isn't of the same dimensions as the current game,
      * shows an error message and cancels the load. If it's of the same
-     * dimensions but of a different type, lets the load happen but still
+     * dimensions but of a different variant, lets the load happen but still
      * shows a warning message.
      */
     public void loadClick() {
@@ -246,10 +247,10 @@ public class ChessController implements ActionListener {
                 BufferedInputStream bufis = new BufferedInputStream(fis);
                 ObjectInputStream ois = new ObjectInputStream(bufis)) {
             Chess chessGame = (Chess) ois.readObject();
-            if (chessGame.config().rows() == game.config().rows() && chessGame.config().cols() == game.config().cols()) {
+            if (chessGame.variant().rows() == game.variant().rows() && chessGame.variant().cols() == game.variant().cols()) {
                 boolean playerChoice = true;
-                if (!chessGame.config().typeOfGame().equals(game.config().typeOfGame())) {
-                    playerChoice = view.areYouSureYouWantToDoThis("The game you wanted to load is of type: " + chessGame.config().typeOfGame() + ", while you're playing " + game.config().typeOfGame() +
+                if (chessGame.variant() != game.variant()) {
+                    playerChoice = view.areYouSureYouWantToDoThis("The game you wanted to load is of variant: " + chessGame.variant() + ", while you're playing " + game.variant() +
                             "\nBut thankfully they are compatible in size. Do you still want to load that game?");
                 }
                 if (playerChoice) {
@@ -259,8 +260,8 @@ public class ChessController implements ActionListener {
                     view.reloadPlayHistory();
                 }
             } else {
-                view.informPlayer("Incompatible dimensions", "Your selected game is of type " + chessGame.config().typeOfGame() + " (" + chessGame.config().rows() + "x" + chessGame.config().cols() + "), while your current one is " +
-                        game.config().typeOfGame() + " (" + game.config().rows() + "x" + game.config().cols() + ")");
+                view.informPlayer("Incompatible dimensions", "Your selected game is of variant " + chessGame.variant() + " (" + chessGame.variant().rows() + "x" + chessGame.variant().cols() + "), while your current one is " +
+                        game.variant() + " (" + game.variant().rows() + "x" + game.variant().cols() + ")");
             }
 
         } catch (IOException ex) {
@@ -275,17 +276,17 @@ public class ChessController implements ActionListener {
         String command = e.getActionCommand();
         System.out.println("[DEBUG] ChessController action received: "+command);
         switch (command) {
-            case "Board Button" -> {
+            case ConfigParameters.boardButtonActionCommand -> {
                 JButton clickedButton = (JButton) e.getSource();
                 int x = (int) clickedButton.getClientProperty("x");
                 int y = (int) clickedButton.getClientProperty("y");
                 System.out.println("[DEBUG] Position: "+Position.of(x, y)+" (x="+x+", y="+y+")");
                 handleClick(x, y);
             }
-            case "Reset" -> resetClick();
-            case "Save" -> saveClick();
-            case "Load" -> loadClick();
-            case "Back" -> SwingUtilities.invokeLater( () -> {
+            case ConfigParameters.resetButtonActionCommand -> resetClick();
+            case ConfigParameters.saveButtonActionCommand -> saveClick();
+            case ConfigParameters.loadButtonActionCommand -> loadClick();
+            case ConfigParameters.backButtonActionCommand -> SwingUtilities.invokeLater( () -> {
                 boolean userVerification = game.state() == GameState.NOT_STARTED
                         || view.areYouSureYouWantToDoThis("Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
                 if (userVerification) {

@@ -20,11 +20,11 @@ import java.util.stream.IntStream;
  * @param pieces {@link List} of {@link Piece}s involved in the game.
  * @param castling {@link Map} that maps each {@link ChessColor} to another
  * map mapping each {@link CastlingType} to a boolean representing the
- * availability of castling for that player and castling type.
+ * availability of castling for that player and castling variant.
  * @param playHistory {@link List} of {@link Play}s previously done in the game.
- * @param config {@link GameConfiguration} object storing certain qualities of
+ * @param variant {@link GameVariant} object storing certain qualities of
  * the game like number of rows, columns, initial rows and columns for each
- * color and certain types of pieces and castling columns for each type of
+ * color and certain types of initPieces and castling columns for each variant of
  * castling.
  * @param state {@link GameState} enum representing if the game has started,
  * ended, and how it ended, or if it's currently in progress.
@@ -35,7 +35,7 @@ public record Chess(
         Map<ChessColor, Map<CastlingType, Boolean>> castling,
         List<Play> playHistory,
         ChessColor activePlayer,
-        GameConfiguration config,
+        GameVariant variant,
         GameState state,
         boolean isTimed,
         int whiteSeconds,
@@ -62,7 +62,7 @@ public record Chess(
      * <li>If {@code piece} can't legally move to {@code finPos} (with the
      * appropriate {@code checkCheck} parameter), {@code Optional.empty} is
      * returned.</li>
-     * <li>Then a new pieces list is created and properly updated, taking into
+     * <li>Then a new initPieces list is created and properly updated, taking into
      * account the possibility of a captured piece and an en passant capture.</li>
      * <li>Then a new Play list is created and updated.
      * <li>Then a new castling map is created and properly updated, setting to
@@ -130,19 +130,19 @@ public record Chess(
             for (CastlingType type : CastlingType.values()) {
 
                 if (
-                        color.equals(playerMoving) // The color we're checking is the same as the piece that moved
-                                && isCastlingAvailable(color, type) // Castling was available before the movement for this color and type
-                                && ( // The initial position of the movement was the king or rook's initial position of the castling type we're checking
-                                initPos.equals(config.rookInitPos(color, type))
-                                        || initPos.equals(config.kingInitPos(color))
-                        )
+                    color.equals(playerMoving) // The color we're checking is the same as the piece that moved
+                        && isCastlingAvailable(color, type) // Castling was available before the movement for this color and variant
+                        && ( // The initial position of the movement was the king or rook's initial position of the castling variant we're checking
+                        initPos.equals(variant.initRookPos(type, color))
+                            || initPos.equals(variant.initKingPos(color))
+                    )
                 ) updatedCastlingForColor.put(type, false);
 
                 else if (
-                        pieceCaptured.isPresent() // A piece was captured
-                                && isCastlingAvailable(color, type) // Castling was available before the movement for this color and type
-                                && color.equals(pieceCaptured.get().getColor()) // The color we're checking is the same as the captured piece
-                                && pieceCaptured.get().getPosition().equals(config.rookInitPos(color, type)) // The captured piece was in the rook initial position of the castling type we're checking
+                    pieceCaptured.isPresent() // A piece was captured
+                        && isCastlingAvailable(color, type) // Castling was available before the movement for this color and variant
+                        && color.equals(pieceCaptured.get().getColor()) // The color we're checking is the same as the captured piece
+                        && pieceCaptured.get().getPosition().equals(variant.initRookPos(type, color)) // The captured piece was in the rook initial position of the castling variant we're checking
                 ) updatedCastlingForColor.put(type, false);
 
                 else updatedCastlingForColor.put(type, isCastlingAvailable(color, type));
@@ -155,7 +155,7 @@ public record Chess(
             Map.copyOf(updatedCastling),
             List.copyOf(updatedPlays),
             activePlayer.opposite(),
-            config,
+            variant,
             GameState.IN_PROGRESS,
             isTimed,
             whiteSeconds,
@@ -203,21 +203,21 @@ public record Chess(
     }
 
     /**
-     * Attempts to perform the type of castling to the given player, if able,
+     * Attempts to perform the variant of castling to the given player, if able,
      * and returns the state of the game after it's been done, or
      * {@code Optional.empty} if it was illegal.
      * @param player {@link ChessColor} of the player doing the castling.
-     * @param castlingType {@link CastlingType} type of the castling being done.
+     * @param castlingType {@link CastlingType} variant of the castling being done.
      * @return An {@code Optional} object containing the state of the game
      * after the castling has been performed, or {@code Optional.empty} if it
-     * was illegal. Updates the values of {@code pieces}, {@code playHistory},
+     * was illegal. Updates the values of {@code initPieces}, {@code playHistory},
      * {@code activePlayer} and {@code castling} for the returned game
      * accordingly.
      */
     public Optional<Chess> tryToCastle(ChessColor player, CastlingType castlingType) {
-        Position kingInitPos = config.kingInitPos(player);
+        Position kingInitPos = variant.initKingPos(player);
         Optional<Piece> kingOrNot = findPieceAt(kingInitPos);
-        Optional<Piece> rookOrNot = findPieceAt(config.rookInitPos(player, castlingType));
+        Optional<Piece> rookOrNot = findPieceAt(variant.initRookPos(castlingType, player));
         if (kingOrNot.isEmpty() || rookOrNot.isEmpty() || !isCastlingAvailable(player, castlingType)) return Optional.empty();
         Piece king = kingOrNot.get();
         Piece rook = rookOrNot.get();
@@ -225,10 +225,10 @@ public record Chess(
         List<Piece> updatedPieces = new ArrayList<>(pieces);
         updatedPieces.remove(king);
         updatedPieces.remove(rook);
-        Position kingCastlingPos = config.kingCastlingPos(player, castlingType);
+        Position kingCastlingPos = variant.castlingKingPos(castlingType, player);
         Piece kingMoved = king.moveTo(kingCastlingPos);
         updatedPieces.add(kingMoved);
-        updatedPieces.add(rook.moveTo(config.rookCastlingPos(player, castlingType)));
+        updatedPieces.add(rook.moveTo(variant.castlingRookPos(castlingType, player)));
 
         Map<ChessColor, Map<CastlingType, Boolean>> updatedCastling = new EnumMap<>(ChessColor.class);
         for (ChessColor color : ChessColor.values()) {
@@ -248,7 +248,7 @@ public record Chess(
             Map.copyOf(updatedCastling),
             List.copyOf(updatedPlays),
             activePlayer.opposite(),
-            config,
+            variant,
             GameState.IN_PROGRESS,
             isTimed,
             whiteSeconds,
@@ -277,8 +277,8 @@ public record Chess(
                 .filter(p -> p.getColor() == color)
                 .toList()
         ) {
-            for (int col = 1; col < config.cols(); col++) {
-                for (int row = 1; row < config.rows(); row++) {
+            for (int col = 1; col < variant.cols(); col++) {
+                for (int row = 1; row < variant.rows(); row++) {
                     Position pos = Position.of(col, row);
                     if (piece.isLegalMovement(this, pos, false)) {
                         Chess gameAfterMovement = tryToMoveChain(piece.getPosition(), pos);
@@ -292,7 +292,7 @@ public record Chess(
             castling,
             playHistory,
             activePlayer,
-            config,
+            variant,
             isInCheck ? GameState.playerWins(color.opposite()) : GameState.DRAW,
             isTimed,
             whiteSeconds,
@@ -301,12 +301,12 @@ public record Chess(
     }
 
     /**
-     * Crowns a {@link Pawn} piece passed as argument to a new type, and returns
+     * Crowns a {@link Pawn} piece passed as argument to a new variant, and returns
      * the game state after than change has been done.
      * @param piece {@link Piece} to crown.
-     * @param newType String representing the new type to crown it to.
+     * @param newType String representing the new variant to crown it to.
      * @return An optional containing the state of the game after crowning the
-     * argument piece to its new type, or {@code Optional.empty} if the piece
+     * argument piece to its new variant, or {@code Optional.empty} if the piece
      * isn't a Pawn, if it isn't the piece moved on the last {@link Play} of the
      * game, or if it's not located on its crowning row.
      */
@@ -316,7 +316,7 @@ public record Chess(
         if (!piece.equals(lastPlay.piece())) return Optional.empty();
         Position pos = piece.getPosition();
         ChessColor color = piece.getColor();
-        if (pos.y() != config.crowningRow(color)) return Optional.empty();
+        if (pos.y() != variant.crowningRow(color)) return Optional.empty();
 
         List<Piece> updatedPieces = new ArrayList<>(pieces);
         updatedPieces.remove(piece);
@@ -332,7 +332,7 @@ public record Chess(
             castling,
             List.copyOf(updatedPlays),
             activePlayer,
-            config,
+            variant,
             GameState.IN_PROGRESS,
             isTimed,
             whiteSeconds,
@@ -341,11 +341,11 @@ public record Chess(
     }
 
     public Chess withWhiteSeconds(int whiteSeconds) {
-        return new Chess(pieces, castling, playHistory, activePlayer, config, state, isTimed, whiteSeconds, blackSeconds);
+        return new Chess(pieces, castling, playHistory, activePlayer, variant, state, isTimed, whiteSeconds, blackSeconds);
     }
 
     public Chess withBlackSeconds(int blackSeconds) {
-        return new Chess(pieces, castling, playHistory, activePlayer, config, state, isTimed, whiteSeconds, blackSeconds);
+        return new Chess(pieces, castling, playHistory, activePlayer, variant, state, isTimed, whiteSeconds, blackSeconds);
     }
 
     //</editor-fold>
@@ -449,7 +449,7 @@ public record Chess(
     /**
      * Monadic version of {@link Chess#tryToCastle(ChessColor, CastlingType)}
      * @param player {@link ChessColor} of the player doing the castling.
-     * @param castlingType {@link CastlingType} type of the castling being done.
+     * @param castlingType {@link CastlingType} variant of the castling being done.
      * @return The state of the game after the castling has been performed, or
      * {@code this} if it was illegal.
      */
@@ -460,9 +460,9 @@ public record Chess(
     /**
      * Monadic version of {@link Chess#crownPawn(Piece, String)}.
      * @param piece {@link Piece} to crown.
-     * @param newType String representing the new type to crown it to.
+     * @param newType String representing the new variant to crown it to.
      * @return The state of the game after crowning the argument piece to its
-     * new type, or {@code this} if the piece isn't a Pawn, if it isn't the
+     * new variant, or {@code this} if the piece isn't a Pawn, if it isn't the
      * piece moved on the last {@link Play} of the game, or if it's not located
      * on its crowning row.
      */
@@ -492,8 +492,8 @@ public record Chess(
      */
     public Optional<Piece> findPieceAt(Position pos) {
         return pieces.stream()
-                .filter(piece -> piece.getPosition().equals(pos))
-                .findAny();
+            .filter(piece -> piece.getPosition().equals(pos))
+            .findAny();
     }
 
     /**
@@ -504,7 +504,7 @@ public record Chess(
      */
     public boolean checkPieceAt(Position pos) {
         return pieces.stream()
-                .anyMatch(piece -> piece.getPosition().equals(pos));
+            .anyMatch(piece -> piece.getPosition().equals(pos));
     }
 
     /**
@@ -536,7 +536,7 @@ public record Chess(
      * @param color {@link ChessColor} to match.
      * @return The {@link Piece} of the parameter color whose {@code royal}
      * attribute is true, or {@code Optional.empty} if there's none. If somehow
-     * there are multiple royal pieces, this method might return a different
+     * there are multiple royal initPieces, this method might return a different
      * one on each call.
      */
     public Optional<Piece> findRoyalPiece(ChessColor color) {
@@ -586,7 +586,7 @@ public record Chess(
      * @param finPos Final {@link Position} of the movement.
      * @return Optional.empty if the movement doesn't represent a castling
      * movement at all, and Optional[LEFT | RIGHT] if the movement represents a
-     * castling, ie, if the moved piece is a King, the respective castling type
+     * castling, ie, if the moved piece is a King, the respective castling variant
      * is still available for this game, the final position is the respective
      * castling position as dictated by this game's configuration, there's no
      * piece between the {@link King} and the {@link Rook} (though the piece in
@@ -607,7 +607,7 @@ public record Chess(
      * @param finPos Position to move the piece to.
      * @return Optional.empty if the movement doesn't represent a castling
      * movement at all, and Optional[LEFT | RIGHT] if the movement represents a
-     * castling, ie, if the moved piece is a King, the respective castling type
+     * castling, ie, if the moved piece is a King, the respective castling variant
      * is still available for this game, the final position is the respective
      * castling position as dictated by this game's configuration, there's no
      * piece between the {@link King} and the {@link Rook} (though the piece in
@@ -616,18 +616,18 @@ public record Chess(
      */
     public Optional<CastlingType> castlingTypeOfPlay(Piece piece, Position finPos) {
         if (!(piece instanceof King)) return Optional.empty();
-        if (!finPos.equals(config.kingCastlingPos(piece.getColor(), CastlingType.LEFT)) && !finPos.equals(config.kingCastlingPos(piece.getColor(), CastlingType.RIGHT))) return Optional.empty();
+        if (!finPos.equals(variant.castlingKingPos(CastlingType.LEFT, piece.getColor())) && !finPos.equals(variant.castlingKingPos(CastlingType.RIGHT, piece.getColor()))) return Optional.empty();
         ChessColor color = piece.getColor();
-        int initRow = config.initRow(color);
+        int initRow = variant.initRow(color);
 
-        if (isCastlingAvailable(color, CastlingType.LEFT) && finPos.equals(config.kingCastlingPos(color, CastlingType.LEFT))) {
+        if (isCastlingAvailable(color, CastlingType.LEFT) && finPos.equals(variant.castlingKingPos(CastlingType.LEFT, color))) {
             // Checks if there are piece in the middle of the initial and castling positions
-            if (IntStream.rangeClosed(config.rookInitCol(CastlingType.LEFT)+1, config.rookCastlingCol(CastlingType.LEFT))
+            if (IntStream.rangeClosed(variant.initRookCol(CastlingType.LEFT)+1, variant.castlingRookCol(CastlingType.LEFT))
                     .anyMatch(x -> checkPieceAt(Position.of(x, initRow))))
                 return Optional.empty();
 
             // Checks if any piece could threaten to capture the King if it were on the middle positions.
-            if (IntStream.rangeClosed(config.kingCastlingCol(CastlingType.LEFT), config.kingInitCol())
+            if (IntStream.rangeClosed(variant.castlingKingCol(CastlingType.LEFT), variant.kingInitCol())
                     .anyMatch(x -> pieces.stream()
                             .anyMatch(p -> p.getColor() != color && (
                                     p.isLegalMovement(this, Position.of(x, initRow), false)
@@ -641,14 +641,14 @@ public record Chess(
             return Optional.of(CastlingType.LEFT);
         }
 
-        if (isCastlingAvailable(color, CastlingType.RIGHT) && finPos.equals(config.kingCastlingPos(color, CastlingType.RIGHT))) {
+        if (isCastlingAvailable(color, CastlingType.RIGHT) && finPos.equals(variant.castlingKingPos(CastlingType.RIGHT, color))) {
             // Checks if there are piece in the middle of the initial and castling positions
-            if (IntStream.rangeClosed(config.rookCastlingCol(CastlingType.RIGHT), config.rookInitCol(CastlingType.RIGHT)-1)
+            if (IntStream.rangeClosed(variant.castlingRookCol(CastlingType.RIGHT), variant.initRookCol(CastlingType.RIGHT)-1)
                     .anyMatch(x -> checkPieceAt(Position.of(x, initRow))))
                 return Optional.empty();
 
             // Checks if any piece could threaten to capture the King if it were on the middle positions.
-            if (IntStream.rangeClosed(config.kingCastlingCol(CastlingType.RIGHT), config.kingInitCol())
+            if (IntStream.rangeClosed(variant.castlingKingCol(CastlingType.RIGHT), variant.kingInitCol())
                     .anyMatch(x -> pieces.stream()
                             .anyMatch(p -> p.getColor() != color && p.isLegalMovement(this, Position.of(x, initRow), false))))
                 return Optional.empty();
@@ -656,15 +656,15 @@ public record Chess(
             return Optional.of(CastlingType.RIGHT);
         }
 
-        // If neither castling was available or the position wasn't the expected for that type, returns empty.
+        // If neither castling was available or the position wasn't the expected for that variant, returns empty.
         return Optional.empty();
     }
 
     /**
-     * Gets the availability of castling for the given player and type.
+     * Gets the availability of castling for the given player and variant.
      * @param color {@link ChessColor} player to check.
-     * @param type {@link CastlingType} type to check.
-     * @return Gets the {@code type} key from the {@code color} key of the
+     * @param type {@link CastlingType} variant to check.
+     * @return Gets the {@code variant} key from the {@code color} key of the
      * castling map of {@code this}.
      */
     public boolean isCastlingAvailable(ChessColor color, CastlingType type) {
@@ -677,7 +677,7 @@ public record Chess(
      * @return True if the player is in check, ie, if there's a piece of the
      * opposite color that can legally capture their royal piece, ignoring if
      * making that move would cause a check for its controller. If the given
-     * player has no royal pieces, returns false.
+     * player has no royal initPieces, returns false.
      */
     public boolean isPlayerInCheck(ChessColor color) {
         Optional<Piece> royalPieceOrNot = findRoyalPiece(color);
@@ -862,97 +862,6 @@ public record Chess(
         int Ymovement = Position.yDist(initPos, finPos);
         return isKnightLikePath(Xmovement, Ymovement);
     }
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="Factory constructor methods">
-
-    public static Map<ChessColor, Map<CastlingType, Boolean>> initialCastlingWith(boolean value) {
-        Map<ChessColor, Map<CastlingType, Boolean>> result = new EnumMap<>(ChessColor.class);
-        for (ChessColor color : ChessColor.values()) {
-            Map<CastlingType, Boolean> castlingForColor = new EnumMap<>(CastlingType.class);
-            for (CastlingType type : CastlingType.values()) {
-                castlingForColor.put(type, value);
-            }
-            result.put(color, castlingForColor);
-        }
-        return Map.copyOf(result);
-    }
-
-    private static Chess createTimedChess(GameConfiguration config) {
-        return new Chess(
-            config.pieces(),
-            initialCastlingWith(true),
-            List.of(),
-            ChessColor.WHITE,
-            config,
-            GameState.NOT_STARTED,
-            config.isTimed(),
-            config.whiteSecondsMax(),
-            config.blackSecondsMax()
-        );
-    }
-
-    /**
-     * Factory method to create a standard game.
-     * @return A game with all the standard game pieces on their respective
-     * starting position.
-     */
-    public static Chess standardGame() {
-        return standardGame(false);
-    }
-
-    public static Chess standardGame(boolean isTimed) {
-        return createTimedChess(GameConfiguration.standardGame(isTimed));
-    }
-
-    public static Chess almostChessGame() {
-        return almostChessGame(false);
-    }
-
-    public static Chess almostChessGame(boolean isTimed) {
-        return createTimedChess(GameConfiguration.almostChess(isTimed));
-    }
-
-    public static Chess capablancaGame() {
-        return capablancaGame(false);
-    }
-
-    public static Chess capablancaGame(boolean isTimed) {
-        return createTimedChess(GameConfiguration.capablancaChess(isTimed));
-    }
-
-    public static Chess gothicGame() {
-        return gothicGame(false);
-    }
-
-    public static Chess gothicGame(boolean isTimed) {
-        return createTimedChess(GameConfiguration.gothicChess(isTimed));
-    }
-
-    public static Chess janusGame() {
-        return janusGame(false);
-    }
-
-    public static Chess janusGame(boolean isTimed) {
-        return createTimedChess(GameConfiguration.janusChess(isTimed));
-    }
-
-    public static Chess modernGame() {
-        return modernGame(false);
-    }
-
-    public static Chess modernGame(boolean isTimed) {
-        return createTimedChess(GameConfiguration.modernChess(isTimed));
-    }
-
-    public static Chess tuttiFruttiGame() {
-        return tuttiFruttiGame(false);
-    }
-
-    public static Chess tuttiFruttiGame(boolean isTimed) {
-        return createTimedChess(GameConfiguration.tuttiFruttiChess());
-    }
-
     //</editor-fold>
 
 }

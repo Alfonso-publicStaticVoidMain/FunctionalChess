@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class testChess {
     
-    static final Chess STANDARDGAME = Chess.standardGame();
+    static final Chess STANDARDGAME = GameVariant.STANDARD.game(false);
     
     @Test
     void testCheckPieceAt() {
@@ -110,10 +110,10 @@ public class testChess {
     static Chess createTestGameWithPiece(Piece piece) {
         return new Chess(
             List.of(piece),
-            Chess.initialCastlingWith(true),
+            GameVariant.STANDARD.initCastling(),
             List.of(),
             ChessColor.WHITE,
-            GameConfiguration.standardGame(),
+            GameVariant.STANDARD,
             GameState.NOT_STARTED,
             false,
             -1,

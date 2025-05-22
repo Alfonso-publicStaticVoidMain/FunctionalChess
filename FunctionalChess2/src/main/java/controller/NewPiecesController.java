@@ -3,6 +3,8 @@ package controller;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.SwingUtilities;
+
+import configparams.ConfigParameters;
 import view.NewPieces;
 
 /**
@@ -22,7 +24,7 @@ public class NewPiecesController implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         System.out.println("[DEBUG] NewPiecesController action received: "+command);
-        if (command.equals("Back")) {
+        if (command.equals(ConfigParameters.backButtonActionCommand)) {
             SwingUtilities.invokeLater(() -> {
                 view.dispose();
                 new IndexController();

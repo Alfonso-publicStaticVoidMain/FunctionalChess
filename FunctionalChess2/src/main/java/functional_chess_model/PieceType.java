@@ -7,7 +7,7 @@ import java.util.function.BiFunction;
 /**
  * Enum class listing all {@link Piece} classes implemented thus far.
  * Each instance of this enum has an attribute being the constructor
- * for Pieces of that type, a Function&lt;Position, ChessColor, Piece&gt;.
+ * for Pieces of that variant, a Function&lt;Position, ChessColor, Piece&gt;.
  * Royalty of the Piece is assumed by each class's constructor as needed.
  */
 public enum PieceType {

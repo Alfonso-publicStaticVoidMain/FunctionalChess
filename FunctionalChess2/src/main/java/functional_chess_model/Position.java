@@ -57,14 +57,8 @@ public record Position(int x, int y) implements Serializable {
      * is printed and {@code null} is returned.
      */
     public static Position of(int x, int y) {
-        try {
-            if (x >= 1 && y >= 1) return new Position(x, y);
-            else throw new IllegalArgumentException("Coordinates ("+x+", "+y+") are outside the chess board");
-        } catch (IllegalArgumentException e) {
-            System.err.println("Error occurred while trying to create the position with values: ("+x+", "+y+")");
-            System.err.println(e);
-            return null;
-        }
+        if (x >= 1 && y >= 1) return new Position(x, y);
+        else throw new IllegalArgumentException("Coordinates ("+x+", "+y+") are outside the chess board");
     }
     
     /**
