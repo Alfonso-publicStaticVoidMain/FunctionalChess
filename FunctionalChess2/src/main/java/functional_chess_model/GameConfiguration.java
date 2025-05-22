@@ -1,5 +1,7 @@
 package functional_chess_model;
 
+import functional_chess_model.Pieces.*;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumMap;

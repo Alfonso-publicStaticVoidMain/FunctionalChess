@@ -4,7 +4,7 @@ import controller.ChessController;
 import functional_chess_model.CastlingType;
 import functional_chess_model.Chess;
 import functional_chess_model.ChessColor;
-import functional_chess_model.King;
+import functional_chess_model.Pieces.King;
 import functional_chess_model.Piece;
 import functional_chess_model.Play;
 import functional_chess_model.Position;

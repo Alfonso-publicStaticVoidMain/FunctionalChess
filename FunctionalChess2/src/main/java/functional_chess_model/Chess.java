@@ -1,5 +1,9 @@
 package functional_chess_model;
 
+import functional_chess_model.Pieces.King;
+import functional_chess_model.Pieces.Pawn;
+import functional_chess_model.Pieces.Rook;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -60,13 +64,13 @@ public record Chess(
      * <li>Then a new Play list is created and updated.
      * <li>Then a new castling map is created and properly updated, setting to
      * false the possibility of castling for the active player if they moved
-     * from the initial position of their king or rook on the appropiate side,
+     * from the initial position of their king or rook on the appropriate side,
      * or for the nonactive player if the rook of the appropriate side was
      * captured in the movement.</li>
      * <li>Finally, a new {@code Chess} game is created and returned, copying
      * the lists and map created within the method to ensure immutability, and
      * passing them to the standard constructor of the class, while also
-     * updating the active player to the opposite one, keeing the same game
+     * updating the active player to the opposite one, keeping the same game
      * configuration, and making the state IN_PROGRESS.</li>
      * </ol>
      * @see Chess#findPieceAt
@@ -105,10 +109,9 @@ public record Chess(
     public Optional<Chess> tryToMove(Piece piece, Position finPos, boolean checkCheck) {
         ChessColor playerMoving = piece.getColor();
         Position initPos = piece.getPosition();
-        Optional<Piece> pieceCaptured = pieceCapturedByMove(piece, finPos);
-        
         if (!piece.isLegalMovement(this, finPos, checkCheck)) return Optional.empty();
-        
+
+        Optional<Piece> pieceCaptured = pieceCapturedByMove(piece, finPos);
         List<Piece> updatedPieces = new ArrayList<>(pieces);
         pieceCaptured.ifPresent(updatedPieces::remove);
         updatedPieces.remove(piece);
@@ -219,7 +222,7 @@ public record Chess(
             Map<CastlingType, Boolean> updatedCastlingForColor = new EnumMap<>(CastlingType.class);
             for (CastlingType type : CastlingType.values()) {
                 if (color == player) updatedCastlingForColor.put(type, false);
-                else  updatedCastlingForColor.put(type, isCastlingAvailable(color, type));
+                else updatedCastlingForColor.put(type, isCastlingAvailable(color, type));
             }
             updatedCastling.put(color, Map.copyOf(updatedCastlingForColor));
         }
@@ -284,16 +287,7 @@ public record Chess(
         
         List<Piece> updatedPieces = new ArrayList<>(pieces);
         updatedPieces.remove(piece);
-        switch (newType) {
-            case "Queen" -> updatedPieces.add(new Queen(pos, color));
-            case "Knight" -> updatedPieces.add(new Knight(pos, color));
-            case "Rook" -> updatedPieces.add(new Rook(pos, color));
-            case "Bishop" -> updatedPieces.add(new Bishop(pos, color));
-            case "Amazon" -> updatedPieces.add(new Amazon(pos, color));
-            case "Chancellor" -> updatedPieces.add(new Chancellor(pos, color));
-            case "ArchBishop" -> updatedPieces.add(new ArchBishop(pos, color));
-            default -> {return Optional.empty();}
-        }
+        updatedPieces.add(PieceType.valueOf(newType.toUpperCase()).constructor().apply(pos, color));
         
         List<Play> updatedPlays = new LinkedList<>(playHistory);
         
@@ -324,7 +318,7 @@ public record Chess(
      * Monadic version of {@link Chess#tryToMove(Position, Position, boolean)}.
      * @param initPos Initial {@link Position} of the movement.
      * @param finPos Final {@link Position} of the movement.
-     * @param checkCheck State parameter to track whether or not we declare a
+     * @param checkCheck State parameter to track whether we declare a
      * movement illegal if it'd cause a check.
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
@@ -348,7 +342,7 @@ public record Chess(
      * Monadic version of {@link Chess#tryToMove(Piece, Position, boolean)}.
      * @param piece {@link Piece} being moved.
      * @param finPos Final {@link Position} of the movement.
-     * @param checkCheck State parameter to track whether or not we declare a
+     * @param checkCheck State parameter to track whether we declare a
      * movement illegal if it'd cause a check.
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
@@ -371,7 +365,7 @@ public record Chess(
     /**
      * Monadic version of {@link Chess#tryToMove(Play, boolean)}.
      * @param play {@link Play} storing the movement.
-     * @param checkCheck State parameter to track whether or not we declare a
+     * @param checkCheck State parameter to track whether we declare a
      * movement illegal if it'd cause a check.
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
@@ -442,7 +436,7 @@ public record Chess(
     /**
      * Gets the piece present at the given position, if able.
      * @param pos {@link Position} to find a {@link Piece} in.
-     * @return The {@link Piece} found in the paratemer position if there's one,
+     * @return The {@link Piece} found in the parameter position if there's one,
      * otherwise returns {@code Optional.empty}.
      */
     public Optional<Piece> findPieceAt(Position pos) {
@@ -489,7 +483,7 @@ public record Chess(
     /**
      * Gets the royal piece of the given color.
      * @param color {@link ChessColor} to match.
-     * @return The {@link Piece} of the paratemer color whose {@code royal}
+     * @return The {@link Piece} of the parameter color whose {@code royal}
      * attribute is true, or {@code Optional.empty} if there's none. If somehow
      * there are multiple royal pieces, this method might return a different
      * one on each call.
@@ -584,7 +578,13 @@ public record Chess(
             // Checks if any piece could threaten to capture the King if it were on the middle positions.
             if (IntStream.rangeClosed(config.kingCastlingCol(CastlingType.LEFT), config.kingInitCol())
                     .anyMatch(x -> pieces.stream()
-                            .anyMatch(p -> p.getColor() != color && p.isLegalMovement(this, Position.of(x, initRow), false))))
+                            .anyMatch(p -> p.getColor() != color && (
+                                    p.isLegalMovement(this, Position.of(x, initRow), false)
+                                    || (p instanceof Pawn &&
+                                            Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
+                                            Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
+                                    ))
+                            )))
                 return Optional.empty();
             
             return Optional.of(CastlingType.LEFT);

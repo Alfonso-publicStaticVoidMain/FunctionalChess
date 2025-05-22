@@ -4,8 +4,8 @@ import functional_chess_model.CastlingType;
 import functional_chess_model.Chess;
 import functional_chess_model.ChessColor;
 import functional_chess_model.GameState;
-import functional_chess_model.King;
-import functional_chess_model.Pawn;
+import functional_chess_model.Pieces.King;
+import functional_chess_model.Pieces.Pawn;
 import functional_chess_model.Piece;
 import functional_chess_model.Play;
 import functional_chess_model.Position;
@@ -132,18 +132,20 @@ public class ChessController implements ActionListener {
                 Optional<Play> lastPlay = game.getLastPlay();
                 lastPlay.ifPresent(view::updatePlayHistory);
                 view.updateBoard();
+
+                view.updateActivePlayer();
+
+                game = game.checkMateChain(activePlayer);
+                if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {
+                    view.checkMessage(activePlayer);
+                } else if (game.state() == GameState.DRAW) {
+                    view.drawMessage(activePlayer);
+                }
             }
-            
-            view.updateActivePlayer();   
-            
+
             selectedPosition = null;
-            
-            game = game.checkMateChain(activePlayer);
-            if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {
-                view.checkMessage(activePlayer);
-            } else if (game.state() == GameState.DRAW) {
-                view.drawMessage(activePlayer);
-            }
+
+
         }
     }
     
