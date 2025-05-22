@@ -4,10 +4,14 @@ import functional_chess_model.*;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.SwingUtilities;
+
+import functional_chess_model.Pieces.Bishop;
+import functional_chess_model.Pieces.Nightrider;
+import functional_chess_model.Pieces.Rook;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import view.ChessGUI;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
@@ -19,7 +23,7 @@ public class testChess {
     
     @Test
     void testCheckPieceAt() {
-        assertEquals(true, STANDARDGAME.checkPieceAt(Position.of(1, 1)));
+        assertTrue(STANDARDGAME.checkPieceAt(Position.of(1, 1)));
     } 
     
     @Test
@@ -30,11 +34,11 @@ public class testChess {
     
     @Test
     void testCheckPieceSameOrDiffColorAs() {
-        assertEquals(true, STANDARDGAME.checkPieceSameColorAs(Position.of(1, 1), ChessColor.WHITE));
-        assertEquals(true, STANDARDGAME.checkPieceSameColorAs(Position.of(8, 8), ChessColor.BLACK));
-        
-        assertEquals(false, STANDARDGAME.checkPieceDiffColorAs(Position.of(8, 1), ChessColor.WHITE));
-        assertEquals(true, STANDARDGAME.checkPieceDiffColorAs(Position.of(1, 2), ChessColor.BLACK));
+        assertTrue(STANDARDGAME.checkPieceSameColorAs(Position.of(1, 1), ChessColor.WHITE));
+        assertTrue(STANDARDGAME.checkPieceSameColorAs(Position.of(8, 8), ChessColor.BLACK));
+
+        assertFalse(STANDARDGAME.checkPieceDiffColorAs(Position.of(8, 1), ChessColor.WHITE));
+        assertTrue(STANDARDGAME.checkPieceDiffColorAs(Position.of(1, 2), ChessColor.BLACK));
     }
     
     @Test
@@ -78,7 +82,7 @@ public class testChess {
             .tryToMoveChain(Position.of(5, 7), Position.of(5, 5))
             .tryToMoveChain(Position.of(4, 4), Position.of(5, 5))
             .tryToMoveChain(Position.of(6, 8), Position.of(2, 4));
-        assertEquals(true, game.isPlayerInCheck(ChessColor.WHITE));
+        assertTrue(game.isPlayerInCheck(ChessColor.WHITE));
     }
     
     @Test
@@ -88,9 +92,9 @@ public class testChess {
             .tryToMoveChain(Position.of(5, 7), Position.of(5, 5))
             .tryToMoveChain(Position.of(4, 4), Position.of(5, 5))
             .tryToMoveChain(Position.of(6, 8), Position.of(2, 4));
-        assertEquals(false, game.findPieceAt(Position.of(2, 1)).get().isLegalMovement(game, Position.of(1, 3)));
+        assertFalse(game.findPieceAt(Position.of(2, 1)).get().isLegalMovement(game, Position.of(1, 3)));
         game = game.tryToMoveChain(Position.of(2, 1), Position.of(1, 3), false);
-        assertEquals(true, game.isPlayerInCheck(ChessColor.WHITE));
+        assertTrue(game.isPlayerInCheck(ChessColor.WHITE));
     }
     
     @Test
