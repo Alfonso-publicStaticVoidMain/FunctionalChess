@@ -152,10 +152,10 @@ public class ChessGUI extends JFrame {
             JPanel leftPanel = new JPanel();
             leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
             leftPanel.setPreferredSize(new Dimension(100, 0));
-            whiteTimer = new JLabel(ChessController.formatTime(300), SwingConstants.CENTER);
+            whiteTimer = new JLabel("", SwingConstants.CENTER);
             whiteTimer.setFont(new Font("Arial", Font.BOLD, 16));
             whiteTimer.setAlignmentX(Component.RIGHT_ALIGNMENT);
-            blackTimer = new JLabel(ChessController.formatTime(300), SwingConstants.CENTER);
+            blackTimer = new JLabel("", SwingConstants.CENTER);
             blackTimer.setFont(new Font("Arial", Font.BOLD, 16));
             blackTimer.setAlignmentX(Component.RIGHT_ALIGNMENT);
             leftPanel.add(Box.createVerticalStrut(25)); // Space from top
@@ -188,6 +188,8 @@ public class ChessGUI extends JFrame {
         if (isTimed) {
             gameTimer = controller.viewTimer();
             gameTimer.start();
+            whiteTimer.setText(ChessController.formatTime(controller.getGame().whiteSeconds()));
+            blackTimer.setText(ChessController.formatTime(controller.getGame().blackSeconds()));
         }
     }
 

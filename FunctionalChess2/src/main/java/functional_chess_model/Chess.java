@@ -340,6 +340,14 @@ public record Chess(
         ));
     }
 
+    public Chess withWhiteSeconds(int whiteSeconds) {
+        return new Chess(pieces, castling, playHistory, activePlayer, config, state, isTimed, whiteSeconds, blackSeconds);
+    }
+
+    public Chess withBlackSeconds(int blackSeconds) {
+        return new Chess(pieces, castling, playHistory, activePlayer, config, state, isTimed, whiteSeconds, blackSeconds);
+    }
+
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Monad Functions">

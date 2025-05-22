@@ -145,7 +145,7 @@ public record GameConfiguration(
             kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
             rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
             new String[] {"Queen", "Knight", "Rook", "Bishop"},
-            "Standard"
+            "STANDARD"
         );
     }
 
@@ -200,7 +200,7 @@ public record GameConfiguration(
             kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
             rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
             new String[] {"Chancellor", "Knight", "Rook", "Bishop"},
-            "Almostchess"
+            "ALMOSTCHESS"
         );
     }
 
@@ -250,7 +250,7 @@ public record GameConfiguration(
                 kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
                 rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
                 new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"},
-                "Capablanca"
+                "CAPABLANCA"
         );
     }
 
@@ -300,7 +300,7 @@ public record GameConfiguration(
                 kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
                 rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
                 new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"},
-                "Gothic"
+                "GOTHIC"
         );
     }
 
@@ -351,7 +351,7 @@ public record GameConfiguration(
                 kingCastlingColMap(kingInitCol, leftMovementWhenCastling, rightMovementWhenCastling),
                 rookCastlingColMap(kingInitCol, leftMovementWhenCastling, rightMovementWhenCastling),
                 new String[] {"Queen", "ArchBishop", "Knight", "Rook", "Bishop"},
-                "Janus"
+                "JANUS"
         );
     }
 
@@ -400,7 +400,7 @@ public record GameConfiguration(
                 kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
                 rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
                 new String[] {"Queen", "ArchBishop", "Knight", "Rook", "Bishop"},
-                "Modern"
+                "MODERN"
         );
     }
 
@@ -448,7 +448,7 @@ public record GameConfiguration(
                 kingCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
                 rookCastlingColMap(kingInitCol, movementWhenCastling, movementWhenCastling),
                 new String[] {"Queen", "Chancellor", "ArchBishop", "Knight", "Rook", "Bishop"},
-                "Tuttifrutti"
+                "TUTTIFRUTTI"
         );
     }
 

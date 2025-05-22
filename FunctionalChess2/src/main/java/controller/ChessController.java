@@ -1,14 +1,8 @@
 package controller;
 
-import functional_chess_model.CastlingType;
-import functional_chess_model.Chess;
-import functional_chess_model.ChessColor;
-import functional_chess_model.GameState;
+import functional_chess_model.*;
 import functional_chess_model.Pieces.King;
 import functional_chess_model.Pieces.Pawn;
-import functional_chess_model.Piece;
-import functional_chess_model.Play;
-import functional_chess_model.Position;
 import view.ChessGUI;
 
 import java.awt.*;
@@ -63,6 +57,8 @@ public class ChessController implements ActionListener {
         this.view.setController(this);
         this.view.updateBoard();
         this.selectedPosition = null;
+        this.whiteSecondsLeft = game.whiteSeconds();
+        this.blackSecondsLeft = game.blackSeconds();
     }
 
     public static String formatTime(int seconds) {
@@ -77,14 +73,11 @@ public class ChessController implements ActionListener {
      */
     public Chess getGame() {return game;}
 
-    public int getWhiteSecondsLeft() {return whiteSecondsLeft;}
-    public int getBlackSecondsLeft() {return blackSecondsLeft;}
     public void consumeWhiteSecond() {whiteSecondsLeft--;}
     public void consumeBlackSecond() {blackSecondsLeft--;}
 
     public Timer viewTimer() {
         return new Timer(1000, e -> {
-            Chess game = this.game;
             if (game.state() == GameState.IN_PROGRESS) {
                 JLabel whiteTimer = view.timerForPlayer(ChessColor.WHITE).get();
                 JLabel blackTimer = view.timerForPlayer(ChessColor.BLACK).get();
@@ -97,7 +90,7 @@ public class ChessController implements ActionListener {
                     if (whiteSecondsLeft <= 0) {
                         ((Timer) e.getSource()).stop();
                         JOptionPane.showMessageDialog(view, "White ran out of time!");
-                        this.game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.config(), GameState.BLACK_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
+                        game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.config(), GameState.BLACK_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
                     }
                 } else {
                     consumeBlackSecond();
@@ -107,7 +100,7 @@ public class ChessController implements ActionListener {
                     if (blackSecondsLeft <= 0) {
                         ((Timer) e.getSource()).stop();
                         JOptionPane.showMessageDialog(view, "Black ran out of time!");
-                        this.game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.config(), GameState.WHITE_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
+                        game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.config(), GameState.WHITE_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
                     }
                 }
             }
@@ -192,7 +185,6 @@ public class ChessController implements ActionListener {
 
             selectedPosition = null;
 
-
         }
     }
     
@@ -204,16 +196,11 @@ public class ChessController implements ActionListener {
     public void resetClick() {
         boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to reset the game?");
         if (!userVerification) return;
-        game = switch (game.config().typeOfGame()) {
-            case "Standard Chess" -> Chess.standardGame();
-            case "Almost Chess" -> Chess.almostChessGame();
-            case "Capablanca Chess" -> Chess.capablancaGame();
-            case "Gothic Chess" -> Chess.gothicGame();
-            case "Janus Chess" -> Chess.janusGame();
-            case "Modern Chess" -> Chess.modernGame();
-            case "Tutti Frutti Chess" -> Chess.tuttiFruttiGame();
-            default -> null;
-        };
+        game = GameVariants.valueOf(game.config().typeOfGame()).getGameGenerator().apply(game.isTimed());
+        if (game.isTimed()) {
+            whiteSecondsLeft = game.whiteSeconds();
+            blackSecondsLeft = game.blackSeconds();
+        }
         view.updateBoard();
         view.updateActivePlayer();
         view.resetPlayHistory();
