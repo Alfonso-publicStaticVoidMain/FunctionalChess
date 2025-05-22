@@ -109,10 +109,9 @@ public record Chess(
     public Optional<Chess> tryToMove(Piece piece, Position finPos, boolean checkCheck) {
         ChessColor playerMoving = piece.getColor();
         Position initPos = piece.getPosition();
-        Optional<Piece> pieceCaptured = pieceCapturedByMove(piece, finPos);
-        
         if (!piece.isLegalMovement(this, finPos, checkCheck)) return Optional.empty();
-        
+
+        Optional<Piece> pieceCaptured = pieceCapturedByMove(piece, finPos);
         List<Piece> updatedPieces = new ArrayList<>(pieces);
         pieceCaptured.ifPresent(updatedPieces::remove);
         updatedPieces.remove(piece);
@@ -343,7 +342,7 @@ public record Chess(
      * Monadic version of {@link Chess#tryToMove(Piece, Position, boolean)}.
      * @param piece {@link Piece} being moved.
      * @param finPos Final {@link Position} of the movement.
-     * @param checkCheck State parameter to track whether or not we declare a
+     * @param checkCheck State parameter to track whether we declare a
      * movement illegal if it'd cause a check.
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
