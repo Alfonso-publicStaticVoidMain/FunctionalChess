@@ -34,7 +34,7 @@ public class Bishop extends Piece {
  
     @Override
     public ImageIcon toIcon() {
-        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITEBISHOP : ChessImages.BLACKBISHOP;
+        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITE_BISHOP : ChessImages.BLACK_BISHOP;
     }
     
 }

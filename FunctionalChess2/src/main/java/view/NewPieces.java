@@ -4,6 +4,7 @@
  */
 package view;
 
+import configparams.ConfigParameters;
 import controller.NewPiecesController;
 import graphic_resources.Buttons;
 import javax.swing.*;
@@ -11,16 +12,6 @@ import java.awt.*;
 import graphic_resources.ChessImages;
 
 public class NewPieces extends JFrame {
-
-    // Using the predefined icons from ChessImages class for white and black pieces
-    private static final ImageIcon WHITE_AMAZON_ICON = ChessImages.WHITEAMAZON;
-    private static final ImageIcon BLACK_AMAZON_ICON = ChessImages.BLACKAMAZON;
-
-    private static final ImageIcon WHITE_ARCHBISHOP_ICON = ChessImages.WHITEARCHBISHOP;
-    private static final ImageIcon BLACK_ARCHBISHOP_ICON = ChessImages.BLACKARCHBISHOP;
-
-    private static final ImageIcon WHITE_CHANCELLOR_ICON = ChessImages.WHITECHANCELLOR;
-    private static final ImageIcon BLACK_CHANCELLOR_ICON = ChessImages.BLACKCHANCELLOR;
     
     private final JPanel piecesPanel;
     private final JPanel amazonPanel;
@@ -50,25 +41,16 @@ public class NewPieces extends JFrame {
         chancellorPanel = new JPanel();
         scrollPane = new JScrollPane(piecesPanel);
         
-        // Add pieces and their descriptions
-        addPiecePanel(amazonPanel, "Amazon", WHITE_AMAZON_ICON, BLACK_AMAZON_ICON, 
-          "Moves like a Queen or a Knight.", 
-          AMAZON_MOVE);
-
-        addPiecePanel(archBishopPanel, "ArchBishop", WHITE_ARCHBISHOP_ICON, BLACK_ARCHBISHOP_ICON, 
-          "Moves like a Bishop or a Knight.", 
-          ARCHBISHOP_MOVE);
-
-        addPiecePanel(chancellorPanel, "Chancellor", WHITE_CHANCELLOR_ICON, BLACK_CHANCELLOR_ICON, 
-          "Moves like a Rook or a Knight.", 
-          CHANCELLOR_MOVE);
+        // Add initPieces and their descriptions
+        addPiecePanel(amazonPanel, "Amazon", ChessImages.WHITE_AMAZON, ChessImages.BLACK_AMAZON,"Moves like a Queen or a Knight.", AMAZON_MOVE);
+        addPiecePanel(archBishopPanel, "ArchBishop", ChessImages.WHITE_ARCHBISHOP, ChessImages.BLACK_ARCHBISHOP,"Moves like a Bishop or a Knight.", ARCHBISHOP_MOVE);
+        addPiecePanel(chancellorPanel, "Chancellor", ChessImages.WHITE_CHANCELLOR, ChessImages.BLACK_CHANCELLOR,"Moves like a Rook or a Knight.", CHANCELLOR_MOVE);
         add(scrollPane, BorderLayout.CENTER);
         
         buttonPanel = new JPanel();
-        backButton = Buttons.standardButton("Back");
+        backButton = Buttons.standardButton("Back", ConfigParameters.BACK_BUTTON);
         buttonPanel.add(backButton);
         add(buttonPanel, BorderLayout.SOUTH);
-        
         
         setVisible(true);
     }

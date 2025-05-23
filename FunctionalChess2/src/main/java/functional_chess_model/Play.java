@@ -13,7 +13,7 @@ import java.io.Serializable;
  * @param finPos Final {@link Position} of the movement.
  * @param pieceCaptured Optional {@link Piece} captured in the Play, if any.
  * @param castlingInfo Optional of the enum class {@link CastlingType}, with
- * values LEFT and RIGHT, representing what type of castling was made, if any.
+ * values LEFT and RIGHT, representing what variant of castling was made, if any.
  * @param pieceCrowned Optional {@link Piece} representing the piece the
  * moved piece was crowned into, if any.
  */
@@ -59,7 +59,7 @@ public record Play(
      * @param finPos Final {@link Position}.
      * @param pieceCaptured {@link Piece} captured.
      * @param pieceCrowned {@link Piece} that it was crowned into (with its
-     * new type).
+     * new variant).
      */
     public Play(Piece piece, Position initPos, Position finPos, Piece pieceCaptured, Piece pieceCrowned) {
         this(piece, initPos, finPos, pieceCaptured, null, pieceCrowned);

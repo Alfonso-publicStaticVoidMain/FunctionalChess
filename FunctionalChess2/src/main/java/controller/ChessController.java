@@ -1,15 +1,12 @@
 package controller;
 
-import functional_chess_model.CastlingType;
-import functional_chess_model.Chess;
-import functional_chess_model.ChessColor;
-import functional_chess_model.GameState;
+import configparams.ConfigParameters;
+import functional_chess_model.*;
 import functional_chess_model.Pieces.King;
 import functional_chess_model.Pieces.Pawn;
-import functional_chess_model.Piece;
-import functional_chess_model.Play;
-import functional_chess_model.Position;
 import view.ChessGUI;
+
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
@@ -21,8 +18,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Optional;
-import javax.swing.JButton;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 /**
  * Class that controls the {@link ChessGUI} view of a given chess game
@@ -44,11 +40,14 @@ public class ChessController implements ActionListener {
      */
     private Position selectedPosition;
 
+    private int whiteSecondsLeft;
+    private int blackSecondsLeft;
+
     /**
      * Standard constructor for the {@code ChessController} class, setting the
      * {@link Chess} game, its {@link ChessGUI} view and setting itself as the
      * controller attribute of that view, then initializing its board by 
-     * giving its buttons the appropiate actionLister and finally updating the
+     * giving its buttons the appropriate actionLister and finally updating the
      * board.
      * @param game {@link Chess} game this controller is controlling.
      * @param view  {@link ChessGUI} view this controller is controlling.
@@ -56,9 +55,17 @@ public class ChessController implements ActionListener {
     public ChessController(Chess game, ChessGUI view) {
         this.game = game;
         this.view = view;
+        this.whiteSecondsLeft = game.whiteSeconds();
+        this.blackSecondsLeft = game.blackSeconds();
         this.view.setController(this);
         this.view.updateBoard();
         this.selectedPosition = null;
+    }
+
+    public static String formatTime(int seconds) {
+        int mins = seconds / 60;
+        int secs = seconds % 60;
+        return String.format("%02d:%02d", mins, secs);
     }
 
     /**
@@ -66,7 +73,56 @@ public class ChessController implements ActionListener {
      * @return The {@link Chess} game the controller is controlling.
      */
     public Chess getGame() {return game;}
-    
+
+    /**
+     * Consumes one second from the white player's seconds left.
+     */
+    public void consumeWhiteSecond() {whiteSecondsLeft--;}
+
+    /**
+     * Consumes one second from the black player's seconds left.
+     */
+    public void consumeBlackSecond() {blackSecondsLeft--;}
+
+    /**
+     * Creates a Timer to track and update the time left for each player.
+     * @param whiteTimer JLabel containing the seconds left for the white player.
+     * @param blackTimer JLabel containing the seconds left for the black player.
+     * @return A Timer that each second it paints the active player's timer RED,
+     * the inactive player's BLACK, and consumes one second from the
+     * {@link ChessController}'s respective {@code whiteSeconds} or
+     * {@code blackSeconds} attribute, then checks if that player's seconds are
+     * zero, and in that case, it finishes the game.
+     */
+    public Timer viewTimer(JLabel whiteTimer, JLabel blackTimer) {
+        return new Timer(1000, e -> {
+            if (game.state() == GameState.IN_PROGRESS) {
+
+                if (game.activePlayer() == ChessColor.WHITE) {
+                    consumeWhiteSecond();
+                    blackTimer.setForeground(Color.BLACK);
+                    whiteTimer.setForeground(Color.RED);
+                    whiteTimer.setText(formatTime(whiteSecondsLeft));
+                    if (whiteSecondsLeft == 0) {
+                        ((Timer) e.getSource()).stop();
+                        JOptionPane.showMessageDialog(view, "White ran out of time!");
+                        game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.variant(), GameState.BLACK_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
+                    }
+                } else {
+                    consumeBlackSecond();
+                    blackTimer.setForeground(Color.RED);
+                    whiteTimer.setForeground(Color.BLACK);
+                    blackTimer.setText(formatTime(blackSecondsLeft));
+                    if (blackSecondsLeft <= 0) {
+                        ((Timer) e.getSource()).stop();
+                        JOptionPane.showMessageDialog(view, "Black ran out of time!");
+                        game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.variant(), GameState.WHITE_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
+                    }
+                }
+            }
+        });
+    }
+
     /**
      * Part of the action listener for the view's buttons on the chess board.
      * @param x X coordinate of the button clicked.
@@ -78,12 +134,11 @@ public class ChessController implements ActionListener {
         if (game.state().hasEnded()) return; // Don't do anything if the game has ended.
         
         Position clickedPos = Position.of(x, y);
-        ChessColor activePlayer = game.activePlayer();
         
         if (selectedPosition == null) { // First click stores the selected piece.
             if (game.checkPieceAt(clickedPos)) {
                 Piece piece = game.findPieceAt(clickedPos).get();
-                if (piece.getColor() == activePlayer) {
+                if (piece.getColor() == game.activePlayer()) {
                     selectedPosition = clickedPos;
                     view.highlightValidMoves(piece);
                 } else {
@@ -124,9 +179,9 @@ public class ChessController implements ActionListener {
             if (playDone) {
 
                 piece = game.findPieceAt(clickedPos).orElse(piece);
-                if (piece instanceof Pawn && piece.getPosition().y() == game.config().crowningRow(activePlayer)) { // Pawn crowning
+                if (piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer())) { // Pawn crowning
                     view.updateBoard();
-                    game = game.crownPawnChain(piece, view.pawnCrowningMenu(game.config().crownablePieces()));
+                    game = game.crownPawnChain(piece, view.pawnCrowningMenu(game.variant().crownablePieces()));
                 }
 
                 Optional<Play> lastPlay = game.getLastPlay();
@@ -135,17 +190,16 @@ public class ChessController implements ActionListener {
 
                 view.updateActivePlayer();
 
-                game = game.checkMateChain(activePlayer);
+                game = game.checkMateChain(game.activePlayer());
                 if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {
-                    view.checkMessage(activePlayer);
+                    view.checkMessage(game.activePlayer());
                 } else if (game.state() == GameState.DRAW) {
-                    view.drawMessage(activePlayer);
+                    view.drawMessage(game.activePlayer());
                 }
             }
 
             selectedPosition = null;
-
-
+            game = game.withWhiteBlackSeconds(whiteSecondsLeft, blackSecondsLeft);
         }
     }
     
@@ -155,18 +209,12 @@ public class ChessController implements ActionListener {
      * with the configuration currently being used.
      */
     public void resetClick() {
-        boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to reset the game?");
-        if (!userVerification) return;
-        game = switch (game.config().typeOfGame()) {
-            case "Standard Chess" -> Chess.standardGame();
-            case "Almost Chess" -> Chess.almostChessGame();
-            case "Capablanca Chess" -> Chess.capablancaGame();
-            case "Gothic Chess" -> Chess.gothicGame();
-            case "Janus Chess" -> Chess.janusGame();
-            case "Modern Chess" -> Chess.modernGame();
-            case "Tutti Frutti Chess" -> Chess.tuttiFruttiGame();
-            default -> null;
-        };
+        if (!view.areYouSureYouWantToDoThis("Do you want to reset the game?")) return;
+        game = game.variant().initGame(game.isTimed());
+        if (game.isTimed()) {
+            whiteSecondsLeft = game.whiteSeconds();
+            blackSecondsLeft = game.blackSeconds();
+        }
         view.updateBoard();
         view.updateActivePlayer();
         view.resetPlayHistory();
@@ -179,8 +227,7 @@ public class ChessController implements ActionListener {
      * about the current state of the game.
      */
     public void saveClick() {
-        boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to save the state of the game?");
-        if (!userVerification) return;
+        if (!view.areYouSureYouWantToDoThis("Do you want to save the state of the game?")) return;
         String filePath = view.userTextInputMessage("Enter the name of your game");
         try (
             FileOutputStream fos = new FileOutputStream("savedgames"+File.separator+filePath+".dat", false);
@@ -201,7 +248,7 @@ public class ChessController implements ActionListener {
      * <br><br>
      * If the stored game isn't of the same dimensions as the current game,
      * shows an error message and cancels the load. If it's of the same
-     * dimensions but of a different type, lets the load happen but still
+     * dimensions but of a different variant, lets the load happen but still
      * shows a warning message.
      */
     public void loadClick() {
@@ -212,21 +259,27 @@ public class ChessController implements ActionListener {
                 BufferedInputStream bufis = new BufferedInputStream(fis);
                 ObjectInputStream ois = new ObjectInputStream(bufis)) {
             Chess chessGame = (Chess) ois.readObject();
-            if (chessGame.config().rows() == game.config().rows() && chessGame.config().cols() == game.config().cols()) {
+            if (chessGame.variant().rows() == game.variant().rows() && chessGame.variant().cols() == game.variant().cols()) {
                 boolean playerChoice = true;
-                if (!chessGame.config().typeOfGame().equals(game.config().typeOfGame())) {
-                    playerChoice = view.areYouSureYouWantToDoThis("The game you wanted to load is of type: " + chessGame.config().typeOfGame() + ", while you're playing " + game.config().typeOfGame() +
-                            "\nBut thankfully they are compatible in size. Do you still want to load that game?");
+                if (chessGame.variant() != game.variant()) {
+                    playerChoice = view.areYouSureYouWantToDoThis("The game you wanted to load is of variant: " + chessGame.variant()
+                        + ", while you're playing " + game.variant() +
+                        "\nBut thankfully they are compatible in size. Do you still want to load that game?");
                 }
                 if (playerChoice) {
                     game = chessGame;
                     view.updateBoard();
                     view.updateActivePlayer();
                     view.reloadPlayHistory();
+                    if (game.isTimed()) {
+                        whiteSecondsLeft = game.whiteSeconds();
+                        blackSecondsLeft = game.blackSeconds();
+                    }
                 }
             } else {
-                view.informPlayer("Incompatible dimensions", "Your selected game is of type " + chessGame.config().typeOfGame() + " (" + chessGame.config().rows() + "x" + chessGame.config().cols() + "), while your current one is " +
-                        game.config().typeOfGame() + " (" + game.config().rows() + "x" + game.config().cols() + ")");
+                view.informPlayer("Incompatible dimensions", "Your selected game is of variant "
+                    + chessGame.variant() + " (" + chessGame.variant().rows() + "x" + chessGame.variant().cols()
+                    + "), while your current one is " + game.variant() + " (" + game.variant().rows() + "x" + game.variant().cols() + ")");
             }
 
         } catch (IOException ex) {
@@ -241,19 +294,19 @@ public class ChessController implements ActionListener {
         String command = e.getActionCommand();
         System.out.println("[DEBUG] ChessController action received: "+command);
         switch (command) {
-            case "Board Button" -> {
+            case ConfigParameters.BOARD_BUTTON -> {
                 JButton clickedButton = (JButton) e.getSource();
                 int x = (int) clickedButton.getClientProperty("x");
                 int y = (int) clickedButton.getClientProperty("y");
                 System.out.println("[DEBUG] Position: "+Position.of(x, y)+" (x="+x+", y="+y+")");
                 handleClick(x, y);
             }
-            case "Reset" -> resetClick();
-            case "Save" -> saveClick();
-            case "Load" -> loadClick();
-            case "Back" -> SwingUtilities.invokeLater( () -> {
+            case ConfigParameters.RESET_BUTTON -> resetClick();
+            case ConfigParameters.SAVE_BUTTON -> saveClick();
+            case ConfigParameters.LOAD_BUTTON -> loadClick();
+            case ConfigParameters.BACK_BUTTON -> SwingUtilities.invokeLater(() -> {
                 boolean userVerification = game.state() == GameState.NOT_STARTED
-                        || view.areYouSureYouWantToDoThis("Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
+                    || view.areYouSureYouWantToDoThis("Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
                 if (userVerification) {
                     view.dispose();
                     new IndexController();

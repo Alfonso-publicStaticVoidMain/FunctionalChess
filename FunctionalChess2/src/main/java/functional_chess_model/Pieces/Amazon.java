@@ -34,7 +34,7 @@ public class Amazon extends Piece {
 
     @Override
     public ImageIcon toIcon() {
-        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITEAMAZON : ChessImages.BLACKAMAZON;
+        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITE_AMAZON : ChessImages.BLACK_AMAZON;
     }
     
 }

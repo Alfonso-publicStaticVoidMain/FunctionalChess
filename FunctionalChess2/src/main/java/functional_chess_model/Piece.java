@@ -54,12 +54,11 @@ public abstract class Piece implements Serializable {
             position.equals(finPos)
             || game.checkPieceSameColorAs(finPos, color)
             || (checkCheck && game.doesThisMovementCauseACheck(this, finPos))
-            
         );
     }
     
     /**
-     * Returns String representing {@code this}'s color and type.
+     * Returns String representing {@code this}'s color and variant.
      * @return A concatenation of the name of the color of {@code this} Piece,
      * a blank space, and the simple name of {@code this}'s class.
      */
