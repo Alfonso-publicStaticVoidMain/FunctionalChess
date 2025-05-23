@@ -119,12 +119,11 @@ public class ChessController implements ActionListener {
         if (game.state().hasEnded()) return; // Don't do anything if the game has ended.
         
         Position clickedPos = Position.of(x, y);
-        ChessColor activePlayer = game.activePlayer();
         
         if (selectedPosition == null) { // First click stores the selected piece.
             if (game.checkPieceAt(clickedPos)) {
                 Piece piece = game.findPieceAt(clickedPos).get();
-                if (piece.getColor() == activePlayer) {
+                if (piece.getColor() == game.activePlayer()) {
                     selectedPosition = clickedPos;
                     view.highlightValidMoves(piece);
                 } else {
@@ -165,7 +164,7 @@ public class ChessController implements ActionListener {
             if (playDone) {
 
                 piece = game.findPieceAt(clickedPos).orElse(piece);
-                if (piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(activePlayer)) { // Pawn crowning
+                if (piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer())) { // Pawn crowning
                     view.updateBoard();
                     game = game.crownPawnChain(piece, view.pawnCrowningMenu(game.variant().crownablePieces()));
                 }
@@ -176,11 +175,11 @@ public class ChessController implements ActionListener {
 
                 view.updateActivePlayer();
 
-                game = game.checkMateChain(activePlayer);
+                game = game.checkMateChain(game.activePlayer());
                 if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {
-                    view.checkMessage(activePlayer);
+                    view.checkMessage(game.activePlayer());
                 } else if (game.state() == GameState.DRAW) {
-                    view.drawMessage(activePlayer);
+                    view.drawMessage(game.activePlayer());
                 }
             }
 
@@ -195,9 +194,8 @@ public class ChessController implements ActionListener {
      * with the configuration currently being used.
      */
     public void resetClick() {
-        boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to reset the game?");
-        if (!userVerification) return;
-        game = GameVariant.valueOf(game.variant().toString()).game(game.isTimed());
+        if (!view.areYouSureYouWantToDoThis("Do you want to reset the game?")) return;
+        game = game.variant().initGame(game.isTimed());
         if (game.isTimed()) {
             whiteSecondsLeft = game.whiteSeconds();
             blackSecondsLeft = game.blackSeconds();
@@ -214,8 +212,7 @@ public class ChessController implements ActionListener {
      * about the current state of the game.
      */
     public void saveClick() {
-        boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to save the state of the game?");
-        if (!userVerification) return;
+        if (!view.areYouSureYouWantToDoThis("Do you want to save the state of the game?")) return;
         String filePath = view.userTextInputMessage("Enter the name of your game");
         try (
             FileOutputStream fos = new FileOutputStream("savedgames"+File.separator+filePath+".dat", false);
@@ -286,9 +283,9 @@ public class ChessController implements ActionListener {
             case ConfigParameters.resetButtonActionCommand -> resetClick();
             case ConfigParameters.saveButtonActionCommand -> saveClick();
             case ConfigParameters.loadButtonActionCommand -> loadClick();
-            case ConfigParameters.backButtonActionCommand -> SwingUtilities.invokeLater( () -> {
+            case ConfigParameters.backButtonActionCommand -> SwingUtilities.invokeLater(() -> {
                 boolean userVerification = game.state() == GameState.NOT_STARTED
-                        || view.areYouSureYouWantToDoThis("Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
+                    || view.areYouSureYouWantToDoThis("Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
                 if (userVerification) {
                     view.dispose();
                     new IndexController();

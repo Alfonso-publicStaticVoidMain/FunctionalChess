@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class testChess {
     
-    static final Chess STANDARDGAME = GameVariant.STANDARD.game(false);
+    static final Chess STANDARDGAME = GameVariant.STANDARD.initGame(false);
     
     @Test
     void testCheckPieceAt() {

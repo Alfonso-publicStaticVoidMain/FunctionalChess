@@ -26,6 +26,8 @@ public enum GameVariant {
     private final int kingInitCol;
     private final int leftCastlingMovement;
     private final int rightCastlingMovement;
+    private final String[] crownablePieces;
+    private final Map<ChessColor, Map<CastlingType, Boolean>> initCastling;
 
     public int rows() {return rows;}
     public int cols() {return cols;}
@@ -34,6 +36,8 @@ public enum GameVariant {
     public int kingInitCol() {return kingInitCol;}
     public int leftCastlingMovement() {return leftCastlingMovement;}
     public int rightCastlingMovement() {return rightCastlingMovement;}
+    public String[] crownablePieces() {return crownablePieces;}
+    public Map<ChessColor, Map<CastlingType, Boolean>> initCastling() {return initCastling;}
 
     GameVariant(int rows, int cols, List<Piece> initPieces, boolean castlingEnabled, int kingInitCol, int leftCastlingMovement, int rightCastlingMovement) {
         this.rows = rows;
@@ -43,16 +47,30 @@ public enum GameVariant {
         this.kingInitCol = kingInitCol;
         this.leftCastlingMovement = leftCastlingMovement;
         this.rightCastlingMovement = rightCastlingMovement;
+        this.crownablePieces = initPieces.stream()
+            .filter(piece -> !(piece instanceof Pawn) && !(piece instanceof King))
+            .map(piece -> piece.getClass().getSimpleName())
+            .distinct()
+            .toArray(String[]::new);
+        Map<ChessColor, Map<CastlingType, Boolean>> initCastling = new EnumMap<>(ChessColor.class);
+        for (ChessColor color : ChessColor.values()) {
+            Map<CastlingType, Boolean> castlingForColor = new EnumMap<>(CastlingType.class);
+            for (CastlingType type : CastlingType.values()) {
+                castlingForColor.put(type, castlingEnabled);
+            }
+            initCastling.put(color, castlingForColor);
+        }
+        this.initCastling = initCastling;
     }
 
     public ChessController controller(boolean isTimed) {
-        return new ChessController(game(isTimed), new ChessGUI(rows, cols, isTimed));
+        return new ChessController(initGame(isTimed), new ChessGUI(rows, cols, isTimed));
     }
 
-    public Chess game(boolean isTimed, int seconds) {
+    public Chess initGame(boolean isTimed, int seconds) {
         return new Chess(
-            initPieces,
-            initCastling(),
+            List.copyOf(initPieces),
+            Map.copyOf(initCastling),
             List.of(),
             ChessColor.WHITE,
             this,
@@ -63,16 +81,8 @@ public enum GameVariant {
         );
     }
 
-    public Chess game(boolean isTimed) {
-        return game(isTimed, isTimed ? 300 : -1);
-    }
-
-    public String[] crownablePieces() {
-        return initPieces.stream()
-            .filter(piece -> !(piece instanceof Pawn) && !(piece instanceof King))
-            .map(piece -> piece.getClass().getSimpleName())
-            .distinct()
-            .toArray(String[]::new);
+    public Chess initGame(boolean isTimed) {
+        return initGame(isTimed, isTimed ? 300 : -1);
     }
 
     public Position initKingPos(ChessColor color) {
@@ -121,18 +131,6 @@ public enum GameVariant {
 
     public Position castlingRookPos(CastlingType side, ChessColor color) {
         return Position.of(castlingRookCol(side), initRow(color));
-    }
-
-    public Map<ChessColor, Map<CastlingType, Boolean>> initCastling() {
-        Map<ChessColor, Map<CastlingType, Boolean>> result = new EnumMap<>(ChessColor.class);
-        for (ChessColor color : ChessColor.values()) {
-            Map<CastlingType, Boolean> castlingForColor = new EnumMap<>(CastlingType.class);
-            for (CastlingType type : CastlingType.values()) {
-                castlingForColor.put(type, castlingEnabled);
-            }
-            result.put(color, castlingForColor);
-        }
-        return Map.copyOf(result);
     }
 
     public static List<Piece> standardPieces() {
