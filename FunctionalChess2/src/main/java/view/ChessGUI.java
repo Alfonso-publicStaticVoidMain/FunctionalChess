@@ -326,7 +326,7 @@ public class ChessGUI extends JFrame {
     }
 
     /**
-     * Updates the current state of the board, putting the appropiate icon of
+     * Updates the current state of the board, putting the appropriate icon of
      * the piece present on each board button, or an empty icon if empty.
      */
     public void updateBoard() {

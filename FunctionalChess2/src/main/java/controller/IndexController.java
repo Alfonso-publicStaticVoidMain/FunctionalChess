@@ -39,18 +39,12 @@ public class IndexController implements ActionListener {
         }
 
         switch (command) {
-            case ConfigParameters.newPiecesButtonActionCommand -> {
-                SwingUtilities.invokeLater(() -> {
+            case ConfigParameters.newPiecesButtonActionCommand -> SwingUtilities.invokeLater(() -> {
                     view.dispose();
                     new NewPiecesController();
-                });
-            }
-            case ConfigParameters.timerToggleActionCommand -> {
-                isTimed = !isTimed;
-            }
-            case ConfigParameters.exitButtonActionCommand -> {
-                SwingUtilities.invokeLater(view::dispose);
-            }
+            });
+            case ConfigParameters.timerToggleActionCommand -> isTimed = !isTimed;
+            case ConfigParameters.exitButtonActionCommand -> SwingUtilities.invokeLater(view::dispose);
         }
     }    
 }

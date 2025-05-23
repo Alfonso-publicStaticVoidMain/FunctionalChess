@@ -2,7 +2,6 @@ package view;
 
 import configparams.ConfigParameters;
 import controller.IndexController;
-import functional_chess_model.GameVariant;
 import graphic_resources.Buttons;
 import graphic_resources.ChessImages;
 import java.awt.BorderLayout;
