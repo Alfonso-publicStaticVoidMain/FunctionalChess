@@ -47,7 +47,7 @@ public class ChessController implements ActionListener {
      * Standard constructor for the {@code ChessController} class, setting the
      * {@link Chess} game, its {@link ChessGUI} view and setting itself as the
      * controller attribute of that view, then initializing its board by 
-     * giving its buttons the appropiate actionLister and finally updating the
+     * giving its buttons the appropriate actionLister and finally updating the
      * board.
      * @param game {@link Chess} game this controller is controlling.
      * @param view  {@link ChessGUI} view this controller is controlling.
@@ -55,11 +55,11 @@ public class ChessController implements ActionListener {
     public ChessController(Chess game, ChessGUI view) {
         this.game = game;
         this.view = view;
+        this.whiteSecondsLeft = game.whiteSeconds();
+        this.blackSecondsLeft = game.blackSeconds();
         this.view.setController(this);
         this.view.updateBoard();
         this.selectedPosition = null;
-        this.whiteSecondsLeft = game.whiteSeconds();
-        this.blackSecondsLeft = game.blackSeconds();
     }
 
     public static String formatTime(int seconds) {
@@ -74,21 +74,36 @@ public class ChessController implements ActionListener {
      */
     public Chess getGame() {return game;}
 
+    /**
+     * Consumes one second from the white player's seconds left.
+     */
     public void consumeWhiteSecond() {whiteSecondsLeft--;}
+
+    /**
+     * Consumes one second from the black player's seconds left.
+     */
     public void consumeBlackSecond() {blackSecondsLeft--;}
 
-    public Timer viewTimer() {
+    /**
+     * Creates a Timer to track and update the time left for each player.
+     * @param whiteTimer JLabel containing the seconds left for the white player.
+     * @param blackTimer JLabel containing the seconds left for the black player.
+     * @return A Timer that each second it paints the active player's timer RED,
+     * the inactive player's BLACK, and consumes one second from the
+     * {@link ChessController}'s respective {@code whiteSeconds} or
+     * {@code blackSeconds} attribute, then checks if that player's seconds are
+     * zero, and in that case, it finishes the game.
+     */
+    public Timer viewTimer(JLabel whiteTimer, JLabel blackTimer) {
         return new Timer(1000, e -> {
             if (game.state() == GameState.IN_PROGRESS) {
-                JLabel whiteTimer = view.timerForPlayer(ChessColor.WHITE).get();
-                JLabel blackTimer = view.timerForPlayer(ChessColor.BLACK).get();
 
                 if (game.activePlayer() == ChessColor.WHITE) {
                     consumeWhiteSecond();
                     blackTimer.setForeground(Color.BLACK);
                     whiteTimer.setForeground(Color.RED);
                     whiteTimer.setText(formatTime(whiteSecondsLeft));
-                    if (whiteSecondsLeft <= 0) {
+                    if (whiteSecondsLeft == 0) {
                         ((Timer) e.getSource()).stop();
                         JOptionPane.showMessageDialog(view, "White ran out of time!");
                         game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.variant(), GameState.BLACK_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
@@ -184,7 +199,7 @@ public class ChessController implements ActionListener {
             }
 
             selectedPosition = null;
-
+            game = game.withWhiteBlackSeconds(whiteSecondsLeft, blackSecondsLeft);
         }
     }
     
@@ -247,18 +262,24 @@ public class ChessController implements ActionListener {
             if (chessGame.variant().rows() == game.variant().rows() && chessGame.variant().cols() == game.variant().cols()) {
                 boolean playerChoice = true;
                 if (chessGame.variant() != game.variant()) {
-                    playerChoice = view.areYouSureYouWantToDoThis("The game you wanted to load is of variant: " + chessGame.variant() + ", while you're playing " + game.variant() +
-                            "\nBut thankfully they are compatible in size. Do you still want to load that game?");
+                    playerChoice = view.areYouSureYouWantToDoThis("The game you wanted to load is of variant: " + chessGame.variant()
+                        + ", while you're playing " + game.variant() +
+                        "\nBut thankfully they are compatible in size. Do you still want to load that game?");
                 }
                 if (playerChoice) {
                     game = chessGame;
                     view.updateBoard();
                     view.updateActivePlayer();
                     view.reloadPlayHistory();
+                    if (game.isTimed()) {
+                        whiteSecondsLeft = game.whiteSeconds();
+                        blackSecondsLeft = game.blackSeconds();
+                    }
                 }
             } else {
-                view.informPlayer("Incompatible dimensions", "Your selected game is of variant " + chessGame.variant() + " (" + chessGame.variant().rows() + "x" + chessGame.variant().cols() + "), while your current one is " +
-                        game.variant() + " (" + game.variant().rows() + "x" + game.variant().cols() + ")");
+                view.informPlayer("Incompatible dimensions", "Your selected game is of variant "
+                    + chessGame.variant() + " (" + chessGame.variant().rows() + "x" + chessGame.variant().cols()
+                    + "), while your current one is " + game.variant() + " (" + game.variant().rows() + "x" + game.variant().cols() + ")");
             }
 
         } catch (IOException ex) {
@@ -273,17 +294,17 @@ public class ChessController implements ActionListener {
         String command = e.getActionCommand();
         System.out.println("[DEBUG] ChessController action received: "+command);
         switch (command) {
-            case ConfigParameters.boardButtonActionCommand -> {
+            case ConfigParameters.BOARD_BUTTON -> {
                 JButton clickedButton = (JButton) e.getSource();
                 int x = (int) clickedButton.getClientProperty("x");
                 int y = (int) clickedButton.getClientProperty("y");
                 System.out.println("[DEBUG] Position: "+Position.of(x, y)+" (x="+x+", y="+y+")");
                 handleClick(x, y);
             }
-            case ConfigParameters.resetButtonActionCommand -> resetClick();
-            case ConfigParameters.saveButtonActionCommand -> saveClick();
-            case ConfigParameters.loadButtonActionCommand -> loadClick();
-            case ConfigParameters.backButtonActionCommand -> SwingUtilities.invokeLater(() -> {
+            case ConfigParameters.RESET_BUTTON -> resetClick();
+            case ConfigParameters.SAVE_BUTTON -> saveClick();
+            case ConfigParameters.LOAD_BUTTON -> loadClick();
+            case ConfigParameters.BACK_BUTTON -> SwingUtilities.invokeLater(() -> {
                 boolean userVerification = game.state() == GameState.NOT_STARTED
                     || view.areYouSureYouWantToDoThis("Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
                 if (userVerification) {

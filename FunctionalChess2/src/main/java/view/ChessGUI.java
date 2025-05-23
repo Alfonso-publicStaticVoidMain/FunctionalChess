@@ -18,6 +18,7 @@ import java.awt.LayoutManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -92,10 +93,10 @@ public class ChessGUI extends JFrame {
         activePlayerLabel.setFont(new Font("Arial", Font.BOLD, 18));
         activePlayerLabel.setPreferredSize(new Dimension(250, 30));
         
-        resetButton = Buttons.standardButton("Reset", ConfigParameters.resetButtonActionCommand);
-        saveButton = Buttons.standardButton("Save", ConfigParameters.saveButtonActionCommand);
-        loadButton = Buttons.standardButton("Load", ConfigParameters.loadButtonActionCommand);
-        backButton = Buttons.standardButton("Back", ConfigParameters.backButtonActionCommand);
+        resetButton = Buttons.standardButton("Reset", ConfigParameters.RESET_BUTTON);
+        saveButton = Buttons.standardButton("Save", ConfigParameters.SAVE_BUTTON);
+        loadButton = Buttons.standardButton("Load", ConfigParameters.LOAD_BUTTON);
+        backButton = Buttons.standardButton("Back", ConfigParameters.BACK_BUTTON);
         
         topPanel.add(Box.createHorizontalStrut(150));
         topPanel.add(activePlayerLabel);
@@ -177,26 +178,19 @@ public class ChessGUI extends JFrame {
      */
     public void setController(ChessController controller) {
         this.controller = controller;
-        for (JButton[] buttonArray : boardButtons) {
-            for (JButton button : buttonArray) {
-                button.addActionListener(this.controller);
-            }
-        }
+        Stream.of(boardButtons)
+            .flatMap(Stream::of)
+            .forEach(button -> button.addActionListener(this.controller));
         resetButton.addActionListener(this.controller);
         saveButton.addActionListener(this.controller);
         loadButton.addActionListener(this.controller);
         backButton.addActionListener(this.controller);
         if (isTimed) {
-            gameTimer = controller.viewTimer();
+            gameTimer = controller.viewTimer(whiteTimer, blackTimer);
             gameTimer.start();
             whiteTimer.setText(ChessController.formatTime(controller.getGame().whiteSeconds()));
             blackTimer.setText(ChessController.formatTime(controller.getGame().blackSeconds()));
         }
-    }
-
-    public Optional<JLabel> timerForPlayer(ChessColor activePlayer) {
-        if (!isTimed) return Optional.empty();
-        return Optional.of(activePlayer == ChessColor.WHITE ? whiteTimer : blackTimer);
     }
 
     /**
@@ -229,7 +223,7 @@ public class ChessGUI extends JFrame {
                         button.setBackground(Color.GRAY);
                     }
                     button.setFont(new Font("Dialog", Font.PLAIN, 24));
-                    button.setActionCommand(ConfigParameters.boardButtonActionCommand);
+                    button.setActionCommand(ConfigParameters.BOARD_BUTTON);
                     button.putClientProperty("x", col);
                     button.putClientProperty("y", row);
                 }
@@ -286,8 +280,7 @@ public class ChessGUI extends JFrame {
     
     /**
      * Colors red during 1 second the board buttons that contain a {@link Piece}
-     * that can capture the King after the parameter initPieces moves to the
-     * parameter position.
+     * that could capture the King after the proposed movement has been performed.
      * @param piece {@link Piece} to move.
      * @param finPos {@link Position} to move it to.
      */
@@ -330,10 +323,11 @@ public class ChessGUI extends JFrame {
      * the piece present on each board button, or an empty icon if empty.
      */
     public void updateBoard() {
+        Chess game = controller.getGame();
         for (int col = 1; col <= cols; col++) {
             for (int row = 1; row <= rows; row++) {
-                boardButtons[col][row].setIcon(controller.getGame().checkPieceAt(Position.of(col, row)) ?
-                    controller.getGame().findPieceAt(Position.of(col, row)).get().toIcon() :
+                boardButtons[col][row].setIcon(game.checkPieceAt(Position.of(col, row)) ?
+                    game.findPieceAt(Position.of(col, row)).get().toIcon() :
                     new ImageIcon()
                 );
             }
@@ -364,13 +358,18 @@ public class ChessGUI extends JFrame {
      * the information directly from the game attribute of the controller.
      */
     public void updateActivePlayer() {
-        activePlayerLabel.setText("Active Player: "+controller.getGame().activePlayer());
+        activePlayerLabel.setText("Active Player: " + controller.getGame().activePlayer());
     }
-    
+
+    /**
+     * Updates the play history panel with the play passed as parameter,
+     * accounting for pieces captured or castling.
+     * @param lastPlay {@link Play} to fetch data from.
+     */
     public void updatePlayHistory(Play lastPlay) {
         if (lastPlay.pieceCrowned() != null) {
             tableModel.addRow(new Object[] {
-                lastPlay.piece().toString() + " => "+lastPlay.pieceCrowned().getClass().getSimpleName(),
+                lastPlay.piece().toString() + " => " + lastPlay.pieceCrowned().getClass().getSimpleName(),
                 lastPlay.initPos(),
                 lastPlay.finPos(),
                 lastPlay.pieceCaptured() != null ? lastPlay.pieceCaptured().toString() : ""
@@ -392,11 +391,21 @@ public class ChessGUI extends JFrame {
             });
         }
     }
-    
+
+    /**
+     * Shows an emergent window with a given title and message to inform the user.
+     * @param title Title of the window.
+     * @param message Message shown in the window.
+     */
     public void informPlayer(String title, String message) {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }
-    
+
+    /**
+     * Shows a message informing the player that they are in checkmate, while
+     * also updating the play history panel to reflect that info.
+     * @param activePlayer Currently active player.
+     */
     public void checkMessage(ChessColor activePlayer) {
         JOptionPane.showConfirmDialog(
             this,
@@ -408,7 +417,12 @@ public class ChessGUI extends JFrame {
         );
         tableModel.addRow(new Object[] {activePlayer.opposite()+" wins.", "---", "---", "---"});
     }
-    
+
+    /**
+     * Shows a message informing the players that the game is a draw, while
+     * also updating the play history panel to reflect that info.
+     * @param activePlayer Currently active player.
+     */
     public void drawMessage(ChessColor activePlayer) {
         JOptionPane.showConfirmDialog(
             this,
@@ -420,7 +434,12 @@ public class ChessGUI extends JFrame {
         );
         tableModel.addRow(new Object[] {"The game is a draw.", "---", "---", "---"});
     }
-    
+
+    /**
+     * Shows an emergent window asking for user confirmation with a given message.
+     * @param message Message to display.
+     * @return true if the player clicked on the OK_OPTION, false otherwise.
+     */
     public boolean areYouSureYouWantToDoThis(String message) {
         return JOptionPane.showConfirmDialog(
             this,
@@ -429,7 +448,12 @@ public class ChessGUI extends JFrame {
             JOptionPane.OK_CANCEL_OPTION
         ) == JOptionPane.OK_OPTION;
     }
-    
+
+    /**
+     * Shows an emergent window letting the user write some text in a line.
+     * @param title Title of the window.
+     * @return A String containing the text written by the user.
+     */
     public String userTextInputMessage(String title) {
         JTextField textField = new JTextField(20);
         int n = JOptionPane.showConfirmDialog(
@@ -445,7 +469,13 @@ public class ChessGUI extends JFrame {
             return ""+controller.getGame().hashCode();
         }
     }
-    
+
+    /**
+     * Shows an emergent window letting the user choose a file.
+     * @param startingPath Starting path to be shown.
+     * @return The file the user chose.
+     * @throws IOException if no file was selected.
+     */
     public File fileChooser(String startingPath) throws IOException {
         JFileChooser fileChooser = new JFileChooser(startingPath);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -456,16 +486,24 @@ public class ChessGUI extends JFrame {
         }
         throw new IOException("No file selected.");
     }
-    
+
+    /**
+     * Resets the play history panel, deleting all info on it
+     * about the previous plays.
+     */
     public void resetPlayHistory() {
         tableModel.setRowCount(0);
     }
-    
+
+    /**
+     * Resets the play history panel, then for each {@link Play}
+     * in the game's play history List, updates its info into
+     * the panel again.
+     */
     public void reloadPlayHistory() {
         resetPlayHistory();
-        for (Play play : controller.getGame().playHistory()) {
-            updatePlayHistory(play);
-        }
+        controller.getGame().playHistory()
+            .forEach(this::updatePlayHistory);
     }
     
     public static class SquareGridLayout implements LayoutManager {

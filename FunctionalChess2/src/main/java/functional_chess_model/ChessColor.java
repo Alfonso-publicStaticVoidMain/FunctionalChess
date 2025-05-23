@@ -42,7 +42,7 @@ public enum ChessColor implements Serializable {
     
     /**
      * Returns the opposite color of {@code this}.
-     * @return The oppositve of {@code this} color, ie, BLACK if {@code this}
+     * @return The opposite of {@code this} color, ie, BLACK if {@code this}
      * is WHITE, and WHITE if {@code this} is BLACK.
      */
     public ChessColor opposite() {

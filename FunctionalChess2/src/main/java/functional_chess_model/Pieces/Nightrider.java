@@ -40,7 +40,7 @@ public class Nightrider extends Piece {
     
     @Override
     public ImageIcon toIcon() {
-        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITENIGHTRIDER : ChessImages.BLACKNIGHTRIDER;
+        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITE_NIGHTRIDER : ChessImages.BLACK_NIGHTRIDER;
     }
     
 }

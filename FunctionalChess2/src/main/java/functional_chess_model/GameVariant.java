@@ -42,7 +42,7 @@ public enum GameVariant {
     GameVariant(int rows, int cols, List<Piece> initPieces, boolean castlingEnabled, int kingInitCol, int leftCastlingMovement, int rightCastlingMovement) {
         this.rows = rows;
         this.cols = cols;
-        this.initPieces = initPieces;
+        this.initPieces = List.copyOf(initPieces);
         this.castlingEnabled = castlingEnabled;
         this.kingInitCol = kingInitCol;
         this.leftCastlingMovement = leftCastlingMovement;
@@ -52,15 +52,7 @@ public enum GameVariant {
             .map(piece -> piece.getClass().getSimpleName())
             .distinct()
             .toArray(String[]::new);
-        Map<ChessColor, Map<CastlingType, Boolean>> initCastling = new EnumMap<>(ChessColor.class);
-        for (ChessColor color : ChessColor.values()) {
-            Map<CastlingType, Boolean> castlingForColor = new EnumMap<>(CastlingType.class);
-            for (CastlingType type : CastlingType.values()) {
-                castlingForColor.put(type, castlingEnabled);
-            }
-            initCastling.put(color, castlingForColor);
-        }
-        this.initCastling = initCastling;
+        this.initCastling = initCastlingWith(castlingEnabled);
     }
 
     public ChessController controller(boolean isTimed) {
@@ -69,8 +61,8 @@ public enum GameVariant {
 
     public Chess initGame(boolean isTimed, int seconds) {
         return new Chess(
-            List.copyOf(initPieces),
-            Map.copyOf(initCastling),
+            initPieces,
+            initCastling,
             List.of(),
             ChessColor.WHITE,
             this,
@@ -131,6 +123,18 @@ public enum GameVariant {
 
     public Position castlingRookPos(CastlingType side, ChessColor color) {
         return Position.of(castlingRookCol(side), initRow(color));
+    }
+
+    public static Map<ChessColor, Map<CastlingType, Boolean>> initCastlingWith(boolean value) {
+        Map<ChessColor, Map<CastlingType, Boolean>> initCastling = new EnumMap<>(ChessColor.class);
+        for (ChessColor color : ChessColor.values()) {
+            Map<CastlingType, Boolean> castlingForColor = new EnumMap<>(CastlingType.class);
+            for (CastlingType type : CastlingType.values()) {
+                castlingForColor.put(type, value);
+            }
+            initCastling.put(color, castlingForColor);
+        }
+        return Map.copyOf(initCastling);
     }
 
     public static List<Piece> standardPieces() {

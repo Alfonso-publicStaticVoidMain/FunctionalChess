@@ -24,7 +24,7 @@ public class NewPiecesController implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         System.out.println("[DEBUG] NewPiecesController action received: "+command);
-        if (command.equals(ConfigParameters.backButtonActionCommand)) {
+        if (command.equals(ConfigParameters.BACK_BUTTON)) {
             SwingUtilities.invokeLater(() -> {
                 view.dispose();
                 new IndexController();

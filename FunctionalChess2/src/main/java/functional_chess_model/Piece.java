@@ -54,7 +54,6 @@ public abstract class Piece implements Serializable {
             position.equals(finPos)
             || game.checkPieceSameColorAs(finPos, color)
             || (checkCheck && game.doesThisMovementCauseACheck(this, finPos))
-            
         );
     }
     

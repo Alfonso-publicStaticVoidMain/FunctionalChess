@@ -50,7 +50,7 @@ public class Index extends JFrame {
         topPanel.add(subTitle, BorderLayout.CENTER);
 
         timerToggleCheckbox = new JCheckBox("Timed Game");
-        timerToggleCheckbox.setActionCommand(ConfigParameters.timerToggleActionCommand);
+        timerToggleCheckbox.setActionCommand(ConfigParameters.TIMER_TOGGLE);
         timerToggleCheckbox.setFont(new Font("Arial", Font.PLAIN, 16));
         timerToggleCheckbox.setHorizontalAlignment(SwingConstants.CENTER);
         timerToggleCheckbox.setOpaque(false);
@@ -77,7 +77,7 @@ public class Index extends JFrame {
 
         for (int i = 0; i < ConfigParameters.variantNames.length; i++) {
             String variant = ConfigParameters.variantNames[i] + " (" + ConfigParameters.variantSizes[i] + ")";
-            String variantActionCommand = ConfigParameters.variantNamesUpperCase.get(i);
+            String variantActionCommand = ConfigParameters.variantEnumNames.get(i);
             // Row panel: one row per button+icons, horizontal layout
             JPanel rowPanel = new JPanel();
             rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
@@ -103,20 +103,19 @@ public class Index extends JFrame {
 
             // Add icons based on variant
             switch (variantActionCommand) {
-                case "ALMOSTCHESS" -> iconsPanel.add(new JLabel(ChessImages.WHITECHANCELLOR));
+                case "ALMOSTCHESS" -> iconsPanel.add(new JLabel(ChessImages.WHITE_CHANCELLOR));
                 case "CAPABLANCA", "GOTHIC" -> {
-                    iconsPanel.add(new JLabel(ChessImages.WHITECHANCELLOR));
+                    iconsPanel.add(new JLabel(ChessImages.WHITE_CHANCELLOR));
                     iconsPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-                    iconsPanel.add(new JLabel(ChessImages.WHITEARCHBISHOP));
+                    iconsPanel.add(new JLabel(ChessImages.WHITE_ARCHBISHOP));
                 }
-                case "JANUS" -> iconsPanel.add(new JLabel(ChessImages.WHITEARCHBISHOP));
-                case "MODERN" -> iconsPanel.add(new JLabel(ChessImages.WHITEARCHBISHOP));
+                case "JANUS", "MODERN" -> iconsPanel.add(new JLabel(ChessImages.WHITE_ARCHBISHOP));
                 case "TUTTIFRUTTI" -> {
-                    iconsPanel.add(new JLabel(ChessImages.WHITEAMAZON));
+                    iconsPanel.add(new JLabel(ChessImages.WHITE_AMAZON));
                     iconsPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-                    iconsPanel.add(new JLabel(ChessImages.WHITECHANCELLOR));
+                    iconsPanel.add(new JLabel(ChessImages.WHITE_CHANCELLOR));
                     iconsPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-                    iconsPanel.add(new JLabel(ChessImages.WHITEARCHBISHOP));
+                    iconsPanel.add(new JLabel(ChessImages.WHITE_ARCHBISHOP));
                 }
             }
 
@@ -126,12 +125,10 @@ public class Index extends JFrame {
             rowContainer.setLayout(new BoxLayout(rowContainer, BoxLayout.X_AXIS));
             rowContainer.setOpaque(false);
 
-            // Add horizontal margin (e.g. 30px on both sides)
             rowContainer.add(Box.createHorizontalStrut(70));
             rowContainer.add(rowPanel);
             rowContainer.add(Box.createHorizontalStrut(10));
 
-            // Center alignment for rowPanel inside rowContainer
             rowPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
             buttonsPanel.add(rowContainer);
@@ -140,14 +137,14 @@ public class Index extends JFrame {
 
         buttonsPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         
-        newPieces = Buttons.standardButton("New Pieces", ConfigParameters.newPiecesButtonActionCommand);
+        newPieces = Buttons.standardButton("New Pieces", ConfigParameters.NEW_PIECES_BUTTON);
         newPieces.setAlignmentX(Component.CENTER_ALIGNMENT);
         buttons[ConfigParameters.variantNames.length] = newPieces;
         buttonsPanel.add(newPieces);
         
         buttonsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         
-        exitButton = Buttons.standardButton("Exit", ConfigParameters.exitButtonActionCommand);
+        exitButton = Buttons.standardButton("Exit", ConfigParameters.EXIT_BUTTON);
         exitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         buttons[ConfigParameters.variantNames.length+1] = exitButton;
         buttonsPanel.add(exitButton);

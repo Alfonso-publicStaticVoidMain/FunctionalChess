@@ -5,7 +5,6 @@ import configparams.ConfigParameters;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 import javax.swing.SwingUtilities;
 
 import functional_chess_model.GameVariant;
@@ -30,7 +29,7 @@ public class IndexController implements ActionListener {
         String command = e.getActionCommand();
         System.out.println("[DEBUG] IndexController action received: "+command);
 
-        if (ConfigParameters.variantNamesUpperCase.contains(command)) {
+        if (ConfigParameters.variantEnumNames.contains(command)) {
             SwingUtilities.invokeLater(() -> {
                     view.dispose();
                     GameVariant.valueOf(command).controller(isTimed);
@@ -39,12 +38,12 @@ public class IndexController implements ActionListener {
         }
 
         switch (command) {
-            case ConfigParameters.newPiecesButtonActionCommand -> SwingUtilities.invokeLater(() -> {
+            case ConfigParameters.NEW_PIECES_BUTTON -> SwingUtilities.invokeLater(() -> {
                     view.dispose();
                     new NewPiecesController();
             });
-            case ConfigParameters.timerToggleActionCommand -> isTimed = !isTimed;
-            case ConfigParameters.exitButtonActionCommand -> SwingUtilities.invokeLater(view::dispose);
+            case ConfigParameters.TIMER_TOGGLE -> isTimed = !isTimed;
+            case ConfigParameters.EXIT_BUTTON -> SwingUtilities.invokeLater(view::dispose);
         }
     }    
 }

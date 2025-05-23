@@ -3,6 +3,7 @@ package functional_chess_model;
 import functional_chess_model.Pieces.King;
 import functional_chess_model.Pieces.Pawn;
 import functional_chess_model.Pieces.Rook;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -31,15 +32,15 @@ import java.util.stream.IntStream;
  * @author Alfonso Gallego
  */
 public record Chess(
-        List<Piece> pieces,
-        Map<ChessColor, Map<CastlingType, Boolean>> castling,
-        List<Play> playHistory,
-        ChessColor activePlayer,
-        GameVariant variant,
-        GameState state,
-        boolean isTimed,
-        int whiteSeconds,
-        int blackSeconds
+    List<Piece> pieces,
+    Map<ChessColor, Map<CastlingType, Boolean>> castling,
+    List<Play> playHistory,
+    ChessColor activePlayer,
+    GameVariant variant,
+    GameState state,
+    boolean isTimed,
+    int whiteSeconds,
+    int blackSeconds
 ) implements Serializable {
 
     //<editor-fold defaultstate="collapsed" desc="Update state functions">
@@ -114,46 +115,14 @@ public record Chess(
         Position initPos = piece.getPosition();
         if (!piece.isLegalMovement(this, finPos, checkCheck)) return Optional.empty();
 
+        // Store the piece after being moved and piece captured if present.
         Optional<Piece> pieceCaptured = pieceCapturedByMove(piece, finPos);
-        List<Piece> updatedPieces = new ArrayList<>(pieces);
-        pieceCaptured.ifPresent(updatedPieces::remove);
-        updatedPieces.remove(piece);
-        Piece pieceMoved = piece.moveTo(finPos);
-        updatedPieces.add(pieceMoved);
+        Piece pieceAfterMoving = piece.moveTo(finPos);
 
-        List<Play> updatedPlays = new LinkedList<>(playHistory);
-        updatedPlays.add(new Play(pieceMoved, initPos, finPos, pieceCaptured.orElse(null)));
-
-        Map<ChessColor, Map<CastlingType, Boolean>> updatedCastling = new EnumMap<>(ChessColor.class);
-        for (ChessColor color : ChessColor.values()) {
-            Map<CastlingType, Boolean> updatedCastlingForColor = new EnumMap<>(CastlingType.class);
-            for (CastlingType type : CastlingType.values()) {
-
-                if (
-                    color.equals(playerMoving) // The color we're checking is the same as the piece that moved
-                        && isCastlingAvailable(color, type) // Castling was available before the movement for this color and variant
-                        && ( // The initial position of the movement was the king or rook's initial position of the castling variant we're checking
-                        initPos.equals(variant.initRookPos(type, color))
-                            || initPos.equals(variant.initKingPos(color))
-                    )
-                ) updatedCastlingForColor.put(type, false);
-
-                else if (
-                    pieceCaptured.isPresent() // A piece was captured
-                        && isCastlingAvailable(color, type) // Castling was available before the movement for this color and variant
-                        && color.equals(pieceCaptured.get().getColor()) // The color we're checking is the same as the captured piece
-                        && pieceCaptured.get().getPosition().equals(variant.initRookPos(type, color)) // The captured piece was in the rook initial position of the castling variant we're checking
-                ) updatedCastlingForColor.put(type, false);
-
-                else updatedCastlingForColor.put(type, isCastlingAvailable(color, type));
-
-            }
-            updatedCastling.put(color, Map.copyOf(updatedCastlingForColor));
-        }
         return Optional.of(new Chess(
-            List.copyOf(updatedPieces),
-            Map.copyOf(updatedCastling),
-            List.copyOf(updatedPlays),
+            updatedPiecesAfterMove(piece, pieceAfterMoving, pieceCaptured.orElse(null)),
+            updatedCastlingAfterMove(playerMoving, initPos, pieceCaptured.orElse(null)),
+            updatedPlaysAfterMove(finPos, pieceAfterMoving, initPos, pieceCaptured.orElse(null)),
             activePlayer.opposite(),
             variant,
             GameState.IN_PROGRESS,
@@ -161,6 +130,45 @@ public record Chess(
             whiteSeconds,
             blackSeconds
         ));
+    }
+
+    private List<Piece> updatedPiecesAfterMove(Piece pieceBeforeMoving, Piece pieceAfterMoving, Piece pieceCaptured) {
+        List<Piece> updatedPieces = new ArrayList<>(pieces);
+        if (pieceCaptured != null) updatedPieces.remove(pieceCaptured);
+        updatedPieces.remove(pieceBeforeMoving);
+        updatedPieces.add(pieceAfterMoving);
+        return List.copyOf(updatedPieces);
+    }
+
+    private List<Play> updatedPlaysAfterMove(Position finPos, Piece pieceMoved, Position initPos, Piece pieceCaptured) {
+        List<Play> updatedPlays = new LinkedList<>(playHistory);
+        updatedPlays.add(new Play(pieceMoved, initPos, finPos, pieceCaptured));
+        return List.copyOf(updatedPlays);
+    }
+
+    private Map<ChessColor, Map<CastlingType, Boolean>> updatedCastlingAfterMove(ChessColor playerMoving, Position initPos, Piece pieceCaptured) {
+        Map<ChessColor, Map<CastlingType, Boolean>> updatedCastling = new EnumMap<>(ChessColor.class);
+        for (ChessColor color : ChessColor.values()) {
+            Map<CastlingType, Boolean> updatedCastlingForColor = new EnumMap<>(CastlingType.class);
+            for (CastlingType type : CastlingType.values()) {
+                if (
+                    color.equals(playerMoving)
+                        && isCastlingAvailable(color, type) // Castling was available before the movement for this color and variant
+                        && ( // The initial position of the movement was the king or rook's initial position of the castling variant we're checking
+                        initPos.equals(variant.initRookPos(type, color))
+                            || initPos.equals(variant.initKingPos(color))
+                    )) updatedCastlingForColor.put(type, false);
+                else if (
+                    pieceCaptured != null // A piece was captured
+                        && isCastlingAvailable(color, type) // Castling was available before the movement for this color and variant
+                        && color.equals(pieceCaptured.getColor()) // The color we're checking is the same as the captured piece
+                        && pieceCaptured.getPosition().equals(variant.initRookPos(type, color)) // The captured piece was in the rook initial position of the castling variant we're checking
+                ) updatedCastlingForColor.put(type, false);
+                else updatedCastlingForColor.put(type, isCastlingAvailable(color, type));
+            }
+            updatedCastling.put(color, Map.copyOf(updatedCastlingForColor));
+        }
+        return Map.copyOf(updatedCastling);
     }
 
     /**
@@ -340,11 +348,16 @@ public record Chess(
         ));
     }
 
-    public Chess withWhiteSeconds(int whiteSeconds) {
-        return new Chess(pieces, castling, playHistory, activePlayer, variant, state, isTimed, whiteSeconds, blackSeconds);
-    }
-
-    public Chess withBlackSeconds(int blackSeconds) {
+    /**
+     * Updates the number of seconds left for the white and black player
+     * according to the received arguments.
+     * @param whiteSeconds Number of seconds for the white player to update to.
+     * @param blackSeconds Number of seconds for the black player to update to.
+     * @return A new Chess game with all attributes copies from {@code this} except
+     * {@code whiteSeconds} and {@code blackSeconds}, which are taken from this
+     * method's parameters.
+     */
+    public Chess withWhiteBlackSeconds(int whiteSeconds, int blackSeconds) {
         return new Chess(pieces, castling, playHistory, activePlayer, variant, state, isTimed, whiteSeconds, blackSeconds);
     }
 
