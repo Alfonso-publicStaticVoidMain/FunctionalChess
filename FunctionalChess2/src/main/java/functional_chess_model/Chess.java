@@ -221,11 +221,11 @@ public record Chess(
     public Optional<Chess> checkMate(ChessColor color) {
         boolean isInCheck = isPlayerInCheck(color);
         for (Piece piece : pieces.stream()
-                .filter(p -> p.getColor() == color)
-                .toList()
+            .filter(p -> p.getColor() == color)
+            .toList()
         ) {
-            for (int col = 1; col < variant.cols(); col++) {
-                for (int row = 1; row < variant.rows(); row++) {
+            for (int col = 1; col <= variant.cols(); col++) {
+                for (int row = 1; row <= variant.rows(); row++) {
                     Position pos = Position.of(col, row);
                     if (piece.isLegalMovement(this, pos, false)) {
                         Chess gameAfterMovement = tryToMoveChain(piece.getPosition(), pos);
@@ -288,7 +288,7 @@ public record Chess(
      * {@code whiteSeconds} and {@code blackSeconds}, which are taken from this
      * method's parameters.
      */
-    public Chess withWhiteBlackSeconds(int whiteSeconds, int blackSeconds) {
+    public Chess withSeconds(int whiteSeconds, int blackSeconds) {
         return new Chess(pieces, castling, playHistory, activePlayer, variant, state, isTimed, whiteSeconds, blackSeconds);
     }
 
@@ -828,6 +828,11 @@ public record Chess(
         if (Math.abs(Position.xDist(lastPlay.finPos(), piece.getPosition())) != 1) return OptionalInt.empty();
 
         return OptionalInt.of(Position.xDist(piece.getPosition(), lastPlay.finPos()));
+    }
+
+    public boolean isValidMove(Position initPos, Position finPos) {
+        if (!checkPieceAt(initPos)) return false;
+        return findPieceAt(initPos).get().isLegalMovement(this, finPos);
     }
 
     //</editor-fold>

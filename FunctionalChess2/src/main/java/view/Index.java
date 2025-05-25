@@ -30,6 +30,10 @@ public class Index extends JFrame {
     public JPanel iconsPanel;
     private JButton newPieces;
     private final JButton exitButton;
+    private final JRadioButton localRadio;
+    private final JRadioButton hostRadio;
+    private final JRadioButton clientRadio;
+    private final ButtonGroup networkToggleGroup;
     
     private IndexController controller;
     
@@ -65,6 +69,28 @@ public class Index extends JFrame {
         bottomTopPanel.setLayout(new BoxLayout(bottomTopPanel, BoxLayout.Y_AXIS));
         bottomTopPanel.setOpaque(false);
         bottomTopPanel.add(checkboxPanel);
+
+        // Network mode radio buttons
+        localRadio = new JRadioButton("Local");
+        hostRadio = new JRadioButton("Host Game");
+        clientRadio = new JRadioButton("Join Game");
+
+        localRadio.setSelected(true);
+
+        networkToggleGroup = new ButtonGroup();
+        networkToggleGroup.add(localRadio);
+        networkToggleGroup.add(hostRadio);
+        networkToggleGroup.add(clientRadio);
+
+        JPanel radioPanel = new JPanel();
+        radioPanel.setOpaque(false);
+        radioPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        radioPanel.add(localRadio);
+        radioPanel.add(hostRadio);
+        radioPanel.add(clientRadio);
+
+        bottomTopPanel.add(radioPanel);
+
         bottomTopPanel.add(Box.createRigidArea(new Dimension(0, 30)));
 
         topPanel.add(bottomTopPanel, BorderLayout.SOUTH);
@@ -152,6 +178,12 @@ public class Index extends JFrame {
         add(buttonsPanel, BorderLayout.CENTER);
         add(Box.createRigidArea(new Dimension(0, 20)), BorderLayout.SOUTH);
         setVisible(true);
+    }
+
+    public String getNetworkMode() {
+        if (hostRadio.isSelected()) return "HOST";
+        if (clientRadio.isSelected()) return "CLIENT";
+        return "LOCAL";
     }
     
     public void setController(IndexController controller) {

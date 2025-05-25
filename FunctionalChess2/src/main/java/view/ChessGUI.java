@@ -6,6 +6,7 @@ import functional_chess_model.*;
 import functional_chess_model.Pieces.King;
 
 import graphic_resources.Buttons;
+import graphic_resources.EmergentPanels;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -334,24 +335,7 @@ public class ChessGUI extends JFrame {
         }
     }
     
-    /**
-     * Prints a menu to let the player choose a variant for crowning a Pawn.
-     * @param options String array containing the available crowning types.
-     * @return A string representing the variant the player wants to crown a
-     * Pawn into.
-     */
-    public String pawnCrowningMenu(String[] options) {
-        int n = JOptionPane.showOptionDialog(
-            this,
-            "You can crown a pawn. What piece do you want to crown your pawn into?\nNot selecting any option will automatically select the first option.",
-            "Crowning Menu",
-            JOptionPane.DEFAULT_OPTION,
-            JOptionPane.QUESTION_MESSAGE,
-            null,
-            options,
-            options[0]);
-        return options[n];
-    }
+
     
     /**
      * Updates the active player shown in the active player label, fetching
@@ -393,28 +377,12 @@ public class ChessGUI extends JFrame {
     }
 
     /**
-     * Shows an emergent window with a given title and message to inform the user.
-     * @param title Title of the window.
-     * @param message Message shown in the window.
-     */
-    public void informPlayer(String title, String message) {
-        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    /**
      * Shows a message informing the player that they are in checkmate, while
      * also updating the play history panel to reflect that info.
      * @param activePlayer Currently active player.
      */
     public void checkMessage(ChessColor activePlayer) {
-        JOptionPane.showConfirmDialog(
-            this,
-            activePlayer+" is in checkmate.\n"+activePlayer.opposite()+" wins.",
-            "End of the game",
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.INFORMATION_MESSAGE,
-            null
-        );
+        EmergentPanels.informPlayerOkCancel(this, "End of the game", activePlayer+" is in checkmate.\n"+activePlayer.opposite()+" wins.");
         tableModel.addRow(new Object[] {activePlayer.opposite()+" wins.", "---", "---", "---"});
     }
 
@@ -424,68 +392,11 @@ public class ChessGUI extends JFrame {
      * @param activePlayer Currently active player.
      */
     public void drawMessage(ChessColor activePlayer) {
-        JOptionPane.showConfirmDialog(
-            this,
-            activePlayer+" isn't in check but every move would cause a check.\nThe game is a draw.",
-            "End of the game",
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.INFORMATION_MESSAGE,
-            null
-        );
+        EmergentPanels.informPlayerOkCancel(this, "End of the game", activePlayer+" isn't in check but every move would cause a check.\nThe game is a draw.");
         tableModel.addRow(new Object[] {"The game is a draw.", "---", "---", "---"});
     }
 
-    /**
-     * Shows an emergent window asking for user confirmation with a given message.
-     * @param message Message to display.
-     * @return true if the player clicked on the OK_OPTION, false otherwise.
-     */
-    public boolean areYouSureYouWantToDoThis(String message) {
-        return JOptionPane.showConfirmDialog(
-            this,
-            message,
-            "Are you sure you want to do this?",
-            JOptionPane.OK_CANCEL_OPTION
-        ) == JOptionPane.OK_OPTION;
-    }
 
-    /**
-     * Shows an emergent window letting the user write some text in a line.
-     * @param title Title of the window.
-     * @return A String containing the text written by the user.
-     */
-    public String userTextInputMessage(String title) {
-        JTextField textField = new JTextField(20);
-        int n = JOptionPane.showConfirmDialog(
-            this,
-            textField,
-            title,
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE
-        );
-        if (n == JOptionPane.OK_OPTION && !textField.getText().isEmpty() && !textField.getText().isBlank()) {
-            return textField.getText();
-        } else {
-            return ""+controller.getGame().hashCode();
-        }
-    }
-
-    /**
-     * Shows an emergent window letting the user choose a file.
-     * @param startingPath Starting path to be shown.
-     * @return The file the user chose.
-     * @throws IOException if no file was selected.
-     */
-    public File fileChooser(String startingPath) throws IOException {
-        JFileChooser fileChooser = new JFileChooser(startingPath);
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setFileFilter(new FileNameExtensionFilter("DAT files", "dat"));
-        int result = fileChooser.showOpenDialog(null);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            return fileChooser.getSelectedFile();
-        }
-        throw new IOException("No file selected.");
-    }
 
     /**
      * Resets the play history panel, deleting all info on it

@@ -7,6 +7,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.SwingUtilities;
 
+import controller.online.ClientController;
+import controller.online.ServerController;
 import functional_chess_model.GameVariant;
 import view.Index;
 
@@ -30,11 +32,16 @@ public class IndexController implements ActionListener {
         System.out.println("[DEBUG] IndexController action received: "+command);
 
         if (ConfigParameters.variantEnumNames.contains(command)) {
+            String mode = view.getNetworkMode();
+            ChessController controller = GameVariant.valueOf(command).controller(isTimed);
             SwingUtilities.invokeLater(() -> {
-                    view.dispose();
-                    GameVariant.valueOf(command).controller(isTimed);
+                view.dispose();
+                switch (mode) {
+                    case "HOST" -> {new ServerController(controller);}
+                    case "CLIENT" -> {new ClientController(controller);}
                 }
-            );
+            });
+            return;
         }
 
         switch (command) {

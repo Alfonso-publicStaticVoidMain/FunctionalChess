@@ -4,6 +4,7 @@ import configparams.ConfigParameters;
 import functional_chess_model.*;
 import functional_chess_model.Pieces.King;
 import functional_chess_model.Pieces.Pawn;
+import graphic_resources.EmergentPanels;
 import view.ChessGUI;
 
 import java.awt.*;
@@ -181,7 +182,7 @@ public class ChessController implements ActionListener {
                 piece = game.findPieceAt(clickedPos).orElse(piece);
                 if (piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer())) { // Pawn crowning
                     view.updateBoard();
-                    game = game.crownPawnChain(piece, view.pawnCrowningMenu(game.variant().crownablePieces()));
+                    game = game.crownPawnChain(piece, EmergentPanels.pawnCrowningMenu(view, game.variant().crownablePieces()));
                 }
 
                 Optional<Play> lastPlay = game.getLastPlay();
@@ -199,7 +200,7 @@ public class ChessController implements ActionListener {
             }
 
             selectedPosition = null;
-            game = game.withWhiteBlackSeconds(whiteSecondsLeft, blackSecondsLeft);
+            game = game.withSeconds(whiteSecondsLeft, blackSecondsLeft);
         }
     }
     
@@ -209,7 +210,7 @@ public class ChessController implements ActionListener {
      * with the configuration currently being used.
      */
     public void resetClick() {
-        if (!view.areYouSureYouWantToDoThis("Do you want to reset the game?")) return;
+        if (!EmergentPanels.askConfirmation(view, "Do you want to reset the game?")) return;
         game = game.variant().initGame(game.isTimed());
         if (game.isTimed()) {
             whiteSecondsLeft = game.whiteSeconds();
@@ -227,8 +228,14 @@ public class ChessController implements ActionListener {
      * about the current state of the game.
      */
     public void saveClick() {
-        if (!view.areYouSureYouWantToDoThis("Do you want to save the state of the game?")) return;
-        String filePath = view.userTextInputMessage("Enter the name of your game");
+        if (!EmergentPanels.askConfirmation(view, "Do you want to save the state of the game?")) return;
+        String filePath = null;
+        try {
+            filePath = EmergentPanels.userTextInputMessage(view,"Enter the name of your game");
+        } catch (IOException ex) {
+            System.err.println("I/O error: " + ex.getMessage());
+            return;
+        }
         try (
             FileOutputStream fos = new FileOutputStream("savedgames"+File.separator+filePath+".dat", false);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
@@ -252,17 +259,17 @@ public class ChessController implements ActionListener {
      * shows a warning message.
      */
     public void loadClick() {
-        boolean userVerification = view.areYouSureYouWantToDoThis("Do you want to load a saved game?");
+        boolean userVerification = EmergentPanels.askConfirmation(view, "Do you want to load a saved game?");
         if (!userVerification) return;
         try (
-                FileInputStream fis = new FileInputStream(view.fileChooser("." + File.separator + "savedgames"));
+                FileInputStream fis = new FileInputStream(EmergentPanels.fileChooser("." + File.separator + "savedgames"));
                 BufferedInputStream bufis = new BufferedInputStream(fis);
                 ObjectInputStream ois = new ObjectInputStream(bufis)) {
             Chess chessGame = (Chess) ois.readObject();
             if (chessGame.variant().rows() == game.variant().rows() && chessGame.variant().cols() == game.variant().cols()) {
                 boolean playerChoice = true;
                 if (chessGame.variant() != game.variant()) {
-                    playerChoice = view.areYouSureYouWantToDoThis("The game you wanted to load is of variant: " + chessGame.variant()
+                    playerChoice = EmergentPanels.askConfirmation(view, "The game you wanted to load is of variant: " + chessGame.variant()
                         + ", while you're playing " + game.variant() +
                         "\nBut thankfully they are compatible in size. Do you still want to load that game?");
                 }
@@ -277,7 +284,7 @@ public class ChessController implements ActionListener {
                     }
                 }
             } else {
-                view.informPlayer("Incompatible dimensions", "Your selected game is of variant "
+                EmergentPanels.informPlayer(view, "Incompatible dimensions", "Your selected game is of variant "
                     + chessGame.variant() + " (" + chessGame.variant().rows() + "x" + chessGame.variant().cols()
                     + "), while your current one is " + game.variant() + " (" + game.variant().rows() + "x" + game.variant().cols() + ")");
             }
@@ -306,7 +313,7 @@ public class ChessController implements ActionListener {
             case ConfigParameters.LOAD_BUTTON -> loadClick();
             case ConfigParameters.BACK_BUTTON -> SwingUtilities.invokeLater(() -> {
                 boolean userVerification = game.state() == GameState.NOT_STARTED
-                    || view.areYouSureYouWantToDoThis("Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
+                    || EmergentPanels.askConfirmation(view, "Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
                 if (userVerification) {
                     view.dispose();
                     new IndexController();
