@@ -1,6 +1,7 @@
 package controller;
 
 import configparams.ConfigParameters;
+import controller.online.MoveListener;
 import functional_chess_model.*;
 import functional_chess_model.Pieces.King;
 import functional_chess_model.Pieces.Pawn;
@@ -18,6 +19,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import javax.swing.*;
 
@@ -43,6 +46,8 @@ public class ChessController implements ActionListener {
 
     private int whiteSecondsLeft;
     private int blackSecondsLeft;
+
+    private final List<MoveListener> moveListeners = new ArrayList<>();
 
     /**
      * Standard constructor for the {@code ChessController} class, setting the
@@ -129,7 +134,7 @@ public class ChessController implements ActionListener {
      * @param x X coordinate of the button clicked.
      * @param y Y coordinate of the button clicked.
      */
-    public void handleClick(int x, int y) {
+    public void handleClick(int x, int y, boolean sendMove) {
         view.clearHighlights();
         if (x == 0 || y == 0) return; // Ignore label clicks
         if (game.state().hasEnded()) return; // Don't do anything if the game has ended.
@@ -179,6 +184,8 @@ public class ChessController implements ActionListener {
             
             if (playDone) {
 
+                if (sendMove) notifyMovePerformed(selectedPosition, clickedPos);
+
                 piece = game.findPieceAt(clickedPos).orElse(piece);
                 if (piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer())) { // Pawn crowning
                     view.updateBoard();
@@ -202,6 +209,10 @@ public class ChessController implements ActionListener {
             selectedPosition = null;
             game = game.withSeconds(whiteSecondsLeft, blackSecondsLeft);
         }
+    }
+
+    public void handleClick(int x, int y) {
+        handleClick(x, y, true);
     }
     
     /**
@@ -321,4 +332,23 @@ public class ChessController implements ActionListener {
             });
         }
     }
+
+    public void addMoveListener(MoveListener listener) {
+        moveListeners.add(listener);
+    }
+
+    public void clearMoveListeners() {
+        moveListeners.clear();
+    }
+
+    public void removeMoveListener(MoveListener listener) {
+        moveListeners.remove(listener);
+    }
+
+    private void notifyMovePerformed(Position initPos, Position finPos) {
+        for (MoveListener listener : moveListeners) {
+            listener.onMovePerformed(initPos, finPos);
+        }
+    }
+
 }

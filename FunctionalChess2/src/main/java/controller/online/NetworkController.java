@@ -9,14 +9,14 @@ import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
 
-public class NetworkController {
+public class NetworkController implements MoveListener {
     protected ChessController chessController;
     protected ChessColor localPlayerColor;
     protected Socket socket;
     protected PrintWriter out;
     protected BufferedReader in;
 
-    public NetworkController(ChessController controller, ChessColor playerColor, Socket socket) {
+    protected NetworkController(ChessController controller, ChessColor playerColor, Socket socket) {
         this.chessController = controller;
         this.localPlayerColor = playerColor;
         this.socket = socket;
@@ -43,9 +43,8 @@ public class NetworkController {
                     Position finPos = Position.of(x2, y2);
                     if (chessController.getGame().isValidMove(initPos, finPos)) {
                         SwingUtilities.invokeLater(() -> {
-                            chessController.handleClick(x1, y1);
-                            chessController.handleClick(x2, y2);
-                            //chessController.performNetworkMove(x1, y1, x2, y2);
+                            chessController.handleClick(x1, y1, false);
+                            chessController.handleClick(x2, y2, false);
                         });
                     }
                 }
@@ -64,5 +63,10 @@ public class NetworkController {
 
     public boolean isLocalPlayerTurn(ChessColor currentTurn) {
         return currentTurn == localPlayerColor;
+    }
+
+    @Override
+    public void onMovePerformed(Position initPos, Position finPos) {
+        sendMove(initPos.x(), initPos.y(), finPos.x(), finPos.y());
     }
 }

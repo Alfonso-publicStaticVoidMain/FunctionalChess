@@ -12,10 +12,12 @@ import java.util.UUID;
 
 public class ServerController extends NetworkController {
 
-    public ServerController(ChessController controller) {
-        super(controller, ChessColor.WHITE, null);
+    public ServerController(ChessController controller, Socket socket) {
+        super(controller, ChessColor.WHITE, socket);
         new Thread(this::startServer).start();
     }
+
+
 
     private void startServer() {
         try (ServerSocket serverSocket = new ServerSocket(5000)) {
