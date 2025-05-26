@@ -16,7 +16,7 @@ import java.util.UUID;
 public class ServerController extends NetworkController {
 
     public ServerController(ChessController controller, Socket socket, BufferedReader in, PrintWriter out) {
-        super(controller, ChessColor.WHITE, socket, in, out);
+        super(controller, socket, in, out);
     }
 
     public static void startServer(ChessController controller) {

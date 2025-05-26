@@ -9,6 +9,7 @@ import javax.swing.SwingUtilities;
 
 import controller.online.ClientController;
 import controller.online.ServerController;
+import functional_chess_model.ChessColor;
 import functional_chess_model.GameVariant;
 import view.Index;
 
@@ -33,7 +34,7 @@ public class IndexController implements ActionListener {
 
         if (ConfigParameters.variantEnumNames.contains(command)) {
             String mode = view.getNetworkMode();
-            ChessController controller = GameVariant.valueOf(command).controller(isTimed);
+            ChessController controller = GameVariant.valueOf(command).controller(isTimed, true, mode.equals("HOST") ? ChessColor.WHITE : ChessColor.BLACK);
             SwingUtilities.invokeLater(() -> {
                 view.dispose();
                 switch (mode) {

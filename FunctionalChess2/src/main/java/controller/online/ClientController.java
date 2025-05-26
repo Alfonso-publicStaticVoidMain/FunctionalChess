@@ -14,7 +14,7 @@ import java.time.LocalTime;
 public class ClientController extends NetworkController {
 
     public ClientController(ChessController controller, Socket socket, BufferedReader in, PrintWriter out) {
-        super(controller, ChessColor.BLACK, socket, in, out);
+        super(controller, socket, in, out);
     }
 
     public static void startClient(ChessController controller) {

@@ -47,6 +47,9 @@ public class ChessController implements ActionListener {
     private int whiteSecondsLeft;
     private int blackSecondsLeft;
 
+    private boolean isOnlineGame;
+    private ChessColor localActivePlayer;
+
     private final List<MoveListener> moveListeners = new ArrayList<>();
 
     /**
@@ -58,15 +61,21 @@ public class ChessController implements ActionListener {
      * @param game {@link Chess} game this controller is controlling.
      * @param view  {@link ChessGUI} view this controller is controlling.
      */
-    public ChessController(Chess game, ChessGUI view) {
+    public ChessController(Chess game, ChessGUI view, boolean isOnlineGame, ChessColor localActivePlayer) {
         this.game = game;
         this.view = view;
+        this.isOnlineGame = isOnlineGame;
+        this.localActivePlayer = localActivePlayer;
         this.whiteSecondsLeft = game.whiteSeconds();
         this.blackSecondsLeft = game.blackSeconds();
         this.view.setController(this);
         this.view.addActionListeners();
         this.view.updateBoard();
         this.selectedPosition = null;
+    }
+
+    public ChessController(Chess game, ChessGUI view) {
+        this(game, view, false, null);
     }
 
     public static String formatTime(int seconds) {
@@ -137,6 +146,7 @@ public class ChessController implements ActionListener {
      */
     public void handleClick(int x, int y, boolean sendMove) {
         view.clearHighlights();
+        if (localActivePlayer != null && localActivePlayer != game.activePlayer()) return; // For online games, do not permit the nonactive player to move
         if (x == 0 || y == 0) return; // Ignore label clicks
         if (game.state().hasEnded()) return; // Don't do anything if the game has ended.
         
@@ -185,13 +195,19 @@ public class ChessController implements ActionListener {
             
             if (playDone) {
 
-                if (sendMove) notifyMovePerformed(selectedPosition, clickedPos);
+                if (isOnlineGame && sendMove) notifyMovePerformed(selectedPosition, clickedPos);
+
+                boolean crowningPerformed = false;
 
                 piece = game.findPieceAt(clickedPos).orElse(piece);
-                if (piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer())) { // Pawn crowning
+
+                if (!sendMove && piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer())) { // Pawn crowning
                     view.updateBoard();
                     game = game.crownPawnChain(piece, EmergentPanels.pawnCrowningMenu(view, game.variant().crownablePieces()));
+                    crowningPerformed = true;
                 }
+
+                if (crowningPerformed && isOnlineGame && sendMove) notifyCrowningPerformed(clickedPos, piece.getClass().getSimpleName());
 
                 Optional<Play> lastPlay = game.getLastPlay();
                 lastPlay.ifPresent(view::updatePlayHistory);
@@ -349,6 +365,12 @@ public class ChessController implements ActionListener {
     private void notifyMovePerformed(Position initPos, Position finPos) {
         for (MoveListener listener : moveListeners) {
             listener.onMovePerformed(initPos, finPos);
+        }
+    }
+
+    private void notifyCrowningPerformed(Position pos, String pieceType) {
+        for (MoveListener listener : moveListeners) {
+            listener.onCrowningPerformed(pos, pieceType);
         }
     }
 
