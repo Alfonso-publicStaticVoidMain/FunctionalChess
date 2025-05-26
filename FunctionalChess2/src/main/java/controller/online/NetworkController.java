@@ -20,6 +20,7 @@ public class NetworkController implements MoveListener {
 
     protected NetworkController(ChessController controller, ChessColor playerColor, Socket socket, BufferedReader in, PrintWriter out) {
         this.chessController = controller;
+        this.chessController.addMoveListener(this);
         this.localPlayerColor = playerColor;
         this.socket = socket;
         this.in = in;
