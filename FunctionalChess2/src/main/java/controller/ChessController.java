@@ -64,7 +64,7 @@ public class ChessController implements ActionListener {
         this.whiteSecondsLeft = game.whiteSeconds();
         this.blackSecondsLeft = game.blackSeconds();
         this.view.setController(this);
-        this.view.setActionListeners();
+        this.view.addActionListeners();
         this.view.updateBoard();
         this.selectedPosition = null;
     }

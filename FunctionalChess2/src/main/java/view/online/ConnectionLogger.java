@@ -9,8 +9,8 @@ public class ConnectionLogger extends JDialog {
 
     public ConnectionLogger() {
         setTitle("Connection Log");
-        setModal(true);
-        setUndecorated(true);
+        setModal(false);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
         logTextArea = new JTextArea(10, 50);
         logTextArea.setEditable(false);
