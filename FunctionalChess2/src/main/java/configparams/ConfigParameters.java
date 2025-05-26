@@ -38,4 +38,6 @@ public class ConfigParameters {
     public static final String BACK_BUTTON = "Back";
     public static final String EXIT_BUTTON = "Exit";
     public static final String NEW_PIECES_BUTTON = "New Pieces";
+
+    public static final int SERVER_PORT = 1234;
 }

@@ -1,10 +1,13 @@
 package controller.online;
 
+import configparams.ConfigParameters;
 import controller.ChessController;
 import functional_chess_model.ChessColor;
+import view.online.ConnectionLogger;
 
 import javax.swing.*;
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalTime;
@@ -12,57 +15,44 @@ import java.util.UUID;
 
 public class ServerController extends NetworkController {
 
-    public ServerController(ChessController controller, Socket socket) {
-        super(controller, ChessColor.WHITE, socket);
-        new Thread(this::startServer).start();
+    public ServerController(ChessController controller, Socket socket, BufferedReader in, PrintWriter out) {
+        super(controller, ChessColor.WHITE, socket, in, out);
     }
 
+    public static void startServer(ChessController controller) {
+        new Thread(() -> {
+            ConnectionLogger logger = new ConnectionLogger();
+            try (ServerSocket serverSocket = new ServerSocket(ConfigParameters.SERVER_PORT)) {
+                String password = UUID.randomUUID().toString().substring(0, 6);
+                String hostAddress = InetAddress.getLocalHost().getHostAddress();
 
+                logger.log("Hosting game. Share password: " + password);
+                logger.log("IP address: " + hostAddress);
+                logger.log("Waiting for client to connect...");
 
-    private void startServer() {
-        try (ServerSocket serverSocket = new ServerSocket(5000)) {
-            String password = UUID.randomUUID().toString().substring(0, 6);
-            showConnectionLog("Hosting game. Share password: " + password);
+                Socket clientSocket = serverSocket.accept();
+                logger.log("Client attempting to connect from " + clientSocket.getInetAddress());
 
-            Socket client = serverSocket.accept();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            PrintWriter writer = new PrintWriter(client.getOutputStream(), true);
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-            String receivedPassword = reader.readLine();
-            if (!password.equals(receivedPassword)) {
-                writer.println("REJECTED");
-                client.close();
-                showConnectionLog("Client rejected. Incorrect password.");
-                return;
+                String clientPassword = in.readLine();
+
+                if (password.equals(clientPassword)) {
+                    logger.log("Password accepted. Starting game.");
+                    out.println("ACCEPTED");
+                    SwingUtilities.invokeLater(() -> new ServerController(controller, clientSocket, in, out));
+                } else {
+                    logger.log("Incorrect password. Connection rejected.");
+                    out.println("REJECTED");
+                    clientSocket.close();
+                }
+
+            } catch (IOException e) {
+                logger.log("Error starting server: " + e.getMessage());
             }
-
-            writer.println("ACCEPTED");
-
-            this.socket = client;
-            this.out = writer;
-            this.in = reader;
-            listenForMoves();
-            showConnectionLog("Client connected successfully.");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            logger.waitAndClose();
+        }).start();
     }
 
-    private void showConnectionLog(String message) {
-        SwingUtilities.invokeLater(() -> {
-            JTextArea textArea = new JTextArea(10, 30);
-            textArea.setEditable(false);
-            textArea.append(LocalTime.now() + " - " + message + "\n");
-
-            JDialog dialog = new JDialog();
-            dialog.setTitle("Server Log");
-            dialog.add(new JScrollPane(textArea));
-            dialog.pack();
-            dialog.setLocationRelativeTo(null);
-            dialog.setVisible(true);
-
-            new Timer(4000, e -> dialog.dispose()).start();
-        });
-    }
 }

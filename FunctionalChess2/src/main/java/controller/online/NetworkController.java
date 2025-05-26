@@ -4,10 +4,12 @@ import controller.ChessController;
 import functional_chess_model.ChessColor;
 import functional_chess_model.GameVariant;
 import functional_chess_model.Position;
+import view.online.ConnectionLogger;
 
 import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
+import java.time.LocalTime;
 
 public class NetworkController implements MoveListener {
     protected ChessController chessController;
@@ -16,16 +18,12 @@ public class NetworkController implements MoveListener {
     protected PrintWriter out;
     protected BufferedReader in;
 
-    protected NetworkController(ChessController controller, ChessColor playerColor, Socket socket) {
+    protected NetworkController(ChessController controller, ChessColor playerColor, Socket socket, BufferedReader in, PrintWriter out) {
         this.chessController = controller;
         this.localPlayerColor = playerColor;
         this.socket = socket;
-        try {
-            this.out = new PrintWriter(socket.getOutputStream(), true);
-            this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.in = in;
+        this.out = out;
         listenForMoves();
     }
 

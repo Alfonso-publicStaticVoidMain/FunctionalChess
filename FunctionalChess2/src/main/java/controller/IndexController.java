@@ -37,8 +37,8 @@ public class IndexController implements ActionListener {
             SwingUtilities.invokeLater(() -> {
                 view.dispose();
                 switch (mode) {
-                    case "HOST" -> {new ServerController(controller);}
-                    case "CLIENT" -> {new ClientController(controller);}
+                    case "HOST" -> {ServerController.startServer(controller);}
+                    case "CLIENT" -> {ClientController.startClient(controller);}
                 }
             });
             return;
