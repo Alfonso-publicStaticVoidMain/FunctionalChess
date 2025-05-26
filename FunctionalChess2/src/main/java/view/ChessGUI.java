@@ -173,19 +173,21 @@ public class ChessGUI extends JFrame {
     }
 
     /**
-     * Sets the argument controller as {@code this} view's controller
-     * attribute, and adds it as the action listener of each of its buttons.
+     * Sets the argument controller as {@code this} view's controller attribute.
      * @param controller {@link ChessController} to set.
      */
     public void setController(ChessController controller) {
         this.controller = controller;
+    }
+
+    public void setActionListeners() {
         Stream.of(boardButtons)
             .flatMap(Stream::of)
-            .forEach(button -> button.addActionListener(this.controller));
-        resetButton.addActionListener(this.controller);
-        saveButton.addActionListener(this.controller);
-        loadButton.addActionListener(this.controller);
-        backButton.addActionListener(this.controller);
+            .forEach(button -> button.addActionListener(controller));
+        resetButton.addActionListener(controller);
+        saveButton.addActionListener(controller);
+        loadButton.addActionListener(controller);
+        backButton.addActionListener(controller);
         if (isTimed) {
             gameTimer = controller.viewTimer(whiteTimer, blackTimer);
             gameTimer.start();

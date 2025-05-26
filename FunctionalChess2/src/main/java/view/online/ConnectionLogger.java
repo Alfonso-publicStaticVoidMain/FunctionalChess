@@ -12,7 +12,7 @@ public class ConnectionLogger extends JDialog {
         setModal(true);
         setUndecorated(true);
 
-        logTextArea = new JTextArea(10, 30);
+        logTextArea = new JTextArea(10, 50);
         logTextArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(logTextArea);
 

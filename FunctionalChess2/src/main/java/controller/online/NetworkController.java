@@ -37,9 +37,8 @@ public class NetworkController implements MoveListener {
                     int y1 = Integer.parseInt(parts[1].trim());
                     int x2 = Integer.parseInt(parts[2].trim());
                     int y2 = Integer.parseInt(parts[3].trim());
-                    Position initPos = Position.of(x1, y1);
-                    Position finPos = Position.of(x2, y2);
-                    if (chessController.getGame().isValidMove(initPos, finPos)) {
+                    if (chessController.getGame().isValidMove(Position.of(x1, y1), Position.of(x2, y2))) {
+                        System.out.println("[DEBUG] Move received: ("+x1+", "+y1+") to ("+x2+", "+y2+")");
                         SwingUtilities.invokeLater(() -> {
                             chessController.handleClick(x1, y1, false);
                             chessController.handleClick(x2, y2, false);
@@ -47,7 +46,7 @@ public class NetworkController implements MoveListener {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
         });
         listener.setDaemon(true);
@@ -55,6 +54,7 @@ public class NetworkController implements MoveListener {
     }
 
     public void sendMove(int x1, int y1, int x2, int y2) {
+        System.out.println("[DEBUG] Move sent: ("+x1+", "+y1+") to ("+x2+", "+y2+")");
         String message = x1 + ":" + y1 + ":" + x2 + ":" + y2;
         out.println(message);
     }
