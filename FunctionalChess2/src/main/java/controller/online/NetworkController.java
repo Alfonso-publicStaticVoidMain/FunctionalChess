@@ -38,7 +38,7 @@ public class NetworkController implements MoveListener {
                     int y1 = Integer.parseInt(parts[1].trim());
                     int x2 = Integer.parseInt(parts[2].trim());
                     int y2;
-                    if (x2 == 0) {
+                    if (x2 != 0) {
                         y2 = Integer.parseInt(parts[3].trim());
                         Position initPos = Position.of(x1, y1);
                         Position finPos = Position.of(x2, y2);
