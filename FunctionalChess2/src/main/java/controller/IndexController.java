@@ -34,7 +34,11 @@ public class IndexController implements ActionListener {
 
         if (ConfigParameters.variantEnumNames.contains(command)) {
             String mode = view.getNetworkMode();
-            ChessController controller = GameVariant.valueOf(command).controller(isTimed, true, mode.equals("HOST") ? ChessColor.WHITE : ChessColor.BLACK);
+            ChessController controller = GameVariant.valueOf(command).controller(isTimed, !mode.equals("LOCAL"), switch (mode) {
+                case "HOST" -> ChessColor.WHITE;
+                case "CLIENT" -> ChessColor.BLACK;
+                default -> null;
+            });
             SwingUtilities.invokeLater(() -> {
                 view.dispose();
                 switch (mode) {
