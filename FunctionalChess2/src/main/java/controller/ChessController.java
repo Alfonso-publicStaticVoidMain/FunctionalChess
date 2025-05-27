@@ -146,7 +146,7 @@ public class ChessController implements ActionListener {
      */
     public void handleClick(int x, int y, boolean sendMove) {
         view.clearHighlights();
-        if (sendMove && localActivePlayer != null && localActivePlayer != game.activePlayer()) return; // For online games, do not permit the nonactive player to move
+        if (localActivePlayer != null && sendMove && localActivePlayer != game.activePlayer()) return; // For online games, do not permit the nonactive player to move
         if (x == 0 || y == 0) return; // Ignore label clicks
         if (game.state().hasEnded()) return; // Don't do anything if the game has ended.
         

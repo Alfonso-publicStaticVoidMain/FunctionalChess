@@ -183,10 +183,11 @@ public record Chess(
      * accordingly.
      */
     public Optional<Chess> tryToCastle(ChessColor player, CastlingType castlingType) {
+        if (!isCastlingAvailable(player, castlingType)) return Optional.empty();
         Position kingInitPos = variant.initKingPos(player);
         Optional<Piece> kingOrNot = findPieceAt(variant.initKingPos(player));
         Optional<Piece> rookOrNot = findPieceAt(variant.initRookPos(castlingType, player));
-        if (kingOrNot.isEmpty() || rookOrNot.isEmpty() || !isCastlingAvailable(player, castlingType)) return Optional.empty();
+        if (kingOrNot.isEmpty() || rookOrNot.isEmpty()) return Optional.empty();
         Piece king = kingOrNot.get();
         Piece rook = rookOrNot.get();
 
@@ -294,7 +295,7 @@ public record Chess(
 
     //</editor-fold>
 
-    //<editor-fold defaultstate="collapsed" desc="Updating Functions">
+    //<editor-fold defaultstate="collapsed" desc="Update Pieces, Castling and Plays Functions">
 
     /**
      * Updates the list of pieces according to a move performed.
