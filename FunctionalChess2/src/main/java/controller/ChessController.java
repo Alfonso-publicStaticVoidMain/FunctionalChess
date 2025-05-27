@@ -146,7 +146,7 @@ public class ChessController implements ActionListener {
      */
     public void handleClick(int x, int y, boolean sendMove) {
         view.clearHighlights();
-        if (localActivePlayer != null && localActivePlayer != game.activePlayer()) return; // For online games, do not permit the nonactive player to move
+        if (sendMove && localActivePlayer != null && localActivePlayer != game.activePlayer()) return; // For online games, do not permit the nonactive player to move
         if (x == 0 || y == 0) return; // Ignore label clicks
         if (game.state().hasEnded()) return; // Don't do anything if the game has ended.
         
@@ -227,6 +227,21 @@ public class ChessController implements ActionListener {
     public void handleClick(int x, int y) {
         handleClick(x, y, true);
     }
+
+    public void setGameState(Chess game) {
+        this.game = game;
+        if (game.isTimed()) {
+            whiteSecondsLeft = game.whiteSeconds();
+            blackSecondsLeft = game.blackSeconds();
+        }
+        view.updateBoard();
+        view.updateActivePlayer();
+        view.reloadPlayHistory();
+    }
+
+    public void setDefaultGameState() {
+        setGameState(game.variant().initGame(game.isTimed()));
+    }
     
     /**
      * Part of the action listener for the reset button on the view. It changes
@@ -235,14 +250,7 @@ public class ChessController implements ActionListener {
      */
     public void resetClick() {
         if (!EmergentPanels.askConfirmation(view, "Do you want to reset the game?")) return;
-        game = game.variant().initGame(game.isTimed());
-        if (game.isTimed()) {
-            whiteSecondsLeft = game.whiteSeconds();
-            blackSecondsLeft = game.blackSeconds();
-        }
-        view.updateBoard();
-        view.updateActivePlayer();
-        view.resetPlayHistory();
+        setDefaultGameState();
     }
     
     /**
@@ -286,9 +294,10 @@ public class ChessController implements ActionListener {
         boolean userVerification = EmergentPanels.askConfirmation(view, "Do you want to load a saved game?");
         if (!userVerification) return;
         try (
-                FileInputStream fis = new FileInputStream(EmergentPanels.fileChooser("." + File.separator + "savedgames"));
-                BufferedInputStream bufis = new BufferedInputStream(fis);
-                ObjectInputStream ois = new ObjectInputStream(bufis)) {
+            FileInputStream fis = new FileInputStream(EmergentPanels.fileChooser("." + File.separator + "savedgames"));
+            BufferedInputStream bufis = new BufferedInputStream(fis);
+            ObjectInputStream ois = new ObjectInputStream(bufis)
+        ) {
             Chess chessGame = (Chess) ois.readObject();
             if (chessGame.variant().rows() == game.variant().rows() && chessGame.variant().cols() == game.variant().cols()) {
                 boolean playerChoice = true;
@@ -297,16 +306,7 @@ public class ChessController implements ActionListener {
                         + ", while you're playing " + game.variant() +
                         "\nBut thankfully they are compatible in size. Do you still want to load that game?");
                 }
-                if (playerChoice) {
-                    game = chessGame;
-                    view.updateBoard();
-                    view.updateActivePlayer();
-                    view.reloadPlayHistory();
-                    if (game.isTimed()) {
-                        whiteSecondsLeft = game.whiteSeconds();
-                        blackSecondsLeft = game.blackSeconds();
-                    }
-                }
+                if (playerChoice) setGameState(chessGame);
             } else {
                 EmergentPanels.informPlayer(view, "Incompatible dimensions", "Your selected game is of variant "
                     + chessGame.variant() + " (" + chessGame.variant().rows() + "x" + chessGame.variant().cols()
