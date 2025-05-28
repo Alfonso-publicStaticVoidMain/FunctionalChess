@@ -201,11 +201,10 @@ public class ChessController implements ActionListener {
 
                 if (piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer().opposite())) {
                     view.updateBoard();
-                    game = game.crownPawnChain(piece, crowningType != null ? crowningType : EmergentPanels.pawnCrowningMenu(view, game.variant().crownablePieces()));
-                    piece = game.findPieceAt(clickedPos).orElse(piece);
-                    crownedType = piece.getClass().getSimpleName();
+                    if (crowningType == null) crownedType = EmergentPanels.pawnCrowningMenu(view, game.variant().crownablePieces());
+                    game = game.crownPawnChain(piece, crowningType != null ? crowningType : crownedType);
                 }
-                if (isOnlineGame && sendMove) notifyMovePerformed(selectedPosition, clickedPos, crowningType);
+                if (isOnlineGame && sendMove) notifyMovePerformed(selectedPosition, clickedPos, crowningType != null ? crowningType : crownedType);
                 Optional<Play> lastPlay = game.getLastPlay();
                 lastPlay.ifPresent(view::updatePlayHistory);
                 view.updateBoard();
