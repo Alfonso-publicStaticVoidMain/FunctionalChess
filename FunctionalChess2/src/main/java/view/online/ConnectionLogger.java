@@ -3,6 +3,7 @@ package view.online;
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 
 public class ConnectionLogger extends JDialog {
     private final JTextArea logTextArea;
@@ -23,19 +24,14 @@ public class ConnectionLogger extends JDialog {
 
     public void log(String message) {
         SwingUtilities.invokeLater(() -> {
-            logTextArea.append(LocalTime.now() + " - " + message + "\n");
+            logTextArea.append(LocalTime.now().truncatedTo(ChronoUnit.SECONDS) + " - " + message + "\n");
             logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
-
-            if (!isVisible()) {
-                setVisible(true);
-            }
+            if (!isVisible()) setVisible(true);
         });
     }
 
     public void waitAndClose() {
-        Timer closeTimer = new Timer(4000, e -> {
-            dispose();
-        });
+        Timer closeTimer = new Timer(2400, e -> dispose());
         closeTimer.setRepeats(false);
         closeTimer.start();
     }

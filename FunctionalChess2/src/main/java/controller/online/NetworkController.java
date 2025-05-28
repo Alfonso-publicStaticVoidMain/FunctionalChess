@@ -37,28 +37,19 @@ public class NetworkController implements MoveListener {
                     int x1 = Integer.parseInt(parts[0].trim());
                     int y1 = Integer.parseInt(parts[1].trim());
                     int x2 = Integer.parseInt(parts[2].trim());
-                    int y2;
-                    if (x2 != 0) {
-                        y2 = Integer.parseInt(parts[3].trim());
-                        Position initPos = Position.of(x1, y1);
-                        Position finPos = Position.of(x2, y2);
-                        if (chessController.getGame().isValidMove(Position.of(x1, y1), Position.of(x2, y2))) {
-                            System.out.println("[NETWORK DEBUG] Move received: "+ initPos +" ("+x1+", "+y1+") to "+ finPos +" ("+x2+", "+y2+")");
-                            SwingUtilities.invokeLater(() -> {
-                                chessController.handleClick(x1, y1, false);
-                                chessController.handleClick(x2, y2, false);
-                            });
-                        }
-                    } else {
-                        String pieceType = parts[3].trim();
-                        Position pos = Position.of(x1, y1);
-                        Chess game = chessController.getGame();
-                        if (game.checkPieceAt(pos)) {
-                            game.crownPawn(game.findPieceAt(pos).get(), pieceType);
-                        }
-                    }
+                    int y2 = Integer.parseInt(parts[3].trim());
+                    String crowningType = parts[4].equals("null") ? null : parts[4].trim();
 
+                    Position initPos = Position.of(x1, y1);
+                    Position finPos = Position.of(x2, y2);
 
+                    if (crowningType == null) System.out.println("[NETWORK DEBUG] Move received: "+ initPos +" ("+x1+", "+y1+") to "+ finPos +" ("+x2+", "+y2+")");
+                    else System.out.println("[NETWORK DEBUG] Move with crowning received: "+ initPos +" ("+x1+", "+y1+") to "+ finPos +" ("+x2+", "+y2+") into"+crowningType);
+
+                    SwingUtilities.invokeLater(() -> {
+                        chessController.handleClick(x1, y1, false);
+                        chessController.handleClick(x2, y2, false, crowningType);
+                    });
                 }
             } catch (IOException e) {
                 System.err.println(e.getMessage());
@@ -69,14 +60,10 @@ public class NetworkController implements MoveListener {
     }
 
     @Override
-    public void onMovePerformed(Position initPos, Position finPos) {
-        System.out.println("[NETWORK DEBUG] Move sent: ("+initPos.x()+", "+initPos.y()+") to ("+finPos.x()+", "+finPos.y()+")");
-        out.println(initPos.x() + ":" + initPos.y() + ":" + finPos.x() + ":" + finPos.y());
+    public void onMovePerformed(Position initPos, Position finPos, String crowningType) {
+        if (crowningType == null) System.out.println("[NETWORK DEBUG] Move sent: ("+initPos.x()+", "+initPos.y()+") to ("+finPos.x()+", "+finPos.y()+")");
+        else System.out.println("[NETWORK DEBUG] Crowning sent: ("+initPos.x()+", "+initPos.y()+") to ("+finPos.x()+", "+finPos.y()+")"+ " into "+crowningType);
+        out.println(initPos.x() + ":" + initPos.y() + ":" + finPos.x() + ":" + finPos.y() + ":" + (crowningType == null ? "null" : crowningType));
     }
 
-    @Override
-    public void onCrowningPerformed(Position pos, String pieceType) {
-        System.out.println("[NETWORK DEBUG] Crowning sent at position "+pos+" ("+pos.x()+", "+pos.y()+") into "+pieceType);
-        out.println(pos.x() + ":" + pos.y() +  ":" + 0 + ":" + pieceType);
-    }
 }

@@ -89,6 +89,8 @@ public class ChessController implements ActionListener {
      */
     public Chess getGame() {return game;}
 
+    public void setGame(Chess game) {this.game = game;}
+
     /**
      * Consumes one second from the white player's seconds left.
      */
@@ -143,7 +145,7 @@ public class ChessController implements ActionListener {
      * @param x X coordinate of the button clicked.
      * @param y Y coordinate of the button clicked.
      */
-    public void handleClick(int x, int y, boolean sendMove) {
+    public void handleClick(int x, int y, boolean sendMove, String crowningType) {
         view.clearHighlights();
         if (localPlayer != null && sendMove && localPlayer != game.activePlayer()) return; // For online games, do not permit the nonactive player to move
         if (x == 0 || y == 0) return; // Ignore label clicks
@@ -194,16 +196,16 @@ public class ChessController implements ActionListener {
             
             if (playDone) {
 
-                if (isOnlineGame && sendMove) notifyMovePerformed(selectedPosition, clickedPos);
-
+                String crownedType = null;
                 piece = game.findPieceAt(clickedPos).orElse(piece);
 
-                if (sendMove && piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer().opposite())) {
+                if (piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer().opposite())) {
                     view.updateBoard();
-                    game = game.crownPawnChain(piece, EmergentPanels.pawnCrowningMenu(view, game.variant().crownablePieces()));
-                    if (isOnlineGame) notifyCrowningPerformed(clickedPos, piece.getClass().getSimpleName());
+                    game = game.crownPawnChain(piece, crowningType != null ? crowningType : EmergentPanels.pawnCrowningMenu(view, game.variant().crownablePieces()));
+                    piece = game.findPieceAt(clickedPos).orElse(piece);
+                    crownedType = piece.getClass().getSimpleName();
                 }
-
+                if (isOnlineGame && sendMove) notifyMovePerformed(selectedPosition, clickedPos, crowningType);
                 Optional<Play> lastPlay = game.getLastPlay();
                 lastPlay.ifPresent(view::updatePlayHistory);
                 view.updateBoard();
@@ -221,6 +223,10 @@ public class ChessController implements ActionListener {
             selectedPosition = null;
             game = game.withSeconds(whiteSecondsLeft, blackSecondsLeft);
         }
+    }
+
+    public void handleClick(int x, int y, boolean sendMove) {
+        handleClick(x, y, sendMove, null);
     }
 
     public void handleClick(int x, int y) {
@@ -357,15 +363,9 @@ public class ChessController implements ActionListener {
         moveListeners.remove(listener);
     }
 
-    private void notifyMovePerformed(Position initPos, Position finPos) {
+    private void notifyMovePerformed(Position initPos, Position finPos, String crowningType) {
         for (MoveListener listener : moveListeners) {
-            listener.onMovePerformed(initPos, finPos);
-        }
-    }
-
-    private void notifyCrowningPerformed(Position pos, String pieceType) {
-        for (MoveListener listener : moveListeners) {
-            listener.onCrowningPerformed(pos, pieceType);
+            listener.onMovePerformed(initPos, finPos, crowningType);
         }
     }
 
