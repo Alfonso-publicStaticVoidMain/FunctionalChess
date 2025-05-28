@@ -76,6 +76,7 @@ public class NetworkController implements MoveListener {
 
     @Override
     public void onCrowningPerformed(Position pos, String pieceType) {
+        System.out.println("[NETWORK DEBUG] Crowning sent at position "+pos+" ("+pos.x()+", "+pos.y()+") into "+pieceType);
         out.println(pos.x() + ":" + pos.y() +  ":" + 0 + ":" + pieceType);
     }
 }

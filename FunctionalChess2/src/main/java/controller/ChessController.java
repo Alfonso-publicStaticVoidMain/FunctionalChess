@@ -47,25 +47,24 @@ public class ChessController implements ActionListener {
     private int whiteSecondsLeft;
     private int blackSecondsLeft;
 
-    private boolean isOnlineGame;
-    private ChessColor localActivePlayer;
+    private final boolean isOnlineGame;
+    private final ChessColor localPlayer;
 
     private final List<MoveListener> moveListeners = new ArrayList<>();
 
     /**
-     * Standard constructor for the {@code ChessController} class, setting the
-     * {@link Chess} game, its {@link ChessGUI} view and setting itself as the
-     * controller attribute of that view, then initializing its board by 
-     * giving its buttons the appropriate actionLister and finally updating the
-     * board.
+     * General constructor permitting the creation of online games.
      * @param game {@link Chess} game this controller is controlling.
-     * @param view  {@link ChessGUI} view this controller is controlling.
+     * @param view {@link ChessGUI} view this controller is controlling.
+     * @param isOnlineGame State parameter to track if this game is played online or not.
+     * @param localPlayer Only makes sense to give this a value if isOnlineGame is set
+     * to true, tracking what color the local player is playing.
      */
-    public ChessController(Chess game, ChessGUI view, boolean isOnlineGame, ChessColor localActivePlayer) {
+    public ChessController(Chess game, ChessGUI view, boolean isOnlineGame, ChessColor localPlayer) {
         this.game = game;
         this.view = view;
         this.isOnlineGame = isOnlineGame;
-        this.localActivePlayer = localActivePlayer;
+        this.localPlayer = localPlayer;
         this.whiteSecondsLeft = game.whiteSeconds();
         this.blackSecondsLeft = game.blackSeconds();
         this.view.setController(this);
@@ -146,7 +145,7 @@ public class ChessController implements ActionListener {
      */
     public void handleClick(int x, int y, boolean sendMove) {
         view.clearHighlights();
-        if (localActivePlayer != null && sendMove && localActivePlayer != game.activePlayer()) return; // For online games, do not permit the nonactive player to move
+        if (localPlayer != null && sendMove && localPlayer != game.activePlayer()) return; // For online games, do not permit the nonactive player to move
         if (x == 0 || y == 0) return; // Ignore label clicks
         if (game.state().hasEnded()) return; // Don't do anything if the game has ended.
         
@@ -199,7 +198,7 @@ public class ChessController implements ActionListener {
 
                 piece = game.findPieceAt(clickedPos).orElse(piece);
 
-                if (sendMove && piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer())) {
+                if (sendMove && piece instanceof Pawn && piece.getPosition().y() == game.variant().crowningRow(game.activePlayer().opposite())) {
                     view.updateBoard();
                     game = game.crownPawnChain(piece, EmergentPanels.pawnCrowningMenu(view, game.variant().crownablePieces()));
                     if (isOnlineGame) notifyCrowningPerformed(clickedPos, piece.getClass().getSimpleName());
