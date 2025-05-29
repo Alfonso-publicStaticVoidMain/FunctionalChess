@@ -63,7 +63,7 @@ public class ChessGUI extends JFrame {
     private JLabel whiteTimer;
     private JLabel blackTimer;
     private Timer gameTimer;
-    private boolean isTimed;
+    private final boolean isTimed;
     
     private final int rows;
     private final int cols;
@@ -244,8 +244,7 @@ public class ChessGUI extends JFrame {
                     (piece instanceof King && game.castlingTypeOfPlay(piece, potentialMove).isPresent())
                 ) {
                     boardButtons[col][row].setBackground(Color.GREEN);
-                }
-                if (piece.isLegalMovement(game, potentialMove, false) && !piece.isLegalMovement(game, potentialMove, true)) {
+                } else if (piece.isLegalMovement(game, potentialMove, false)) {
                     boardButtons[col][row].setBackground(Color.ORANGE);
                 }
             }
@@ -254,7 +253,7 @@ public class ChessGUI extends JFrame {
     
     /**
      * Colors yellow during 1 second the board buttons that of the legal moves
-     * of a {@link Piece} of the opposing player.
+     * of a {@link Piece}.
      * @param piece {@link Piece} to move.
      */
     public void highlightMovesOfPiece(Piece piece) {

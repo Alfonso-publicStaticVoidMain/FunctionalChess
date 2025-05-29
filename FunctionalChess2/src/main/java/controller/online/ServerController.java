@@ -39,11 +39,11 @@ public class ServerController extends NetworkController {
 
                 if (password.equals(clientPassword)) {
                     logger.log("Password accepted. Starting game.");
-                    out.println("ACCEPTED");
+                    out.println(ConfigParameters.NETWORK_ACCEPTED);
                     SwingUtilities.invokeLater(() -> new ServerController(controller, clientSocket, in, out));
                 } else {
                     logger.log("Incorrect password. Connection rejected.");
-                    out.println("REJECTED");
+                    out.println(ConfigParameters.NETWORK_REJECTED);
                     clientSocket.close();
                 }
 

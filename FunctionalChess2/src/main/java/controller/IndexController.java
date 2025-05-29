@@ -20,7 +20,6 @@ import view.Index;
 public class IndexController implements ActionListener {
 
     private final Index view;
-    private boolean isTimed = false;
 
     public IndexController() {
         this.view = new Index();
@@ -32,29 +31,25 @@ public class IndexController implements ActionListener {
         String command = e.getActionCommand();
         System.out.println("[DEBUG] IndexController action received: "+command);
 
-        if (ConfigParameters.variantEnumNames.contains(command)) {
-            String mode = view.getNetworkMode();
-            ChessController controller = GameVariant.valueOf(command).controller(isTimed, !mode.equals("LOCAL"), switch (mode) {
-                case "HOST" -> ChessColor.WHITE;
-                case "CLIENT" -> ChessColor.BLACK;
-                default -> null;
-            });
+        if (ConfigParameters.VARIANT_ENUM_NAMES.contains(command)) {
+            boolean hostingSelected = view.isHostingSelected();
+            ChessController controller = GameVariant.valueOf(command).controller(view.isTimerToggled(), hostingSelected, ChessColor.WHITE);
             SwingUtilities.invokeLater(() -> {
                 view.dispose();
-                switch (mode) {
-                    case "HOST" -> {ServerController.startServer(controller);}
-                    case "CLIENT" -> {ClientController.startClient(controller);}
-                }
+                if (hostingSelected) ServerController.startServer(controller);
             });
             return;
         }
 
         switch (command) {
             case ConfigParameters.NEW_PIECES_BUTTON -> SwingUtilities.invokeLater(() -> {
-                    view.dispose();
-                    new NewPiecesController();
+                view.dispose();
+                new NewPiecesController();
             });
-            case ConfigParameters.TIMER_TOGGLE -> isTimed = !isTimed;
+            case ConfigParameters.JOIN_BUTTON -> SwingUtilities.invokeLater(() -> {
+                view.dispose();
+                ClientController.startClient(GameVariant.valueOf(command).controller(view.isTimerToggled(), true, ChessColor.BLACK));
+            });
             case ConfigParameters.EXIT_BUTTON -> SwingUtilities.invokeLater(view::dispose);
         }
     }    

@@ -20,7 +20,7 @@ public class ClientController extends NetworkController {
         new Thread(() -> {
             ConnectionLogger logger = new ConnectionLogger();
             try {
-                String hostAddress = EmergentPanels.userTextInputMessage(null, "Introduce the IP of the host (must be manually shared with you)");
+                String hostAddress = EmergentPanels.userTextInputMessage(null, "Introduce the IP of the host");
                 logger.log("Connecting to server at " + hostAddress + ":" + ConfigParameters.SERVER_PORT + "...");
                 Socket socket = new Socket(hostAddress, ConfigParameters.SERVER_PORT);
 
@@ -32,7 +32,7 @@ public class ClientController extends NetworkController {
                 out.println(userPassword);
 
                 String response = in.readLine();
-                if ("REJECTED".equals(response)) {
+                if (response.equals(ConfigParameters.NETWORK_REJECTED)) {
                     logger.log("Wrong password. Server rejected connection.");
                     socket.close();
                 } else {

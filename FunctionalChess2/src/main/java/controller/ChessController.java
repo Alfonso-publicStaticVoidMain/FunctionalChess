@@ -89,8 +89,6 @@ public class ChessController implements ActionListener {
      */
     public Chess getGame() {return game;}
 
-    public void setGame(Chess game) {this.game = game;}
-
     /**
      * Consumes one second from the white player's seconds left.
      */
@@ -165,7 +163,7 @@ public class ChessController implements ActionListener {
             return;
         }
 
-        if (selectedPosition == null) { // First click stores the selected piece.
+        if (selectedPosition == null) { // First click stores the selected piece and shows possible moves.
             if (game.checkPieceAt(clickedPos)) {
                 Piece piece = game.findPieceAt(clickedPos).get();
                 if (piece.getColor() == game.activePlayer()) {
@@ -195,7 +193,7 @@ public class ChessController implements ActionListener {
                             }
                         }
                     }
-                }                
+                }
             }
                 
             if (!playDone) {
@@ -241,10 +239,10 @@ public class ChessController implements ActionListener {
     }
 
     public void handleClick(int x, int y) {
-        handleClick(x, y, true);
+        handleClick(x, y, true, null);
     }
 
-    public void setGameState(Chess game) {
+    public void setGame(Chess game) {
         this.game = game;
         if (game.isTimed()) {
             whiteSecondsLeft = game.whiteSeconds();
@@ -255,8 +253,8 @@ public class ChessController implements ActionListener {
         view.reloadPlayHistory();
     }
 
-    public void setDefaultGameState() {
-        setGameState(game.variant().initGame(game.isTimed()));
+    public void setDefaultGame() {
+        setGame(game.variant().initGame(game.isTimed()));
     }
     
     /**
@@ -266,7 +264,7 @@ public class ChessController implements ActionListener {
      */
     public void resetClick() {
         if (!EmergentPanels.askConfirmation(view, "Do you want to reset the game?")) return;
-        setDefaultGameState();
+        setDefaultGame();
     }
     
     /**
@@ -322,7 +320,7 @@ public class ChessController implements ActionListener {
                         + ", while you're playing " + game.variant() +
                         "\nBut thankfully they are compatible in size. Do you still want to load that game?");
                 }
-                if (playerChoice) setGameState(chessGame);
+                if (playerChoice) setGame(chessGame);
             } else {
                 EmergentPanels.informPlayer(view, "Incompatible dimensions", "Your selected game is of variant "
                     + chessGame.variant() + " (" + chessGame.variant().rows() + "x" + chessGame.variant().cols()
@@ -334,6 +332,17 @@ public class ChessController implements ActionListener {
         } catch (ClassNotFoundException ex) {
             System.err.println("Class not found: " + ex.getMessage());
         }
+    }
+
+    private void backClick() {
+        SwingUtilities.invokeLater(() -> {
+            boolean userVerification = game.state() == GameState.NOT_STARTED
+                    || EmergentPanels.askConfirmation(view, "Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
+            if (userVerification) {
+                view.dispose();
+                new IndexController();
+            }
+        });
     }
 
     @Override
@@ -351,14 +360,7 @@ public class ChessController implements ActionListener {
             case ConfigParameters.RESET_BUTTON -> resetClick();
             case ConfigParameters.SAVE_BUTTON -> saveClick();
             case ConfigParameters.LOAD_BUTTON -> loadClick();
-            case ConfigParameters.BACK_BUTTON -> SwingUtilities.invokeLater(() -> {
-                boolean userVerification = game.state() == GameState.NOT_STARTED
-                    || EmergentPanels.askConfirmation(view, "Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
-                if (userVerification) {
-                    view.dispose();
-                    new IndexController();
-                }
-            });
+            case ConfigParameters.BACK_BUTTON -> backClick();
         }
     }
 

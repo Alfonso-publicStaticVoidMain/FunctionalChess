@@ -27,12 +27,13 @@ public class Index extends JFrame {
     private final JCheckBox timerToggleCheckbox;
     private final JPanel checkboxPanel;
     private final JPanel bottomTopPanel;
+    private final JPanel radioPanel;
     public JPanel iconsPanel;
     private JButton newPieces;
     private final JButton exitButton;
     private final JRadioButton localRadio;
     private final JRadioButton hostRadio;
-    private final JRadioButton clientRadio;
+    private final JButton clientJoinButton;
     private final ButtonGroup networkToggleGroup;
     
     private IndexController controller;
@@ -54,7 +55,6 @@ public class Index extends JFrame {
         topPanel.add(subTitle, BorderLayout.CENTER);
 
         timerToggleCheckbox = new JCheckBox("Timed Game");
-        timerToggleCheckbox.setActionCommand(ConfigParameters.TIMER_TOGGLE);
         timerToggleCheckbox.setFont(new Font("Arial", Font.PLAIN, 16));
         timerToggleCheckbox.setHorizontalAlignment(SwingConstants.CENTER);
         timerToggleCheckbox.setOpaque(false);
@@ -73,21 +73,21 @@ public class Index extends JFrame {
         // Network mode radio buttons
         localRadio = new JRadioButton("Local");
         hostRadio = new JRadioButton("Host Game");
-        clientRadio = new JRadioButton("Join Game");
+        clientJoinButton = Buttons.standardButton("Join Game", ConfigParameters.JOIN_BUTTON);
 
         localRadio.setSelected(true);
 
         networkToggleGroup = new ButtonGroup();
         networkToggleGroup.add(localRadio);
         networkToggleGroup.add(hostRadio);
-        networkToggleGroup.add(clientRadio);
+        //networkToggleGroup.add(clientJoinButton);
 
-        JPanel radioPanel = new JPanel();
+        radioPanel = new JPanel();
         radioPanel.setOpaque(false);
         radioPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         radioPanel.add(localRadio);
         radioPanel.add(hostRadio);
-        radioPanel.add(clientRadio);
+        radioPanel.add(clientJoinButton);
 
         bottomTopPanel.add(radioPanel);
 
@@ -99,11 +99,11 @@ public class Index extends JFrame {
         
         buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
-        buttons = new JButton[ConfigParameters.variantNames.length+2];
+        buttons = new JButton[ConfigParameters.VARIANT_NAMES.length+2];
 
-        for (int i = 0; i < ConfigParameters.variantNames.length; i++) {
-            String variant = ConfigParameters.variantNames[i] + " (" + ConfigParameters.variantSizes[i] + ")";
-            String variantActionCommand = ConfigParameters.variantEnumNames.get(i);
+        for (int i = 0; i < ConfigParameters.VARIANT_NAMES.length; i++) {
+            String variant = ConfigParameters.VARIANT_NAMES[i] + " (" + ConfigParameters.VARIANT_SIZES[i] + ")";
+            String variantActionCommand = ConfigParameters.VARIANT_ENUM_NAMES.get(i);
             // Row panel: one row per button+icons, horizontal layout
             JPanel rowPanel = new JPanel();
             rowPanel.setLayout(new BoxLayout(rowPanel, BoxLayout.X_AXIS));
@@ -165,14 +165,14 @@ public class Index extends JFrame {
         
         newPieces = Buttons.standardButton("New Pieces", ConfigParameters.NEW_PIECES_BUTTON);
         newPieces.setAlignmentX(Component.CENTER_ALIGNMENT);
-        buttons[ConfigParameters.variantNames.length] = newPieces;
+        buttons[ConfigParameters.VARIANT_NAMES.length] = newPieces;
         buttonsPanel.add(newPieces);
         
         buttonsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         
         exitButton = Buttons.standardButton("Exit", ConfigParameters.EXIT_BUTTON);
         exitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        buttons[ConfigParameters.variantNames.length+1] = exitButton;
+        buttons[ConfigParameters.VARIANT_NAMES.length+1] = exitButton;
         buttonsPanel.add(exitButton);
         
         add(buttonsPanel, BorderLayout.CENTER);
@@ -180,10 +180,12 @@ public class Index extends JFrame {
         setVisible(true);
     }
 
-    public String getNetworkMode() {
-        if (hostRadio.isSelected()) return "HOST";
-        if (clientRadio.isSelected()) return "CLIENT";
-        return "LOCAL";
+    public boolean isHostingSelected() {
+        return hostRadio.isSelected();
+    }
+
+    public boolean isTimerToggled() {
+        return timerToggleCheckbox.isSelected();
     }
     
     public void setController(IndexController controller) {
@@ -194,6 +196,6 @@ public class Index extends JFrame {
             }
             button.addActionListener(controller);
         }
-        timerToggleCheckbox.addActionListener(controller);
+        clientJoinButton.addActionListener(controller);
     }
 }

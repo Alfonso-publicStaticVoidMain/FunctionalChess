@@ -31,7 +31,7 @@ public class ConnectionLogger extends JDialog {
     }
 
     public void waitAndClose() {
-        Timer closeTimer = new Timer(2400, e -> dispose());
+        Timer closeTimer = new Timer(2000, e -> dispose());
         closeTimer.setRepeats(false);
         closeTimer.start();
     }
