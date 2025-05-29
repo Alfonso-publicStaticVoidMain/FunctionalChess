@@ -42,7 +42,7 @@ public enum GameVariant {
     GameVariant(int rows, int cols, List<Piece> initPieces, boolean castlingEnabled, int kingInitCol, int leftCastlingMovement, int rightCastlingMovement) {
         this.rows = rows;
         this.cols = cols;
-        this.initPieces = List.copyOf(initPieces);
+        this.initPieces = initPieces;
         this.castlingEnabled = castlingEnabled;
         this.kingInitCol = kingInitCol;
         this.leftCastlingMovement = leftCastlingMovement;
@@ -148,7 +148,7 @@ public enum GameVariant {
             int initRowPawn = initRowPawn(color, 8);
             // Add Pawns
             IntStream.rangeClosed(1, 8)
-                    .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             // Add Rooks
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(8, initRow), color));
@@ -163,7 +163,7 @@ public enum GameVariant {
             // Add King
             pieces.add(new King(Position.of(5, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
     public static List<Piece> almostChessPieces() {
@@ -173,7 +173,7 @@ public enum GameVariant {
             int initRowPawn = initRowPawn(color, 8);
             // Add Pawns
             IntStream.rangeClosed(1, 8)
-                    .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             // Add Rooks
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(8, initRow), color));
@@ -188,7 +188,7 @@ public enum GameVariant {
             // Add King
             pieces.add(new King(Position.of(5, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
     public static List<Piece> capablancaPieces() {
@@ -196,7 +196,8 @@ public enum GameVariant {
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
             int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 10).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+            IntStream.rangeClosed(1, 10)
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(10, initRow), color));
             pieces.add(new Knight(Position.of(2, initRow), color));
@@ -208,7 +209,7 @@ public enum GameVariant {
             pieces.add(new Queen(Position.of(5, initRow), color));
             pieces.add(new King(Position.of(6, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
     public static List<Piece> gothicPieces() {
@@ -216,7 +217,8 @@ public enum GameVariant {
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
             int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 10).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+            IntStream.rangeClosed(1, 10)
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(10, initRow), color));
             pieces.add(new Knight(Position.of(2, initRow), color));
@@ -228,7 +230,7 @@ public enum GameVariant {
             pieces.add(new Queen(Position.of(4, initRow), color));
             pieces.add(new King(Position.of(6, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
     public static List<Piece> janusPieces() {
@@ -236,7 +238,8 @@ public enum GameVariant {
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
             int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 10).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+            IntStream.rangeClosed(1, 10)
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(10, initRow), color));
             pieces.add(new Knight(Position.of(3, initRow), color));
@@ -248,7 +251,7 @@ public enum GameVariant {
             pieces.add(new Queen(Position.of(6, initRow), color));
             pieces.add(new King(Position.of(5, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
     public static List<Piece> modernPieces() {
@@ -256,7 +259,8 @@ public enum GameVariant {
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 9);
             int initRowPawn = initRowPawn(color, 9);
-            IntStream.rangeClosed(1, 9).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+            IntStream.rangeClosed(1, 9)
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(9, initRow), color));
             pieces.add(new Knight(Position.of(2, initRow), color));
@@ -267,7 +271,7 @@ public enum GameVariant {
             pieces.add(new Queen(Position.of(4, initRow), color));
             pieces.add(new King(Position.of(5, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
     public static List<Piece> tuttiFruttiPieces() {
@@ -275,7 +279,8 @@ public enum GameVariant {
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
             int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 8).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+            IntStream.rangeClosed(1, 8)
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Chancellor(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(8, initRow), color));
             pieces.add(new Knight(Position.of(2, initRow), color));
@@ -285,7 +290,7 @@ public enum GameVariant {
             pieces.add(new Queen(Position.of(6, initRow), color));
             pieces.add(new King(Position.of(5, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
 }
