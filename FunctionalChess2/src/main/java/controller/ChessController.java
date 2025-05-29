@@ -144,15 +144,27 @@ public class ChessController implements ActionListener {
      * Part of the action listener for the view's buttons on the chess board.
      * @param x X coordinate of the button clicked.
      * @param y Y coordinate of the button clicked.
+     * @param sendMove State parameter to track if the move will be sent to the server/client in an online game.
+     * @param crowningType Type to crown a {@link Pawn} into, if the parameter is not null, instead of showing
+     * the crowning menu.
      */
     public void handleClick(int x, int y, boolean sendMove, String crowningType) {
         view.clearHighlights();
-        if (localPlayer != null && sendMove && localPlayer != game.activePlayer()) return; // For online games, do not permit the nonactive player to move
+
         if (x == 0 || y == 0) return; // Ignore label clicks
         if (game.state().hasEnded()) return; // Don't do anything if the game has ended.
         
         Position clickedPos = Position.of(x, y);
-        
+
+        if (localPlayer != null && sendMove && localPlayer != game.activePlayer()) {
+            /*
+            For online games, do not permit the nonactive player to move and only show the possible moves of
+            the piece in the position clicked, if present.
+             */
+            game.findPieceAt(clickedPos).ifPresent(view::highlightMovesOfPiece);
+            return;
+        }
+
         if (selectedPosition == null) { // First click stores the selected piece.
             if (game.checkPieceAt(clickedPos)) {
                 Piece piece = game.findPieceAt(clickedPos).get();
@@ -160,7 +172,7 @@ public class ChessController implements ActionListener {
                     selectedPosition = clickedPos;
                     view.highlightValidMoves(piece);
                 } else {
-                    view.highlightMovesOfEnemyPiece(piece);
+                    view.highlightMovesOfPiece(piece);
                 }
             }
         } else { // Second click attempts to do the movement.
@@ -204,11 +216,11 @@ public class ChessController implements ActionListener {
                     if (crowningType == null) crownedType = EmergentPanels.pawnCrowningMenu(view, game.variant().crownablePieces());
                     game = game.crownPawnChain(piece, crowningType != null ? crowningType : crownedType);
                 }
+
                 if (isOnlineGame && sendMove) notifyMovePerformed(selectedPosition, clickedPos, crowningType != null ? crowningType : crownedType);
                 Optional<Play> lastPlay = game.getLastPlay();
                 lastPlay.ifPresent(view::updatePlayHistory);
                 view.updateBoard();
-
                 view.updateActivePlayer();
 
                 game = game.checkMateChain(game.activePlayer());

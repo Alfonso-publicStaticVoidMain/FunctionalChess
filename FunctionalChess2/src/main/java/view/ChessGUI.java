@@ -257,7 +257,7 @@ public class ChessGUI extends JFrame {
      * of a {@link Piece} of the opposing player.
      * @param piece {@link Piece} to move.
      */
-    public void highlightMovesOfEnemyPiece(Piece piece) {
+    public void highlightMovesOfPiece(Piece piece) {
         Chess game = controller.getGame();
         for (int col = 1; col <= cols; col++) {
             for (int row = 1; row <= rows; row++) {
