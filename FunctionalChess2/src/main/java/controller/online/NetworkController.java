@@ -52,6 +52,7 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
                     logger.log("Different selected games. Client chose "+ clientVariant + ". Connection rejected.");
                     tempConnection.getOut().println(ConfigParameters.NETWORK_REJECTED);
                     tempConnection.close();
+                    return;
                 }
 
                 logger.log("Client attempting to connect from " + clientSocket.getInetAddress());
