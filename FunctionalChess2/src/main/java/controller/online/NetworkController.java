@@ -49,6 +49,9 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
                 String clientVariant = tempConnection.getIn().readLine();
 
                 if (!clientVariant.equals(chessController.getGame().variant().toString())) {
+                    logger.log("Game types coincide. Proceeding");
+                    tempConnection.getOut().println(ConfigParameters.NETWORK_ACCEPTED);
+                } else {
                     logger.log("Different selected games. Client chose "+ clientVariant + ". Connection rejected.");
                     tempConnection.getOut().println(ConfigParameters.NETWORK_REJECTED);
                     tempConnection.close();
@@ -93,6 +96,7 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
                 if (response.equals(ConfigParameters.NETWORK_REJECTED)) {
                     logger.log("Different selected games. Server rejected connection.");
                     tempConnection.close();
+                    return;
                 }
 
                 String userPassword = EmergentPanels.userTextInputMessage(logger, "Introduce the password");
