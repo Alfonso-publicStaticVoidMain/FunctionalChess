@@ -19,29 +19,24 @@ public record Position(int x, int y) implements Serializable {
      * @return A new Position constructed by converting the first char of the
      * String to an integer, to store it as the x coordinate of the position,
      * and storing the second as the y coordinate.
-     * If the String doesn't have length 2, or if its characters does't
+     * If the String doesn't have length 2, or if its characters doesn't
      * represent a position in algebraic notation, an error message is printed
      * and {@code null} is returned.
      * @deprecated This method only works for positions with y coordinate of up
-     * to 9, so it doesn't work for Chess gamer with boards of that size. In
-     * any case, the {@link Position#of(int, int)} method is generally prefered
+     * to 9, so it doesn't work for Chess games with boards of that size. In
+     * any case, the {@link Position#of(int, int)} method is generally preferred
      * to create new Positions.
      */
     @Deprecated
     public static Position of(String pos) {
-        if (pos.length()!=2) {
-            System.out.println("Error occurred while trying to create the position with value: " + pos);
-            System.out.println("The specified String doesn't have length 2.");
-            return null;
-        }
         try {
+            if (pos.length()!=2) throw new IllegalArgumentException("The specified String doesn't have length 2.");
             final int x = convertLetterToNumber(pos.charAt(0));
             final int y = Integer.parseInt(""+pos.charAt(1));
             if (x >= 1 && y >= 1) return new Position(x, y);
             else throw new IllegalArgumentException(pos+" represents coordinates ("+x+", "+y+"), which are outside the chess board");
         } catch (IllegalArgumentException e) {
-            System.err.println("Error occurred while trying to create the position with value: " + pos);
-            System.err.println(e);
+            System.err.println("Error occurred while trying to create the position with value: " + pos + " " + e.getMessage());
             return null;
         }
     }

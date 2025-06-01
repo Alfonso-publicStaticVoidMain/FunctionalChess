@@ -57,7 +57,7 @@ public class ChessGUI extends JFrame {
     private final JTable playHistoryArea;
     private final JPanel tablePanel;
     private final JScrollPane scrollPane;
-    private final DefaultTableModel tableModel;    
+    private final DefaultTableModel tableModel;
 
     private JLabel whiteTimer;
     private JLabel blackTimer;

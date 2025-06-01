@@ -158,18 +158,17 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
     public void disconnect() {
         if (connection != null) {
             connection.close();
-            logger.log("Connection closed.");
+            System.out.println("Connection closed.");
         }
         if (serverSocket != null) {
             try {
                 serverSocket.close();
-                logger.log("Server socket closed.");
+                System.out.println("Server socket closed.");
             } catch (IOException e) {
-                logger.log("Error closing server socket: " + e.getMessage());
+                System.err.println("Error closing server socket: " + e.getMessage());
             }
         }
     }
-
 
     @Override
     public void onMovePerformed(Position initPos, Position finPos, String crowningType) {

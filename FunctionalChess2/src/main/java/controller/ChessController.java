@@ -359,9 +359,21 @@ public class ChessController implements ActionListener {
                 System.out.println("[DEBUG] Position: "+Position.of(x, y)+" (x="+x+", y="+y+")");
                 handleClick(x, y);
             }
-            case ConfigParameters.RESET_BUTTON -> resetClick();
+            case ConfigParameters.RESET_BUTTON -> {
+                if (isOnlineGame) {
+                    EmergentPanels.informPlayer(view, "You can't do this on an online game!", "You can't reset the game during an online game.");
+                    return;
+                }
+                resetClick();
+            }
             case ConfigParameters.SAVE_BUTTON -> saveClick();
-            case ConfigParameters.LOAD_BUTTON -> loadClick();
+            case ConfigParameters.LOAD_BUTTON -> {
+                if (isOnlineGame) {
+                    EmergentPanels.informPlayer(view, "You can't do this on an online game!", "You can't load a saved game during an online game.");
+                    return;
+                }
+                loadClick();
+            }
             case ConfigParameters.BACK_BUTTON -> backClick();
         }
     }
