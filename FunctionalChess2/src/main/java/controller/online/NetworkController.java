@@ -48,7 +48,7 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
 
                 String clientVariant = tempConnection.getIn().readLine();
 
-                if (!clientVariant.equals(chessController.getGame().variant().toString())) {
+                if (clientVariant.equals(chessController.getGame().variant().toString())) {
                     logger.log("Game types coincide. Proceeding");
                     tempConnection.getOut().println(ConfigParameters.NETWORK_ACCEPTED);
                 } else {
