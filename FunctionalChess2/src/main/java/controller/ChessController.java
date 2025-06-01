@@ -89,6 +89,8 @@ public class ChessController implements ActionListener {
      */
     public Chess getGame() {return game;}
 
+    public ChessGUI getView() {return view;}
+
     /**
      * Consumes one second from the white player's seconds left.
      */

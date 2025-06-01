@@ -58,8 +58,7 @@ public class ChessGUI extends JFrame {
     private final JPanel tablePanel;
     private final JScrollPane scrollPane;
     private final DefaultTableModel tableModel;    
-    
-//    private final JPanel leftPanel;
+
     private JLabel whiteTimer;
     private JLabel blackTimer;
     private Timer gameTimer;
@@ -173,6 +172,8 @@ public class ChessGUI extends JFrame {
     public void setController(ChessController controller) {
         this.controller = controller;
     }
+
+    public JButton getBackButton() {return backButton;}
 
     public void addActionListeners() {
         Stream.of(boardButtons)

@@ -33,7 +33,7 @@ public class Index extends JFrame {
     private final JButton exitButton;
     private final JRadioButton localRadio;
     private final JRadioButton hostRadio;
-    private final JButton clientJoinButton;
+    private final JRadioButton clientJoinButton;
     private final ButtonGroup networkToggleGroup;
     
     private IndexController controller;
@@ -73,14 +73,14 @@ public class Index extends JFrame {
         // Network mode radio buttons
         localRadio = new JRadioButton("Local");
         hostRadio = new JRadioButton("Host Game");
-        clientJoinButton = Buttons.standardButton("Join Game", ConfigParameters.JOIN_BUTTON);
+        clientJoinButton = new JRadioButton("Join Game");
 
         localRadio.setSelected(true);
 
         networkToggleGroup = new ButtonGroup();
         networkToggleGroup.add(localRadio);
         networkToggleGroup.add(hostRadio);
-        //networkToggleGroup.add(clientJoinButton);
+        networkToggleGroup.add(clientJoinButton);
 
         radioPanel = new JPanel();
         radioPanel.setOpaque(false);
@@ -178,6 +178,12 @@ public class Index extends JFrame {
         add(buttonsPanel, BorderLayout.CENTER);
         add(Box.createRigidArea(new Dimension(0, 20)), BorderLayout.SOUTH);
         setVisible(true);
+    }
+
+    public IndexController.GameType gameTypeSelected() {
+        if (hostRadio.isSelected()) return IndexController.GameType.HOST;
+        if (clientJoinButton.isSelected()) return IndexController.GameType.CLIENT;
+        return IndexController.GameType.LOCAL;
     }
 
     public boolean isHostingSelected() {

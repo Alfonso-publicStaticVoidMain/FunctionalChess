@@ -87,14 +87,14 @@ public class EmergentPanels {
      */
     public static String pawnCrowningMenu(JFrame frame, String[] options) {
         int n = JOptionPane.showOptionDialog(
-                frame,
-                "You can crown a pawn. What piece do you want to crown your pawn into?\nNot selecting any option will automatically select the first option.",
-                "Crowning Menu",
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[0]);
+            frame,
+            "You can crown a pawn. What piece do you want to crown your pawn into?\nNot selecting any option will automatically select the first option.",
+            "Crowning Menu",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]);
         return options[n];
     }
 

@@ -5,19 +5,17 @@ import java.awt.*;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
-public class ConnectionLogger extends JDialog {
+public class ConnectionLogger extends JFrame {
     private final JTextArea logTextArea;
+    private final JScrollPane scrollPane;
 
     public ConnectionLogger() {
         setTitle("Connection Log");
-        setModal(false);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-
         logTextArea = new JTextArea(10, 50);
         logTextArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(logTextArea);
-
-        add(scrollPane, BorderLayout.CENTER);
+        scrollPane = new JScrollPane(logTextArea);
+        getContentPane().add(scrollPane, BorderLayout.CENTER);
         pack();
         setLocationRelativeTo(null);
     }
@@ -30,10 +28,13 @@ public class ConnectionLogger extends JDialog {
         });
     }
 
-    public void waitAndClose() {
-        Timer closeTimer = new Timer(2000, e -> dispose());
+    public void waitAndClose(int ms) {
+        Timer closeTimer = new Timer(ms, e -> dispose());
         closeTimer.setRepeats(false);
         closeTimer.start();
     }
 
+    public void waitAndClose() {
+        waitAndClose(2000);
+    }
 }
