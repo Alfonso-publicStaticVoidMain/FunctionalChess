@@ -1,6 +1,7 @@
 package functional_chess_model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Record representing the valid positions of a chess board. Contains two
@@ -76,27 +77,6 @@ public record Position(int x, int y) implements Serializable {
      */
     public static int yDist(Position initPos, Position finPos) {
         return finPos.y - initPos.y;
-    }
-    
-    /**
-     * Compares {@code this} to another object.
-     * @param obj Object to compare {@code this} to.
-     * @return True if {@code obj} is a Position with the same values of x and
-     * y, false otherwise.
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (this.getClass() != obj.getClass()) {
-            return false;
-        }
-        final Position other = (Position) obj;
-        return (x == other.x && y == other.y);
     }
 
     /**

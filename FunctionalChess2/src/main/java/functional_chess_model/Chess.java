@@ -12,7 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 /**
@@ -618,8 +621,9 @@ public record Chess(
      * its color is the parameter color, false otherwise.
      */
     public boolean checkPieceSameColorAs(Position pos, ChessColor color) {
-        return pieces.stream()
-            .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() == color);
+        return findPieceThenTest(pos, piece -> piece.getColor() == color);
+        //return pieces.stream()
+        //    .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() == color);
     }
 
     /**
@@ -630,8 +634,9 @@ public record Chess(
      * its color is not the parameter color, false otherwise.
      */
     public boolean checkPieceDiffColorAs(Position pos, ChessColor color) {
-        return pieces.stream()
-            .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() != color);
+        return findPieceThenTest(pos, piece -> piece.getColor() != color);
+        //return pieces.stream()
+        //    .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() != color);
     }
 
     /**
@@ -658,7 +663,9 @@ public record Chess(
      * an en passant capture for {@link Pawn}s.
      */
     public Optional<Piece> pieceCapturedByMove(Piece piece, Position finPos) {
-        if (checkPieceAt(finPos)) return findPieceAt(finPos);
+        Optional<Piece> pieceOrNot = findPieceAt(finPos);
+        if (pieceOrNot.isPresent()) return pieceOrNot;
+
         if (piece instanceof Pawn) {
             OptionalInt enPassantXDir = getEnPassantXDir(piece);
             if (enPassantXDir.isPresent() && enPassantXDir.getAsInt() == Position.xDist(piece.getPosition(), finPos)) return Optional.of(getLastPlay().get().piece());
@@ -677,9 +684,9 @@ public record Chess(
      * {@link Pawn}s.
      */
     public Optional<Piece> pieceCapturedByMove(Position initPos, Position finPos) {
-        Optional<Piece> pieceFound = findPieceAt(initPos);
-        if (pieceFound.isEmpty()) return Optional.empty();
-        return pieceCapturedByMove(pieceFound.get(), finPos);
+        return findPieceThenApply(initPos, finPos, this::pieceCapturedByMove);
+                //findPieceAt(initPos)
+            //.flatMap(piece -> pieceCapturedByMove(piece, finPos));
     }
 
     /**
@@ -697,10 +704,9 @@ public record Chess(
      * during its movement.
      */
     public Optional<CastlingType> castlingTypeOfPlay(Position initPos, Position finPos) {
-        Optional<Piece> pieceOrNot = findPieceAt(initPos);
-        if (pieceOrNot.isEmpty()) return Optional.empty();
-        Piece piece = pieceOrNot.get();
-        return castlingTypeOfPlay(piece, finPos);
+        return findPieceThenApply(initPos, finPos, this::castlingTypeOfPlay);
+                //findPieceAt(initPos)
+            //.flatMap(piece -> castlingTypeOfPlay(piece, finPos));
     }
 
     /**
@@ -812,8 +818,9 @@ public record Chess(
      * false otherwise, or if there's no piece in the initial position.
      */
     public boolean doesThisMovementCauseACheck(Position initPos, Position finPos) {
-        Optional<Piece> pieceOrNot = findPieceAt(initPos);
-        return pieceOrNot.filter(piece -> doesThisMovementCauseACheck(piece, finPos)).isPresent();
+        //Optional<Piece> pieceOrNot = findPieceAt(initPos);
+        //return pieceOrNot.filter(piece -> doesThisMovementCauseACheck(piece, finPos)).isPresent();
+        return findPieceThenTest(initPos, piece -> doesThisMovementCauseACheck(piece, finPos));
     }
 
     /**
@@ -842,8 +849,29 @@ public record Chess(
     }
 
     public boolean isValidMove(Position initPos, Position finPos) {
-        if (!checkPieceAt(initPos)) return false;
-        return findPieceAt(initPos).get().isLegalMovement(this, finPos);
+        return findPieceThenTest(initPos, piece -> piece.isLegalMovement(this, finPos));
+                //findPieceAt(initPos).map(piece -> piece.isLegalMovement(this, finPos)).orElse(false);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="Find Piece abstraction methods">
+
+    public <T> Optional<T> findPieceThenApply(Position initPos, Position finPos, BiFunction<Piece, Position, Optional<T>> f) {
+        return findPieceAt(initPos)
+            .flatMap(piece -> f.apply(piece, finPos));
+    }
+
+    public boolean findPieceThenTest(Position initPos, Position finPos, BiPredicate<Piece, Position> condition) {
+        return findPieceAt(initPos)
+            .map(piece -> condition.test(piece, finPos))
+            .orElse(false);
+    }
+
+    public boolean findPieceThenTest(Position pos, Predicate<Piece> condition) {
+        return findPieceAt(pos)
+            .map(condition::test)
+            .orElse(false);
     }
 
     //</editor-fold>
@@ -961,9 +989,11 @@ public record Chess(
     public static boolean isKnightLikePath(Position initPos, Position finPos) {
         return isKnightLikePath(Position.xDist(initPos, finPos), Position.yDist(initPos, finPos));
     }
+
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Builder Inner Class">
+
     public static class Builder {
         private List<Piece> pieces;
         private Map<ChessColor, Map<CastlingType, Boolean>> castling;
@@ -977,7 +1007,9 @@ public record Chess(
 
         private Builder() {}
 
-        private static Builder of(Chess original) {
+        static Builder of() {return new Builder();}
+
+        static Builder of(Chess original) {
             Builder builder = new Builder();
             builder.pieces = original.pieces();
             builder.castling = original.castling();
@@ -991,48 +1023,52 @@ public record Chess(
             return builder;
         }
 
-        private Builder withPieces(List<Piece> pieces) {
+        Builder withPieces(List<Piece> pieces) {
             this.pieces = pieces;
             return this;
         }
 
-        private Builder withCastling(Map<ChessColor, Map<CastlingType, Boolean>> castling) {
+        Builder withCastling(Map<ChessColor, Map<CastlingType, Boolean>> castling) {
             this.castling = castling;
             return this;
         }
 
-        private Builder withPlayHistory(List<Play> playHistory) {
+        Builder withPlayHistory(List<Play> playHistory) {
             this.playHistory = playHistory;
             return this;
         }
 
-        public Builder withOppositeActivePlayer() {
-            activePlayer = activePlayer.opposite();
+        Builder withActivePlayer(ChessColor activePlayer) {
+            this.activePlayer = activePlayer;
             return this;
         }
 
-        private Builder withVariant(GameVariant variant) {
+        Builder withOppositeActivePlayer() {
+            return withActivePlayer(activePlayer.opposite());
+        }
+
+        Builder withVariant(GameVariant variant) {
             this.variant = variant;
             return this;
         }
 
-        private Builder withState(GameState state) {
+        Builder withState(GameState state) {
             this.state = state;
             return this;
         }
 
-        private Builder withIsTimed(boolean isTimed) {
+        Builder withIsTimed(boolean isTimed) {
             this.isTimed = isTimed;
             return this;
         }
 
-        private Builder withSeconds(int whiteSeconds, int blackSeconds) {
+        Builder withSeconds(int whiteSeconds, int blackSeconds) {
             this.whiteSeconds = whiteSeconds;
             this.blackSeconds = blackSeconds;
             return this;
         }
 
-        private Chess build() {
+        Chess build() {
             return new Chess(
                 pieces,
                 castling,
@@ -1046,5 +1082,6 @@ public record Chess(
             );
         }
     }
+
     //</editor-fold>
 }

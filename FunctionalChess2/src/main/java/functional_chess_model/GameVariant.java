@@ -61,7 +61,18 @@ public enum GameVariant {
     }
 
     public Chess initGame(boolean isTimed, int seconds) {
-        return new Chess(
+        return Chess.Builder.of()
+            .withPieces(initPieces)
+            .withCastling(initCastling)
+            .withPlayHistory(List.of())
+            .withActivePlayer(ChessColor.WHITE)
+            .withVariant(this)
+            .withState(GameState.NOT_STARTED)
+            .withIsTimed(isTimed)
+            .withSeconds(seconds, seconds)
+            .build();
+            /*
+                new Chess(
             initPieces,
             initCastling,
             List.of(),
@@ -71,7 +82,8 @@ public enum GameVariant {
             isTimed,
             seconds,
             seconds
-        );
+            );
+            */
     }
 
     public Chess initGame(boolean isTimed) {

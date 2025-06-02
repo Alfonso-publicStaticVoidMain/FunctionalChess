@@ -323,15 +323,14 @@ public class ChessGUI extends JFrame {
         Chess game = controller.getGame();
         for (int col = 1; col <= cols; col++) {
             for (int row = 1; row <= rows; row++) {
-                boardButtons[col][row].setIcon(game.checkPieceAt(Position.of(col, row)) ?
-                    game.findPieceAt(Position.of(col, row)).get().toIcon() :
+                Optional<Piece> pieceOrNot = game.findPieceAt(Position.of(col, row));
+                boardButtons[col][row].setIcon(pieceOrNot.isPresent() ?
+                    pieceOrNot.get().toIcon() :
                     new ImageIcon()
                 );
             }
         }
     }
-    
-
     
     /**
      * Updates the active player shown in the active player label, fetching

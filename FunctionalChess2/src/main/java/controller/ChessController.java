@@ -166,8 +166,9 @@ public class ChessController implements ActionListener {
         }
 
         if (selectedPosition == null) { // First click stores the selected piece and shows possible moves.
-            if (game.checkPieceAt(clickedPos)) {
-                Piece piece = game.findPieceAt(clickedPos).get();
+            Optional<Piece> pieceOrNot = game.findPieceAt(clickedPos);
+            if (pieceOrNot.isPresent()) {
+                Piece piece = pieceOrNot.get();
                 if (piece.getColor() == game.activePlayer()) {
                     selectedPosition = clickedPos;
                     view.highlightValidMoves(piece);
