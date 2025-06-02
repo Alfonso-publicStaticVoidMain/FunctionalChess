@@ -302,7 +302,13 @@ public record Chess(
      * @param pieceBeforeMoving {@link Piece} in its position before moving.
      * @param pieceAfterMoving {@link Piece} in its position after moving.
      * @param pieceCaptured {@link Piece} captured, or {@code null} if none was.
-     * @return A list of pieces reflecting the movement that was done.
+     * @return A list of pieces reflecting the movement that was done:
+     * <ul>
+     *     <li>{@code pieceBeforeMoving} is removed.</li>
+     *     <li>{@code pieceCaptured} is removed if not null.</li>
+     *     <li>{@code pieceAfterMoving} is added.</li>
+     * </ul>
+     * The returned list is first passed to List.copyOf to ensure immutability.
      */
     private List<Piece> updatedPiecesAfterMove(Piece pieceBeforeMoving, Piece pieceAfterMoving, Piece pieceCaptured) {
         List<Piece> updatedPieces = new ArrayList<>(pieces);
@@ -318,7 +324,10 @@ public record Chess(
      * @param finPos Final {@link Position} of the movement.
      * @param pieceMoved {@link Piece} that was moved.
      * @param pieceCaptured {@link Piece} captured, or {@code null} if none was.
-     * @return A list of plays reflecting the movement that was done.
+     * @return A list of plays reflecting the movement that was done: A new
+     * {@link Play} is added with parameters {@code pieceMoved}, {@code initPos},
+     * {@code finPos} and {@code pieceCaptured}.
+     * The returned list is first passed to List.copyOf to ensure immutability.
      */
     private List<Play> updatedPlaysAfterMove(Position initPos, Position finPos, Piece pieceMoved, Piece pieceCaptured) {
         List<Play> updatedPlays = new LinkedList<>(playHistory);
@@ -331,14 +340,14 @@ public record Chess(
      * @param playerMoving Player who performed the movement.
      * @param initPos Initial {@link Position} of the movement.
      * @param pieceCaptured {@link Piece} captured, or {@code null} if none was.
-     * @return A castling map reflecting the movement that was done.
-     * The updates on the previous castling map are:
+     * @return A castling map reflecting the movement that was done:
      * <ul>
      *     <li>If the active player moved from the initial position of a Rook or King, the appropriate castling
      *     availabilities are set to false for that player.</li>
      *     <li>If the nonactive player had one of its Rooks captured in the movement, the appropriate castling
      *     availability is set to false for that player.</li>
      * </ul>
+     * The returned map is first passed to Map.copyOf to ensure immutability.
      */
     private Map<ChessColor, Map<CastlingType, Boolean>> updatedCastlingAfterMove(ChessColor playerMoving, Position initPos, Piece pieceCaptured) {
         Map<ChessColor, Map<CastlingType, Boolean>> updatedCastling = new EnumMap<>(ChessColor.class);
@@ -371,7 +380,13 @@ public record Chess(
      * @param castlingType Type of castling performed.
      * @param king {@link King} {@link Piece} moved.
      * @param rook {@link Rook} {@link Piece} moved.
-     * @return A list of pieces reflecting the castling that was done.
+     * @return A list of pieces reflecting the castling that was done:
+     * <ul>
+     *     <li>The {@link King} and {@link Rook} are removed.</li>
+     *     <li>A new {@link King} and {@link Rook} are instantiated and added with the position
+     *     appropriate for the castling that was performed.</li>
+     * </ul>
+     * The returned list is first passed to List.copyOf to ensure immutability.
      */
     private List<Piece> updatedPiecesAfterCastling(ChessColor player, CastlingType castlingType, Piece king, Piece rook) {
         List<Piece> updatedPieces = new ArrayList<>(pieces);
@@ -387,11 +402,15 @@ public record Chess(
      * @param player Player who performed the castling.
      * @param castlingType Type of castling performed.
      * @param king {@link King} {@link Piece} moved.
-     * @return A list of plays reflecting the castling done.
+     * @return A list of plays reflecting the castling done: A new
+     * {@link Play} is added with parameters {@code king}, the King's
+     * initial position, its final position after performing the
+     * castling and {@code castlingType}.
+     * The returned list is first passed to List.copyOf to ensure immutability.
      */
     private List<Play> updatedPlaysAfterCastling(ChessColor player, CastlingType castlingType, Piece king) {
         List<Play> updatedPlays = new LinkedList<>(playHistory);
-        updatedPlays.add(new Play(king.moveTo(variant.castlingKingPos(castlingType, player)), variant.initKingPos(player), variant.castlingKingPos(castlingType, player), castlingType));
+        updatedPlays.add(new Play(king, variant.initKingPos(player), variant.castlingKingPos(castlingType, player), castlingType));
         return List.copyOf(updatedPlays);
     }
 
@@ -400,6 +419,7 @@ public record Chess(
      * @param player Player who performed the castling.
      * @return A castling map where the {@code player} has both types of castling availabilities
      * set to false.
+     * The returned map is first passed to Map.copyOf to ensure immutability.
      */
     private Map<ChessColor, Map<CastlingType, Boolean>> updatedCastlingAfterCastling(ChessColor player) {
         Map<ChessColor, Map<CastlingType, Boolean>> updatedCastling = new EnumMap<>(ChessColor.class);
@@ -418,7 +438,9 @@ public record Chess(
      * Updates the list of pieces according to a crowning performed.
      * @param piece {@link Piece} (will always be a {@link Pawn}) before crowning.
      * @param crownedPiece {@link Piece} after crowning.
-     * @return A list of pieces reflecting the crowning done.
+     * @return A list of pieces reflecting the crowning done: The piece before crowning is removed and
+     * the piece after crowning is added.
+     * The returned list is first passed to List.copyOf to ensure immutability.
      */
     private List<Piece> updatedPiecesAfterCrowning(Piece piece, Piece crownedPiece) {
         List<Piece> updatedPieces = new ArrayList<>(pieces);
@@ -432,9 +454,10 @@ public record Chess(
      * @param piece {@link Piece} (will always be a {@link Pawn}) before crowning.
      * @param lastPlay Last {@link Play} of the game.
      * @param crownedPiece {@link Piece} after crowning.
-     * @return A list of plays reflecting the crowning done. The last play is removed
+     * @return A list of plays reflecting the crowning done: The last play is removed
      * and replaced with another that includes what {@link Piece} the pawn was crowned
      * into.
+     * The returned list is first passed to List.copyOf to ensure immutability.
      */
     private List<Play> updatedPlaysAfterCrowning(Piece piece, Play lastPlay, Piece crownedPiece) {
         List<Play> updatedPlays = new LinkedList<>(playHistory);
@@ -571,8 +594,8 @@ public record Chess(
 
     /**
      * Gets the last play done, if able.
-     * @return The last {@link Play} stored in the {@code playHistory} attribute,
-     * if its present, or {@code Optional.empty} otherwise.
+     * @return An {@code Optional} containing the last {@link Play} stored in the
+     * {@code playHistory} attribute, if present, or {@code Optional.empty} otherwise.
      */
     public Optional<Play> getLastPlay() {
         if (playHistory.isEmpty()) return Optional.empty();
@@ -594,8 +617,7 @@ public record Chess(
     /**
      * Checks whether there's a piece or not in the given position.
      * @param pos {@link Position} to check.
-     * @return True if there's a {@link Piece} in the parameter position, false
-     * otherwise.
+     * @return True if there's a {@link Piece} in the parameter {@link Position}, false otherwise.
      */
     public boolean checkPieceAt(Position pos) {
         return pieces.stream()
@@ -611,7 +633,7 @@ public record Chess(
      */
     public boolean checkPieceSameColorAs(Position pos, ChessColor color) {
         return pieces.stream()
-                .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() == color);
+            .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() == color);
     }
 
     /**
@@ -623,7 +645,7 @@ public record Chess(
      */
     public boolean checkPieceDiffColorAs(Position pos, ChessColor color) {
         return pieces.stream()
-                .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() != color);
+            .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() != color);
     }
 
     /**
@@ -631,13 +653,13 @@ public record Chess(
      * @param color {@link ChessColor} to match.
      * @return The {@link Piece} of the parameter color whose {@code royal}
      * attribute is true, or {@code Optional.empty} if there's none. If somehow
-     * there are multiple royal initPieces, this method might return a different
+     * there are multiple royal pieces, this method might return a different
      * one on each call.
      */
     public Optional<Piece> findRoyalPiece(ChessColor color) {
         return pieces.stream()
-                .filter(piece -> piece.isRoyal() && piece.getColor() == color)
-                .findAny();
+            .filter(piece -> piece.isRoyal() && piece.getColor() == color)
+            .findAny();
     }
 
     /**
@@ -652,8 +674,8 @@ public record Chess(
     public Optional<Piece> pieceCapturedByMove(Piece piece, Position finPos) {
         if (checkPieceAt(finPos)) return findPieceAt(finPos);
         if (piece instanceof Pawn) {
-            OptionalInt xDirEnPassantOrNot = getEnPassantXDir(piece);
-            if (xDirEnPassantOrNot.isPresent() && xDirEnPassantOrNot.getAsInt() == Position.xDist(piece.getPosition(), finPos)) return Optional.of(getLastPlay().get().piece());
+            OptionalInt enPassantXDir = getEnPassantXDir(piece);
+            if (enPassantXDir.isPresent() && enPassantXDir.getAsInt() == Position.xDist(piece.getPosition(), finPos)) return Optional.of(getLastPlay().get().piece());
         }
         return Optional.empty();
     }
@@ -716,37 +738,39 @@ public record Chess(
         int initRow = variant.initRow(color);
 
         if (isCastlingAvailable(color, CastlingType.LEFT) && finPos.equals(variant.castlingKingPos(CastlingType.LEFT, color))) {
-            // Checks if there are piece in the middle of the initial and castling positions
+            // Checks if there are pieces in the middle of the initial and castling positions
             if (IntStream.rangeClosed(variant.initRookCol(CastlingType.LEFT)+1, variant.castlingRookCol(CastlingType.LEFT))
-                    .anyMatch(x -> checkPieceAt(Position.of(x, initRow))))
-                return Optional.empty();
+                .anyMatch(x -> checkPieceAt(Position.of(x, initRow)))) return Optional.empty();
 
             // Checks if any piece could threaten to capture the King if it were on the middle positions.
             if (IntStream.rangeClosed(variant.castlingKingCol(CastlingType.LEFT), variant.kingInitCol())
-                    .anyMatch(x -> pieces.stream()
-                            .anyMatch(p -> p.getColor() != color && (
-                                    p.isLegalMovement(this, Position.of(x, initRow), false)
-                                            || (p instanceof Pawn &&
-                                            Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
-                                            Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
-                                    ))
-                            )))
-                return Optional.empty();
+                .anyMatch(x -> pieces.stream()
+                    .anyMatch(p -> p.getColor() != color && (
+                        p.isLegalMovement(this, Position.of(x, initRow), false)
+                            || (p instanceof Pawn &&
+                            Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
+                            Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
+                        ))
+                    ))) return Optional.empty();
 
             return Optional.of(CastlingType.LEFT);
         }
 
         if (isCastlingAvailable(color, CastlingType.RIGHT) && finPos.equals(variant.castlingKingPos(CastlingType.RIGHT, color))) {
-            // Checks if there are piece in the middle of the initial and castling positions
+            // Checks if there are pieces in the middle of the initial and castling positions
             if (IntStream.rangeClosed(variant.castlingRookCol(CastlingType.RIGHT), variant.initRookCol(CastlingType.RIGHT)-1)
-                    .anyMatch(x -> checkPieceAt(Position.of(x, initRow))))
-                return Optional.empty();
+                .anyMatch(x -> checkPieceAt(Position.of(x, initRow)))) return Optional.empty();
 
             // Checks if any piece could threaten to capture the King if it were on the middle positions.
-            if (IntStream.rangeClosed(variant.castlingKingCol(CastlingType.RIGHT), variant.kingInitCol())
-                    .anyMatch(x -> pieces.stream()
-                            .anyMatch(p -> p.getColor() != color && p.isLegalMovement(this, Position.of(x, initRow), false))))
-                return Optional.empty();
+            if (IntStream.rangeClosed(variant.kingInitCol(), variant.castlingKingCol(CastlingType.RIGHT))
+                .anyMatch(x -> pieces.stream()
+                    .anyMatch(p -> p.getColor() != color && (
+                        p.isLegalMovement(this, Position.of(x, initRow), false)
+                            || (p instanceof Pawn &&
+                            Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
+                            Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
+                        ))
+                    ))) return Optional.empty();
 
             return Optional.of(CastlingType.RIGHT);
         }
@@ -777,7 +801,7 @@ public record Chess(
     public boolean isPlayerInCheck(ChessColor color) {
         Optional<Piece> royalPieceOrNot = findRoyalPiece(color);
         return royalPieceOrNot.filter(royalPiece -> pieces.stream()
-                .anyMatch(piece -> piece.getColor() != color && piece.isLegalMovement(this, royalPiece.getPosition(), false))).isPresent();
+            .anyMatch(piece -> piece.getColor() != color && piece.isLegalMovement(this, royalPiece.getPosition(), false))).isPresent();
     }
 
     /**
@@ -878,8 +902,8 @@ public record Chess(
         int steps = Math.max(Math.abs(Xmovement), Math.abs(Ymovement));
 
         return IntStream.range(1, steps)
-                .mapToObj(n -> Position.of(initX + n*Xdirection, initY + n*Ydirection))
-                .noneMatch(this::checkPieceAt);
+            .mapToObj(n -> Position.of(initX + n*Xdirection, initY + n*Ydirection))
+            .noneMatch(this::checkPieceAt);
     }
 
     /**
@@ -901,9 +925,7 @@ public record Chess(
      * @return False if both Xmovement and Ymovement are 0, true otherwise.
      */
     public static boolean isRookLikePath(Position initPos, Position finPos) {
-        int Xmovement = Position.xDist(initPos, finPos);
-        int Ymovement = Position.yDist(initPos, finPos);
-        return isRookLikePath(Xmovement, Ymovement);
+        return isRookLikePath(Position.xDist(initPos, finPos), Position.yDist(initPos, finPos));
     }
 
     /**
@@ -928,9 +950,7 @@ public record Chess(
      * false otherwise.
      */
     public static boolean isBishopLikePath(Position initPos, Position finPos) {
-        int Xmovement = Position.xDist(initPos, finPos);
-        int Ymovement = Position.yDist(initPos, finPos);
-        return isBishopLikePath(Xmovement, Ymovement);
+        return isBishopLikePath(Position.xDist(initPos, finPos), Position.yDist(initPos, finPos));
     }
 
     /**
@@ -943,8 +963,8 @@ public record Chess(
      */
     public static boolean isKnightLikePath(int Xmovement, int Ymovement) {
         return Math.abs(Xmovement) + Math.abs(Ymovement) == 3
-                && Math.abs(Xmovement) <= 2 && Math.abs(Xmovement) >= 1
-                && Math.abs(Ymovement) <= 2 && Math.abs(Ymovement) >= 1;
+            && Math.abs(Xmovement) <= 2 && Math.abs(Xmovement) >= 1
+            && Math.abs(Ymovement) <= 2 && Math.abs(Ymovement) >= 1;
     }
 
     /**
@@ -958,9 +978,7 @@ public record Chess(
      * inclusive. False otherwise.
      */
     public static boolean isKnightLikePath(Position initPos, Position finPos) {
-        int Xmovement = Position.xDist(initPos, finPos);
-        int Ymovement = Position.yDist(initPos, finPos);
-        return isKnightLikePath(Xmovement, Ymovement);
+        return isKnightLikePath(Position.xDist(initPos, finPos), Position.yDist(initPos, finPos));
     }
     //</editor-fold>
 

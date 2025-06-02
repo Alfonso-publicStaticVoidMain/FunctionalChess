@@ -126,7 +126,7 @@ public enum GameVariant {
         return Position.of(castlingRookCol(side), initRow(color));
     }
 
-    public static Map<ChessColor, Map<CastlingType, Boolean>> initCastlingWith(boolean value) {
+    private static Map<ChessColor, Map<CastlingType, Boolean>> initCastlingWith(boolean value) {
         Map<ChessColor, Map<CastlingType, Boolean>> initCastling = new EnumMap<>(ChessColor.class);
         for (ChessColor color : ChessColor.values()) {
             Map<CastlingType, Boolean> castlingForColor = new EnumMap<>(CastlingType.class);
@@ -138,7 +138,7 @@ public enum GameVariant {
         return Map.copyOf(initCastling);
     }
 
-    public static List<Piece> standardPieces() {
+    private static List<Piece> standardPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
@@ -163,7 +163,7 @@ public enum GameVariant {
         return List.copyOf(pieces);
     }
 
-    public static List<Piece> almostChessPieces() {
+    private static List<Piece> almostChessPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
@@ -188,7 +188,7 @@ public enum GameVariant {
         return List.copyOf(pieces);
     }
 
-    public static List<Piece> capablancaPieces() {
+    private static List<Piece> capablancaPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
@@ -209,7 +209,7 @@ public enum GameVariant {
         return List.copyOf(pieces);
     }
 
-    public static List<Piece> gothicPieces() {
+    private static List<Piece> gothicPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
@@ -230,7 +230,7 @@ public enum GameVariant {
         return List.copyOf(pieces);
     }
 
-    public static List<Piece> janusPieces() {
+    private static List<Piece> janusPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
@@ -251,7 +251,7 @@ public enum GameVariant {
         return List.copyOf(pieces);
     }
 
-    public static List<Piece> modernPieces() {
+    private static List<Piece> modernPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 9);
@@ -271,7 +271,7 @@ public enum GameVariant {
         return List.copyOf(pieces);
     }
 
-    public static List<Piece> tuttiFruttiPieces() {
+    private static List<Piece> tuttiFruttiPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
