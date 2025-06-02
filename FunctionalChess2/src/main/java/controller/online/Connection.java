@@ -17,8 +17,8 @@ public class Connection {
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
-    public PrintWriter getOut() { return out; }
-    public BufferedReader getIn() { return in; }
+    public PrintWriter out() { return out; }
+    public BufferedReader in() { return in; }
 
     public void close() {
         try {

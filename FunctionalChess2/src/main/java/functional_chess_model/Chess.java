@@ -115,20 +115,17 @@ public record Chess(
         if (!piece.isLegalMovement(this, finPos, checkCheck)) return Optional.empty();
 
         // Store the piece after being moved and piece captured if present.
-        Optional<Piece> pieceCaptured = pieceCapturedByMove(piece, finPos);
         Piece pieceAfterMoving = piece.moveTo(finPos);
-
-        return Optional.of(new Chess(
-            updatedPiecesAfterMove(piece, pieceAfterMoving, pieceCaptured.orElse(null)),
-            updatedCastlingAfterMove(playerMoving, initPos, pieceCaptured.orElse(null)),
-            updatedPlaysAfterMove(initPos, finPos, pieceAfterMoving, pieceCaptured.orElse(null)),
-            activePlayer.opposite(),
-            variant,
-            GameState.IN_PROGRESS,
-            isTimed,
-            whiteSeconds,
-            blackSeconds
-        ));
+        Piece pieceCaptured = pieceCapturedByMove(piece, finPos).orElse(null);
+        return Optional.of(
+            Chess.Builder.of(this)
+                .withPieces(updatedPiecesAfterMove(piece, pieceAfterMoving, pieceCaptured))
+                .withCastling(updatedCastlingAfterMove(playerMoving, initPos, pieceCaptured))
+                .withPlayHistory(updatedPlaysAfterMove(initPos, finPos, pieceAfterMoving, pieceCaptured))
+                .withOppositeActivePlayer()
+                .withState(GameState.IN_PROGRESS)
+                .build()
+        );
     }
 
     /**
@@ -184,24 +181,20 @@ public record Chess(
      */
     public Optional<Chess> tryToCastle(ChessColor player, CastlingType castlingType) {
         if (!isCastlingAvailable(player, castlingType)) return Optional.empty();
-        Position kingInitPos = variant.initKingPos(player);
         Optional<Piece> kingOrNot = findPieceAt(variant.initKingPos(player));
         Optional<Piece> rookOrNot = findPieceAt(variant.initRookPos(castlingType, player));
         if (kingOrNot.isEmpty() || rookOrNot.isEmpty()) return Optional.empty();
         Piece king = kingOrNot.get();
         Piece rook = rookOrNot.get();
-
-        return Optional.of(new Chess(
-            updatedPiecesAfterCastling(player, castlingType, king, rook),
-            updatedCastlingAfterCastling(player),
-            updatedPlaysAfterCastling(player, castlingType, king),
-            activePlayer.opposite(),
-            variant,
-            GameState.IN_PROGRESS,
-            isTimed,
-            whiteSeconds,
-            blackSeconds
-        ));
+        return Optional.of(
+            Chess.Builder.of(this)
+                .withPieces(updatedPiecesAfterCastling(player, castlingType, king, rook))
+                .withCastling(updatedCastlingAfterCastling(player))
+                .withPlayHistory(updatedPlaysAfterCastling(player, castlingType, king))
+                .withOppositeActivePlayer()
+                .withState(GameState.IN_PROGRESS)
+                .build()
+        );
     }
 
     /**
@@ -235,17 +228,11 @@ public record Chess(
                 }
             }
         }
-        return Optional.of(new Chess(
-            pieces,
-            castling,
-            playHistory,
-            activePlayer,
-            variant,
-            isInCheck ? GameState.playerWins(color.opposite()) : GameState.DRAW,
-            isTimed,
-            whiteSeconds,
-            blackSeconds
-        ));
+        return Optional.of(
+            Chess.Builder.of(this)
+                .withState(isInCheck ? GameState.playerWins(color.opposite()) : GameState.DRAW)
+                .build()
+        );
     }
 
     /**
@@ -265,19 +252,15 @@ public record Chess(
         Position pos = piece.getPosition();
         ChessColor color = piece.getColor();
         if (pos.y() != variant.crowningRow(color)) return Optional.empty();
-        Piece crownedPiece = PieceType.valueOf(newType.toUpperCase()).constructor().apply(pos, color);
+        Piece crownedPiece = PieceType.valueOf(newType.toUpperCase()).constructor(pos, color);
 
-        return Optional.of(new Chess(
-            updatedPiecesAfterCrowning(piece, crownedPiece),
-            castling,
-            updatedPlaysAfterCrowning(piece, lastPlay, crownedPiece),
-            activePlayer,
-            variant,
-            GameState.IN_PROGRESS,
-            isTimed,
-            whiteSeconds,
-            blackSeconds
-        ));
+        return Optional.of(
+            Chess.Builder.of(this)
+                .withPieces(updatedPiecesAfterCrowning(piece, crownedPiece))
+                .withPlayHistory(updatedPlaysAfterCrowning(piece, lastPlay, crownedPiece))
+                .withState(GameState.IN_PROGRESS)
+                .build()
+        );
     }
 
     /**
@@ -290,7 +273,10 @@ public record Chess(
      * method's parameters.
      */
     public Chess withSeconds(int whiteSeconds, int blackSeconds) {
-        return new Chess(pieces, castling, playHistory, activePlayer, variant, state, isTimed, whiteSeconds, blackSeconds);
+        return Chess.Builder.of(this)
+            .withSeconds(whiteSeconds, blackSeconds)
+            .build();
+        //return new Chess(pieces, castling, playHistory, activePlayer, variant, state, isTimed, whiteSeconds, blackSeconds);
     }
 
     //</editor-fold>
@@ -896,13 +882,8 @@ public record Chess(
      */
     public boolean isPathClear(int initX, int initY, int Xmovement, int Ymovement) {
         if (!isBishopLikePath(Xmovement, Ymovement) && !isRookLikePath(Xmovement, Ymovement)) return false;
-
-        int Xdirection = Integer.compare(Xmovement, 0);
-        int Ydirection = Integer.compare(Ymovement, 0);
-        int steps = Math.max(Math.abs(Xmovement), Math.abs(Ymovement));
-
-        return IntStream.range(1, steps)
-            .mapToObj(n -> Position.of(initX + n*Xdirection, initY + n*Ydirection))
+        return IntStream.range(1, Math.max(Math.abs(Xmovement), Math.abs(Ymovement)))
+            .mapToObj(n -> Position.of(initX + n* Integer.compare(Xmovement, 0), initY + n* Integer.compare(Ymovement, 0)))
             .noneMatch(this::checkPieceAt);
     }
 
@@ -982,4 +963,88 @@ public record Chess(
     }
     //</editor-fold>
 
+    //<editor-fold defaultstate="collapsed" desc="Builder Inner Class">
+    public static class Builder {
+        private List<Piece> pieces;
+        private Map<ChessColor, Map<CastlingType, Boolean>> castling;
+        private List<Play> playHistory;
+        private ChessColor activePlayer;
+        private GameVariant variant;
+        private GameState state;
+        private boolean isTimed;
+        private int whiteSeconds;
+        private int blackSeconds;
+
+        private Builder() {}
+
+        private static Builder of(Chess original) {
+            Builder builder = new Builder();
+            builder.pieces = original.pieces();
+            builder.castling = original.castling();
+            builder.playHistory = original.playHistory();
+            builder.activePlayer = original.activePlayer();
+            builder.variant = original.variant();
+            builder.state = original.state();
+            builder.isTimed = original.isTimed();
+            builder.whiteSeconds = original.whiteSeconds();
+            builder.blackSeconds = original.blackSeconds();
+            return builder;
+        }
+
+        private Builder withPieces(List<Piece> pieces) {
+            this.pieces = pieces;
+            return this;
+        }
+
+        private Builder withCastling(Map<ChessColor, Map<CastlingType, Boolean>> castling) {
+            this.castling = castling;
+            return this;
+        }
+
+        private Builder withPlayHistory(List<Play> playHistory) {
+            this.playHistory = playHistory;
+            return this;
+        }
+
+        public Builder withOppositeActivePlayer() {
+            activePlayer = activePlayer.opposite();
+            return this;
+        }
+
+        private Builder withVariant(GameVariant variant) {
+            this.variant = variant;
+            return this;
+        }
+
+        private Builder withState(GameState state) {
+            this.state = state;
+            return this;
+        }
+
+        private Builder withIsTimed(boolean isTimed) {
+            this.isTimed = isTimed;
+            return this;
+        }
+
+        private Builder withSeconds(int whiteSeconds, int blackSeconds) {
+            this.whiteSeconds = whiteSeconds;
+            this.blackSeconds = blackSeconds;
+            return this;
+        }
+
+        private Chess build() {
+            return new Chess(
+                pieces,
+                castling,
+                playHistory,
+                activePlayer,
+                variant,
+                state,
+                isTimed,
+                whiteSeconds,
+                blackSeconds
+            );
+        }
+    }
+    //</editor-fold>
 }

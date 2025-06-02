@@ -28,8 +28,8 @@ public class ConnectionLogger extends JFrame {
         });
     }
 
-    public void waitAndClose(int ms) {
-        Timer closeTimer = new Timer(ms, e -> dispose());
+    public void waitAndClose(int milliseconds) {
+        Timer closeTimer = new Timer(milliseconds, e -> dispose());
         closeTimer.setRepeats(false);
         closeTimer.start();
     }

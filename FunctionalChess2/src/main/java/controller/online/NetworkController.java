@@ -46,29 +46,29 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
                 Socket clientSocket = serverSocket.accept();
                 Connection tempConnection = new Connection(clientSocket);
 
-                String clientVariant = tempConnection.getIn().readLine();
+                String clientVariant = tempConnection.in().readLine();
 
                 if (clientVariant.equals(chessController.getGame().variant().toString())) {
                     logger.log("Game types coincide. Proceeding");
-                    tempConnection.getOut().println(ConfigParameters.NETWORK_ACCEPTED);
+                    tempConnection.out().println(ConfigParameters.NETWORK_ACCEPTED);
                 } else {
                     logger.log("Different selected games. Client chose "+ clientVariant + ". Connection rejected.");
-                    tempConnection.getOut().println(ConfigParameters.NETWORK_REJECTED);
+                    tempConnection.out().println(ConfigParameters.NETWORK_REJECTED);
                     tempConnection.close();
                     return;
                 }
 
                 logger.log("Client attempting to connect from " + clientSocket.getInetAddress());
-                String clientPassword = tempConnection.getIn().readLine();
+                String clientPassword = tempConnection.in().readLine();
 
                 if (password.equals(clientPassword)) {
                     logger.log("Password accepted. Starting game.");
-                    tempConnection.getOut().println(ConfigParameters.NETWORK_ACCEPTED);
+                    tempConnection.out().println(ConfigParameters.NETWORK_ACCEPTED);
                     this.connection = tempConnection;
                     listenForMoves();
                 } else {
                     logger.log("Incorrect password. Connection rejected.");
-                    tempConnection.getOut().println(ConfigParameters.NETWORK_REJECTED);
+                    tempConnection.out().println(ConfigParameters.NETWORK_REJECTED);
                     tempConnection.close();
                 }
 
@@ -89,9 +89,9 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
                 Socket clientSocket = new Socket(hostAddress, ConfigParameters.SERVER_PORT);
                 Connection tempConnection = new Connection(clientSocket);
 
-                tempConnection.getOut().println(chessController.getGame().variant().toString());
+                tempConnection.out().println(chessController.getGame().variant().toString());
 
-                String response = tempConnection.getIn().readLine();
+                String response = tempConnection.in().readLine();
 
                 if (response.equals(ConfigParameters.NETWORK_REJECTED)) {
                     logger.log("Different selected games. Server rejected connection.");
@@ -100,9 +100,9 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
                 }
 
                 String userPassword = EmergentPanels.userTextInputMessage(logger, "Introduce the password");
-                tempConnection.getOut().println(userPassword);
+                tempConnection.out().println(userPassword);
 
-                response = tempConnection.getIn().readLine();
+                response = tempConnection.in().readLine();
 
                 if (response.equals(ConfigParameters.NETWORK_REJECTED)) {
                     logger.log("Wrong password. Server rejected connection.");
@@ -128,7 +128,7 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
         Thread listener = new Thread(() -> {
             String line;
             try {
-                while ((line = connection.getIn().readLine()) != null) {
+                while ((line = connection.in().readLine()) != null) {
                     String[] parts = line.split(":");
                     int x1 = Integer.parseInt(parts[0].trim());
                     int y1 = Integer.parseInt(parts[1].trim());
@@ -174,7 +174,7 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
     public void onMovePerformed(Position initPos, Position finPos, String crowningType) {
         if (crowningType == null) System.out.println("[NETWORK DEBUG] Move sent: ("+initPos.x()+", "+initPos.y()+") to ("+finPos.x()+", "+finPos.y()+")");
         else System.out.println("[NETWORK DEBUG] Crowning sent: ("+initPos.x()+", "+initPos.y()+") to ("+finPos.x()+", "+finPos.y()+")"+ " into "+crowningType);
-        connection.getOut().println(initPos.x() + ":" + initPos.y() + ":" + finPos.x() + ":" + finPos.y() + ":" + (crowningType == null ? "null" : crowningType));
+        connection.out().println(initPos.x() + ":" + initPos.y() + ":" + finPos.x() + ":" + finPos.y() + ":" + (crowningType == null ? "null" : crowningType));
     }
 
     @Override
@@ -183,7 +183,7 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
 
     @Override
     public void windowClosing(WindowEvent e) {
-        logger.waitAndClose();
+        logger.waitAndClose(1000);
         chessView.dispose();
         disconnect();
         new IndexController();
@@ -214,7 +214,7 @@ public class NetworkController implements MoveListener, WindowListener, ActionLi
         String command = e.getActionCommand();
         System.out.println("[NETWORK DEBUG] NetworkController action received: "+command);
         if (command.equals(ConfigParameters.BACK_BUTTON)) {
-            logger.log("Disconnecting...");
+            if (logger.isVisible()) logger.log("Disconnecting...");
             logger.waitAndClose(1000);
             disconnect();
         }
