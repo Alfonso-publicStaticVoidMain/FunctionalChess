@@ -223,6 +223,14 @@ public class ChessGUI extends JFrame {
         }
     }
 
+    /**
+     * Paints the cells corresponding to a List of {@link Position}s with
+     * a given color during a given amount of time, or indefinitely if
+     * inputting a negative time parameter.
+     * @param positions List of {@link Position}s to highlight.
+     * @param color Color to paint the position's cells with.
+     * @param time Time in milliseconds for the painting to endure.
+     */
     public void highlightPositions(List<Position> positions, Color color, int time) {
         positions.stream()
             .map(this::getButtonAt)
@@ -236,69 +244,82 @@ public class ChessGUI extends JFrame {
             });
     }
 
+    /**
+     * Paints the cells corresponding to a List of {@link Position}s with
+     * a given color indefinitely.
+     * @param positions List of {@link Position}s to highlight.
+     * @param color Color to paint the position's cells with.
+     */
     public void highlightPositions(List<Position> positions, Color color) {
         highlightPositions(positions, color, -1);
     }
 
+    /**
+     * Highlights with a given color the valid moves of a given {@link Piece}
+     * during a given amount of time.
+     * @param piece {@link Piece} to check its moves for.
+     * @param color Color to paint the board cells with.
+     * @param time Time in milliseconds for the painting to endure.
+     */
     public void highlightValidMovesOf(Piece piece, Color color, int time) {
         highlightPositions(controller.validMovesOf(piece), color, time);
     }
 
+    /**
+     * Highlights with a given color the valid moves of a given {@link Piece} indefinitely.
+     * @param piece {@link Piece} to check its moves for.
+     * @param color Color to paint the board cells with.
+     */
     public void highlightValidMovesOf(Piece piece, Color color) {
         highlightPositions(controller.validMovesOf(piece), color);
     }
 
+    /**
+     * Highlights with a given color the moves of a given {@link Piece} that would normally be
+     * legal but would cause a check during a given amount of time.
+     * @param piece {@link Piece} to check its moves for.
+     * @param color Color to paint the board cells with.
+     * @param time Time in milliseconds for the painting to endure.
+     */
     public void highlightValidMovesThatWouldCauseCheckOf(Piece piece, Color color, int time) {
         highlightPositions(controller.validMovesThatWouldCauseCheckOf(piece), color, time);
     }
 
+    /**
+     * Highlights with a given color the moves of a given {@link Piece} that would normally be
+     * legal but would cause a check indefinitely.
+     * @param piece {@link Piece} to check its moves for.
+     * @param color Color to paint the board cells with.
+     */
     public void highlightValidMovesThatWouldCauseCheckOf(Piece piece, Color color) {
         highlightPositions(controller.validMovesThatWouldCauseCheckOf(piece), color);
     }
 
     /**
-     * Colors red during 1 second the board buttons that contain a {@link Piece}
-     * that could capture the King after the proposed movement has been performed.
+     * Highlights the board cells containing pieces that could threaten the royal piece of
+     * a player after that player moves the given {@link Piece}.
      * @param piece {@link Piece} to move.
-     * @param finPos {@link Position} to move it to.
+     * @param color Color to paint the board cells with.
+     * @param time Time in milliseconds for the painting to endure.
      */
     public void highlightPiecesThatCanCaptureKing(Piece piece, Position finPos, Color color, int time) {
         highlightPositions(controller.piecesThatCanCaptureKing(piece, finPos), color, time);
-        /*
-        Chess gameAfterMovement = controller.getGame().tryToMoveChain(piece, finPos, false);
-        ChessColor color = piece.getColor();
-        Optional<Piece> royalPieceOrNot = gameAfterMovement.findRoyalPiece(color);
-        if (royalPieceOrNot.isEmpty()) return;
-
-        gameAfterMovement.pieces().stream()
-            .filter(p -> // Filter for the initPieces of a different color than active player that can move to capture active player's King.
-                p.getColor() != color &&
-                p.isLegalMovement(gameAfterMovement, royalPieceOrNot.get().getPosition(), false)
-            )
-            .map(p -> boardButtons[p.getPosition().x()][p.getPosition().y()]) // Map each piece to its button on the board
-            .forEach(button -> { // Set up a timer on each of those buttons to light it red during 1 second
-                Color originalColor = button.getBackground();
-                button.setBackground(Color.RED);
-                button.repaint();
-
-                Timer timer = new Timer(1000, e -> button.setBackground(originalColor));
-                timer.setRepeats(false);
-                timer.start();
-            });
-        */
     }
 
     /**
-     * Clears all highlights and colors each board button with its default color.
+     * Clears all highlights and paints each board button with its default color.
      */
     public void clearHighlights() {
-        for (int col = 1; col <= cols; col++) {
-            for (int row = 1; row <= rows; row++) {
-                boardButtons[col][row].setBackground((col + row + 1) % 2 == 0 ? Color.WHITE : Color.GRAY);
-            }
-        }
+        Stream.of(boardButtons)
+            .flatMap(Stream::of)
+            .forEach(BoardButton::resetColor);
     }
 
+    /**
+     * Getter for the board button representing a given {@link Position} on the board.
+     * @param pos {@link Position} to get the buttom from.
+     * @return The {@link BoardButton}
+     */
     public BoardButton getButtonAt(Position pos) {
         return boardButtons[pos.x()][pos.y()];
     }
@@ -311,17 +332,14 @@ public class ChessGUI extends JFrame {
         for (int col = 1; col <= cols; col++) {
             for (int row = 1; row <= rows; row++) {
                 Optional<Piece> pieceOrNot = controller.getGame().findPieceAt(Position.of(col, row));
-                boardButtons[col][row].setIcon(pieceOrNot.isPresent() ?
-                    pieceOrNot.get().toIcon() :
-                    new ImageIcon()
-                );
+                boardButtons[col][row].setIcon(pieceOrNot.isPresent() ? pieceOrNot.get().toIcon() : new ImageIcon());
             }
         }
     }
     
     /**
-     * Updates the active player shown in the active player label, fetching
-     * the information directly from the game attribute of the controller.
+     * Updates the active player shown in the active player label.
+     * @param str String to show in the label.
      */
     public void updateActivePlayer(String str) {
         activePlayerLabel.setText("Active Player: " + str);

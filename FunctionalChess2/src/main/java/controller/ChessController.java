@@ -24,7 +24,6 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import javax.swing.*;
 import javax.swing.Timer;
 
@@ -215,13 +214,12 @@ public class ChessController implements ActionListener {
                     view.highlightValidMovesOf(piece, Color.YELLOW, 1000);
                 }
             }
-        } else { // Second click attempts to do the movement.
+        }
+        else { // Second click attempts to do the movement.
             Piece piece = game.findPieceAt(selectedPosition).get();
             boolean playDone = false;
             
-            if (!piece.isLegalMovement(game, clickedPos)) {
-                view.highlightPiecesThatCanCaptureKing(piece, clickedPos, Color.RED, 1000);
-            }
+            if (!piece.isLegalMovement(game, clickedPos)) view.highlightPiecesThatCanCaptureKing(piece, clickedPos, Color.RED, 1000);
                 
             if (piece instanceof King) {
                 for (CastlingType type : CastlingType.values()) {
@@ -317,7 +315,7 @@ public class ChessController implements ActionListener {
      */
     public void saveClick() {
         if (!EmergentPanels.askConfirmation(view, "Do you want to save the state of the game?")) return;
-        String filePath = null;
+        String filePath;
         try {
             filePath = EmergentPanels.userTextInputMessage(view,"Enter the name of your game");
         } catch (IOException ex) {
@@ -378,8 +376,9 @@ public class ChessController implements ActionListener {
 
     private void backClick() {
         SwingUtilities.invokeLater(() -> {
-            boolean userVerification = game.state() == GameState.NOT_STARTED
-                    || EmergentPanels.askConfirmation(view, "Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
+            boolean userVerification =
+                game.state() == GameState.NOT_STARTED
+                || EmergentPanels.askConfirmation(view, "Do you want to go back to the index?\nYou'll lose the state of the game unless you saved it.");
             if (userVerification) {
                 view.dispose();
                 new IndexController();

@@ -622,8 +622,6 @@ public record Chess(
      */
     public boolean checkPieceSameColorAs(Position pos, ChessColor color) {
         return findPieceThenTest(pos, piece -> piece.getColor() == color);
-        //return pieces.stream()
-        //    .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() == color);
     }
 
     /**
@@ -635,8 +633,6 @@ public record Chess(
      */
     public boolean checkPieceDiffColorAs(Position pos, ChessColor color) {
         return findPieceThenTest(pos, piece -> piece.getColor() != color);
-        //return pieces.stream()
-        //    .anyMatch(piece -> piece.getPosition().equals(pos) && piece.getColor() != color);
     }
 
     /**
@@ -684,9 +680,7 @@ public record Chess(
      * {@link Pawn}s.
      */
     public Optional<Piece> pieceCapturedByMove(Position initPos, Position finPos) {
-        return findPieceThenApply(initPos, finPos, this::pieceCapturedByMove);
-                //findPieceAt(initPos)
-            //.flatMap(piece -> pieceCapturedByMove(piece, finPos));
+        return findPieceThenApply(initPos, piece -> pieceCapturedByMove(piece, finPos));
     }
 
     /**
@@ -704,9 +698,7 @@ public record Chess(
      * during its movement.
      */
     public Optional<CastlingType> castlingTypeOfPlay(Position initPos, Position finPos) {
-        return findPieceThenApply(initPos, finPos, this::castlingTypeOfPlay);
-                //findPieceAt(initPos)
-            //.flatMap(piece -> castlingTypeOfPlay(piece, finPos));
+        return findPieceThenApply(initPos, piece -> castlingTypeOfPlay(piece, finPos));
     }
 
     /**
@@ -857,19 +849,19 @@ public record Chess(
 
     //<editor-fold defaultstate="collapsed" desc="Find Piece abstraction methods">
 
-    public <T> Optional<T> findPieceThenApply(Position initPos, Position finPos, BiFunction<Piece, Position, Optional<T>> f) {
+    public <T> Optional<T> findPieceThenApply(Position initPos, Function<Piece, Optional<T>> f) {
         return findPieceAt(initPos)
-            .flatMap(piece -> f.apply(piece, finPos));
+            .flatMap(f);
     }
 
-    public boolean findPieceThenTest(Position initPos, Position finPos, BiPredicate<Piece, Position> condition) {
+    public <T> T findPieceThenApply(Position initPos, Function<Piece, T> f, T fallback) {
         return findPieceAt(initPos)
-            .map(piece -> condition.test(piece, finPos))
-            .orElse(false);
+            .map(f)
+            .orElse(fallback);
     }
 
-    public boolean findPieceThenTest(Position pos, Predicate<Piece> condition) {
-        return findPieceAt(pos)
+    public boolean findPieceThenTest(Position initPos, Predicate<Piece> condition) {
+        return findPieceAt(initPos)
             .map(condition::test)
             .orElse(false);
     }
@@ -1066,6 +1058,10 @@ public record Chess(
             this.whiteSeconds = whiteSeconds;
             this.blackSeconds = blackSeconds;
             return this;
+        }
+
+        Builder withSeconds(int seconds) {
+            return withSeconds(seconds, seconds);
         }
 
         Chess build() {

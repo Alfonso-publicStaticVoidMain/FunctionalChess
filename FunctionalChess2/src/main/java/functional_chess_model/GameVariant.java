@@ -69,21 +69,8 @@ public enum GameVariant {
             .withVariant(this)
             .withState(GameState.NOT_STARTED)
             .withIsTimed(isTimed)
-            .withSeconds(seconds, seconds)
+            .withSeconds(seconds)
             .build();
-            /*
-                new Chess(
-            initPieces,
-            initCastling,
-            List.of(),
-            ChessColor.WHITE,
-            this,
-            GameState.NOT_STARTED,
-            isTimed,
-            seconds,
-            seconds
-            );
-            */
     }
 
     public Chess initGame(boolean isTimed) {
