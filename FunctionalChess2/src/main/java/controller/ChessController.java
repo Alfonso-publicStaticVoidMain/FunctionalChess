@@ -19,10 +19,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.swing.*;
+import javax.swing.Timer;
 
 /**
  * Class that controls the {@link ChessGUI} view of a given chess game
@@ -101,6 +104,41 @@ public class ChessController implements ActionListener {
      */
     public void consumeBlackSecond() {blackSecondsLeft--;}
 
+    public List<Position> positionsThatValidate(Predicate<Position> condition) {
+        return IntStream.rangeClosed(1, game.variant().rows())
+            .boxed()
+            .flatMap(row ->
+                IntStream.rangeClosed(1, game.variant().cols())
+                    .mapToObj(col -> Position.of(col, row))
+            )
+            .filter(condition)
+            .toList();
+    }
+
+    public List<Position> validMovesOf(Piece piece) {
+        return positionsThatValidate(pos -> (piece.isLegalMovement(game, pos) ||
+            (piece instanceof King && game.castlingTypeOfPlay(piece, pos).isPresent())));
+    }
+
+    public List<Position> validMovesThatWouldCauseCheckOf(Piece piece) {
+        return positionsThatValidate(pos -> piece.isLegalMovement(game, pos, false));
+    }
+
+    public List<Position> piecesThatCanCaptureKing(Piece piece, Position finPos) {
+        Chess gameAfterMovement = game.tryToMoveChain(piece, finPos, false);
+        ChessColor color = piece.getColor();
+        Optional<Piece> royalPieceOrNot = gameAfterMovement.findRoyalPiece(color);
+        if (royalPieceOrNot.isEmpty()) return List.of();
+
+        return gameAfterMovement.pieces().stream()
+            .filter(p -> // Filter for the initPieces of a different color than active player that can move to capture active player's King.
+                p.getColor() != color &&
+                    p.isLegalMovement(gameAfterMovement, royalPieceOrNot.get().getPosition(), false)
+                )
+            .map(Piece::getPosition)
+            .toList();
+    }
+
     /**
      * Creates a Timer to track and update the time left for each player.
      * @param whiteTimer JLabel containing the seconds left for the white player.
@@ -114,7 +152,6 @@ public class ChessController implements ActionListener {
     public Timer viewTimer(JLabel whiteTimer, JLabel blackTimer) {
         return new Timer(1000, e -> {
             if (game.state() == GameState.IN_PROGRESS) {
-
                 if (game.activePlayer() == ChessColor.WHITE) {
                     consumeWhiteSecond();
                     blackTimer.setForeground(Color.BLACK);
@@ -161,7 +198,7 @@ public class ChessController implements ActionListener {
             For online games, do not permit the nonactive player to move and only show the possible moves of
             the piece in the position clicked, if present.
              */
-            game.findPieceAt(clickedPos).ifPresent(view::highlightMovesOfPiece);
+            game.findPieceAt(clickedPos).ifPresent(piece -> view.highlightValidMovesOf(piece, Color.YELLOW, 1000));
             return;
         }
 
@@ -171,9 +208,10 @@ public class ChessController implements ActionListener {
                 Piece piece = pieceOrNot.get();
                 if (piece.getColor() == game.activePlayer()) {
                     selectedPosition = clickedPos;
-                    view.highlightValidMoves(piece);
+                    view.highlightValidMovesOf(piece, Color.GREEN);
+                    view.highlightValidMovesThatWouldCauseCheckOf(piece, Color.ORANGE);
                 } else {
-                    view.highlightMovesOfPiece(piece);
+                    view.highlightValidMovesOf(piece, Color.YELLOW, 1000);
                 }
             }
         } else { // Second click attempts to do the movement.
@@ -181,7 +219,7 @@ public class ChessController implements ActionListener {
             boolean playDone = false;
             
             if (!piece.isLegalMovement(game, clickedPos)) {
-                view.highlightPiecesThatCanCaptureKing(piece, clickedPos);
+                view.highlightPiecesThatCanCaptureKing(piece, clickedPos, Color.RED, 1000);
             }
                 
             if (piece instanceof King) {
@@ -222,7 +260,7 @@ public class ChessController implements ActionListener {
                 Optional<Play> lastPlay = game.getLastPlay();
                 lastPlay.ifPresent(view::updatePlayHistory);
                 view.updateBoard();
-                view.updateActivePlayer();
+                view.updateActivePlayer(game.activePlayer().toString());
 
                 game = game.checkMateChain(game.activePlayer());
                 if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {
@@ -252,7 +290,7 @@ public class ChessController implements ActionListener {
             blackSecondsLeft = game.blackSeconds();
         }
         view.updateBoard();
-        view.updateActivePlayer();
+        view.updateActivePlayer(this.game.activePlayer().toString());
         view.reloadPlayHistory();
     }
 

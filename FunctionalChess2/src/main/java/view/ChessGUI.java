@@ -3,7 +3,6 @@ package view;
 import configparams.ConfigParameters;
 import controller.ChessController;
 import functional_chess_model.*;
-import functional_chess_model.Pieces.King;
 
 import graphic_resources.Buttons;
 import graphic_resources.EmergentPanels;
@@ -16,6 +15,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.LayoutManager;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -222,6 +223,7 @@ public class ChessGUI extends JFrame {
                     }
                     button.setFont(new Font("Dialog", Font.PLAIN, 24));
                     button.setActionCommand(ConfigParameters.BOARD_BUTTON);
+                    button.putClientProperty("originalColor", button.getBackground());
                     button.putClientProperty("x", col);
                     button.putClientProperty("y", row);
                 }
@@ -230,63 +232,54 @@ public class ChessGUI extends JFrame {
         }
     }
 
-    /**
-     * Colors green the board buttons that the piece can legally move to,
-     * and orange the ones that it'd normally be able to but that movement
-     * would cause a check.
-     * @param piece {@link Piece} to move.
-     */
-    public void highlightValidMoves(Piece piece) {
-        Chess game = controller.getGame();
-        for (int col = 1; col <= cols; col++) {
-            for (int row = 1; row <= rows; row++) {
-                Position potentialMove = Position.of(col, row);
-                if (piece.isLegalMovement(game, potentialMove) ||
-                    (piece instanceof King && game.castlingTypeOfPlay(piece, potentialMove).isPresent())
-                ) {
-                    boardButtons[col][row].setBackground(Color.GREEN);
-                } else if (piece.isLegalMovement(game, potentialMove, false)) {
-                    boardButtons[col][row].setBackground(Color.ORANGE);
-                }
-            }
-        }      
-    }
-    
-    /**
-     * Colors yellow during 1 second the board buttons that of the legal moves
-     * of a {@link Piece}.
-     * @param piece {@link Piece} to move.
-     */
-    public void highlightMovesOfPiece(Piece piece) {
-        Chess game = controller.getGame();
-        for (int col = 1; col <= cols; col++) {
-            for (int row = 1; row <= rows; row++) {
-                Position potentialMove = Position.of(col, row);
-                JButton button = boardButtons[col][row];
-                if (piece.isLegalMovement(game, potentialMove)) {
-                    Color originalColor = button.getBackground();
-                    button.setBackground(Color.YELLOW);
-                    button.repaint();
-                    Timer timer = new Timer(1000, e -> button.setBackground(originalColor));
+    public void highlightPositions(List<Position> positions, Color color, int time) {
+        positions.stream()
+            .map(this::getButtonAt)
+            .forEach(button -> {
+                Color originalColor = (Color) button.getClientProperty("originalColor");
+                button.setBackground(color);
+                if (time > 0) {
+                    Timer timer = new Timer(time, e -> {if (originalColor != null) button.setBackground(originalColor);});
                     timer.setRepeats(false);
                     timer.start();
                 }
-            }
-        }      
+            });
     }
-    
+
+    public void highlightPositions(List<Position> positions, Color color) {
+        highlightPositions(positions, color, -1);
+    }
+
+    public void highlightValidMovesOf(Piece piece, Color color, int time) {
+        highlightPositions(controller.validMovesOf(piece), color, time);
+    }
+
+    public void highlightValidMovesOf(Piece piece, Color color) {
+        highlightPositions(controller.validMovesOf(piece), color);
+    }
+
+    public void highlightValidMovesThatWouldCauseCheckOf(Piece piece, Color color, int time) {
+        highlightPositions(controller.validMovesThatWouldCauseCheckOf(piece), color, time);
+    }
+
+    public void highlightValidMovesThatWouldCauseCheckOf(Piece piece, Color color) {
+        highlightPositions(controller.validMovesThatWouldCauseCheckOf(piece), color);
+    }
+
     /**
      * Colors red during 1 second the board buttons that contain a {@link Piece}
      * that could capture the King after the proposed movement has been performed.
      * @param piece {@link Piece} to move.
      * @param finPos {@link Position} to move it to.
      */
-    public void highlightPiecesThatCanCaptureKing(Piece piece, Position finPos) {
+    public void highlightPiecesThatCanCaptureKing(Piece piece, Position finPos, Color color, int time) {
+        highlightPositions(controller.piecesThatCanCaptureKing(piece, finPos), color, time);
+        /*
         Chess gameAfterMovement = controller.getGame().tryToMoveChain(piece, finPos, false);
         ChessColor color = piece.getColor();
         Optional<Piece> royalPieceOrNot = gameAfterMovement.findRoyalPiece(color);
         if (royalPieceOrNot.isEmpty()) return;
-        
+
         gameAfterMovement.pieces().stream()
             .filter(p -> // Filter for the initPieces of a different color than active player that can move to capture active player's King.
                 p.getColor() != color &&
@@ -302,6 +295,7 @@ public class ChessGUI extends JFrame {
                 timer.setRepeats(false);
                 timer.start();
             });
+        */
     }
 
     /**
@@ -315,15 +309,18 @@ public class ChessGUI extends JFrame {
         }
     }
 
+    public JButton getButtonAt(Position pos) {
+        return boardButtons[pos.x()][pos.y()];
+    }
+
     /**
      * Updates the current state of the board, putting the appropriate icon of
      * the piece present on each board button, or an empty icon if empty.
      */
     public void updateBoard() {
-        Chess game = controller.getGame();
         for (int col = 1; col <= cols; col++) {
             for (int row = 1; row <= rows; row++) {
-                Optional<Piece> pieceOrNot = game.findPieceAt(Position.of(col, row));
+                Optional<Piece> pieceOrNot = controller.getGame().findPieceAt(Position.of(col, row));
                 boardButtons[col][row].setIcon(pieceOrNot.isPresent() ?
                     pieceOrNot.get().toIcon() :
                     new ImageIcon()
@@ -336,8 +333,8 @@ public class ChessGUI extends JFrame {
      * Updates the active player shown in the active player label, fetching
      * the information directly from the game attribute of the controller.
      */
-    public void updateActivePlayer() {
-        activePlayerLabel.setText("Active Player: " + controller.getGame().activePlayer());
+    public void updateActivePlayer(String str) {
+        activePlayerLabel.setText("Active Player: " + str);
     }
 
     /**
@@ -390,8 +387,6 @@ public class ChessGUI extends JFrame {
         EmergentPanels.informPlayerOkCancel(this, "End of the game", activePlayer+" isn't in check but every move would cause a check.\nThe game is a draw.");
         tableModel.addRow(new Object[] {"The game is a draw.", "---", "---", "---"});
     }
-
-
 
     /**
      * Resets the play history panel, deleting all info on it
@@ -464,4 +459,28 @@ public class ChessGUI extends JFrame {
         @Override
         public void removeLayoutComponent(Component comp) {}
     }
+
+    // TODO: some refactoring, moving around and such
+    public class BoardButton extends JButton {
+        private final int x, y;
+        private final Color defaultColor;
+
+        public BoardButton(int x, int y, Color defaultColor) {
+            this.x = x;
+            this.y = y;
+            this.defaultColor = defaultColor;
+            setBackground(defaultColor);
+        }
+
+        public Position getPosition() {
+            return Position.of(x, y);
+        }
+
+        public void resetColor() {
+            setBackground(defaultColor);
+        }
+    }
+
+
+
 }
