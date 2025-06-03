@@ -5,6 +5,7 @@ import controller.online.MoveListener;
 import functional_chess_model.*;
 import functional_chess_model.Pieces.King;
 import functional_chess_model.Pieces.Pawn;
+import graphic_resources.BoardButton;
 import graphic_resources.EmergentPanels;
 import view.ChessGUI;
 
@@ -121,7 +122,7 @@ public class ChessController implements ActionListener {
     }
 
     public List<Position> validMovesThatWouldCauseCheckOf(Piece piece) {
-        return positionsThatValidate(pos -> piece.isLegalMovement(game, pos, false));
+        return positionsThatValidate(pos -> piece.isLegalMovement(game, pos, false) && !piece.isLegalMovement(game, pos));
     }
 
     public List<Position> piecesThatCanCaptureKing(Piece piece, Position finPos) {
@@ -392,9 +393,9 @@ public class ChessController implements ActionListener {
         System.out.println("[DEBUG] ChessController action received: "+command);
         switch (command) {
             case ConfigParameters.BOARD_BUTTON -> {
-                JButton clickedButton = (JButton) e.getSource();
-                int x = (int) clickedButton.getClientProperty("x");
-                int y = (int) clickedButton.getClientProperty("y");
+                BoardButton clickedButton = (BoardButton) e.getSource();
+                int x = clickedButton.x();
+                int y = clickedButton.y();
                 System.out.println("[DEBUG] Position: "+Position.of(x, y)+" (x="+x+", y="+y+")");
                 handleClick(x, y);
             }

@@ -4,8 +4,10 @@ import configparams.ConfigParameters;
 import controller.ChessController;
 import functional_chess_model.*;
 
+import graphic_resources.BoardButton;
 import graphic_resources.Buttons;
 import graphic_resources.EmergentPanels;
+import graphic_resources.SquareGridLayout;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -45,7 +47,7 @@ import javax.swing.table.TableColumnModel;
 public class ChessGUI extends JFrame {
 
     private final JPanel boardPanel;
-    private final JButton[][] boardButtons;
+    private final BoardButton[][] boardButtons;
     
     private final JPanel topPanel;
     private final JLabel activePlayerLabel;
@@ -140,7 +142,7 @@ public class ChessGUI extends JFrame {
         boardPanel.setPreferredSize(new Dimension(80*(rows+1), 80*(cols+1)));
         boardPanel.setBounds(0, 0, 80*(rows+1), 80*(cols+1));
         boardPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        boardButtons = new JButton[cols+1][rows+1];
+        boardButtons = new BoardButton[cols+1][rows+1];
         initializeBoard();
         add(boardPanel, BorderLayout.CENTER);
 
@@ -201,32 +203,21 @@ public class ChessGUI extends JFrame {
     public void initializeBoard() {
         for (int row = rows; row >= 0; row--) {
             for (int col = 0; col <= cols; col++) {
-                JButton button = Buttons.boardButton();
-                boardButtons[col][row] = button;
+                BoardButton button;
+
                 if (col == 0 && row == 0) {
-                    button.setText("");
-                    button.setEnabled(false);
+                    button = BoardButton.blank();
                 } else if (row == 0) {
-                    button.setText(""+ Position.convertNumberToLetter(col));
-                    button.setFont(new Font("Arial", Font.BOLD, 16));
-                    button.setEnabled(false);
+                    button = BoardButton.label(String.valueOf(Position.convertNumberToLetter(col)));
                 } else if (col == 0) {
-                    button.setText(String.valueOf(row));
-                    button.setFont(new Font("Arial", Font.BOLD, 16));
-                    button.setEnabled(false);
+                    button = BoardButton.label(String.valueOf(row));
                 } else {
-                    // Regular chessboard squares
-                    if ((col + row + 1) % 2 == 0) {
-                        button.setBackground(Color.WHITE);
-                    } else {
-                        button.setBackground(Color.GRAY);
-                    }
+                    button = BoardButton.of(col, row, (col + row + 1) % 2 == 0 ? Color.WHITE : Color.GRAY);
                     button.setFont(new Font("Dialog", Font.PLAIN, 24));
                     button.setActionCommand(ConfigParameters.BOARD_BUTTON);
-                    button.putClientProperty("originalColor", button.getBackground());
-                    button.putClientProperty("x", col);
-                    button.putClientProperty("y", row);
                 }
+
+                boardButtons[col][row] = button;
                 boardPanel.add(button);
             }
         }
@@ -236,10 +227,9 @@ public class ChessGUI extends JFrame {
         positions.stream()
             .map(this::getButtonAt)
             .forEach(button -> {
-                Color originalColor = (Color) button.getClientProperty("originalColor");
                 button.setBackground(color);
                 if (time > 0) {
-                    Timer timer = new Timer(time, e -> {if (originalColor != null) button.setBackground(originalColor);});
+                    Timer timer = new Timer(time, e -> button.resetColor());
                     timer.setRepeats(false);
                     timer.start();
                 }
@@ -309,7 +299,7 @@ public class ChessGUI extends JFrame {
         }
     }
 
-    public JButton getButtonAt(Position pos) {
+    public BoardButton getButtonAt(Position pos) {
         return boardButtons[pos.x()][pos.y()];
     }
 
@@ -406,81 +396,5 @@ public class ChessGUI extends JFrame {
         controller.getGame().playHistory()
             .forEach(this::updatePlayHistory);
     }
-    
-    public static class SquareGridLayout implements LayoutManager {
-        private final int rows;
-        private final int cols;
-
-        public SquareGridLayout(int rows, int cols) {
-            this.rows = rows;
-            this.cols = cols;
-        }
-
-        @Override
-        public void layoutContainer(Container parent) {
-            int width = parent.getWidth();
-            int height = parent.getHeight();
-
-            // Calculate maximum size that fits both horizontally and vertically
-            int squareSize = Math.min(width / cols, height / rows);
-
-            // Calculate total grid size
-            int gridWidth = squareSize * cols;
-            int gridHeight = squareSize * rows;
-
-            // Center the grid if there's extra space
-            int xOffset = (width - gridWidth) / 2;
-            int yOffset = (height - gridHeight) / 2;
-
-            for (int i = 0; i < parent.getComponentCount(); i++) {
-                int r = i / cols;
-                int c = i % cols;
-
-                int x = xOffset + c * squareSize;
-                int y = yOffset + r * squareSize;
-
-                parent.getComponent(i).setBounds(x, y, squareSize, squareSize);
-            }
-        }
-
-        @Override
-        public Dimension minimumLayoutSize(Container parent) {
-            return new Dimension(cols * 10, rows * 10);
-        }
-
-        @Override
-        public Dimension preferredLayoutSize(Container parent) {
-            return new Dimension(cols * 50, rows * 50);
-        }
-
-        @Override
-        public void addLayoutComponent(String name, Component comp) {}
-
-        @Override
-        public void removeLayoutComponent(Component comp) {}
-    }
-
-    // TODO: some refactoring, moving around and such
-    public class BoardButton extends JButton {
-        private final int x, y;
-        private final Color defaultColor;
-
-        public BoardButton(int x, int y, Color defaultColor) {
-            this.x = x;
-            this.y = y;
-            this.defaultColor = defaultColor;
-            setBackground(defaultColor);
-        }
-
-        public Position getPosition() {
-            return Position.of(x, y);
-        }
-
-        public void resetColor() {
-            setBackground(defaultColor);
-        }
-    }
-
-
 
 }
