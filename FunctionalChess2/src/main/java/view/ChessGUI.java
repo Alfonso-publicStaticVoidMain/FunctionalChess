@@ -12,13 +12,10 @@ import graphic_resources.SquareGridLayout;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.LayoutManager;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -256,7 +253,7 @@ public class ChessGUI extends JFrame {
 
     /**
      * Highlights with a given color the valid moves of a given {@link Piece}
-     * during a given amount of time.
+     * during a given amount of time, or zero if inputting a negative time parameter.
      * @param piece {@link Piece} to check its moves for.
      * @param color Color to paint the board cells with.
      * @param time Time in milliseconds for the painting to endure.
