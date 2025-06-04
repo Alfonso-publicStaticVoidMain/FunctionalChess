@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -44,6 +42,8 @@ public record Chess(
     int whiteSeconds,
     int blackSeconds
 ) implements Serializable {
+
+    //TODO: Introduce a RulesEngine parameter to the update state functions.
 
     //<editor-fold defaultstate="collapsed" desc="Update state functions">
 
@@ -999,7 +999,7 @@ public record Chess(
 
         private Builder() {}
 
-        static Builder of() {return new Builder();}
+        static Builder blank() {return new Builder();}
 
         static Builder of(Chess original) {
             Builder builder = new Builder();

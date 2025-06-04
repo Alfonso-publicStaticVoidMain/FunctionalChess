@@ -141,7 +141,7 @@ public enum GameVariant {
     }
 
     public Chess initGame(boolean isTimed, int seconds) {
-        return Chess.Builder.of()
+        return Chess.Builder.blank()
             .withPieces(initPieces)
             .withCastling(initCastling)
             .withPlayHistory(List.of())
