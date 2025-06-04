@@ -52,6 +52,86 @@ public enum GameVariant {
         this.initCastling = initCastlingWith(castlingEnabled);
     }
 
+    private static Map<PieceType, List<Integer>> standardMapping() {
+        return Map.of(
+            PieceType.ROOK, List.of(1, 8),
+            PieceType.KNIGHT, List.of(2, 7),
+            PieceType.BISHOP, List.of(3, 6),
+            PieceType.QUEEN, List.of(4),
+            PieceType.KING, List.of(5)
+        );
+    }
+
+    private static Map<PieceType, List<Integer>> almostChessMapping() {
+        return Map.of(
+            PieceType.ROOK, List.of(1, 8),
+            PieceType.KNIGHT, List.of(2, 7),
+            PieceType.BISHOP, List.of(3, 6),
+            PieceType.CHANCELLOR, List.of(4),
+            PieceType.KING, List.of(5)
+        );
+    }
+
+    private static Map<PieceType, List<Integer>> capablancaMapping() {
+        return Map.of(
+            PieceType.ROOK, List.of(1, 10),
+            PieceType.KNIGHT, List.of(2, 9),
+            PieceType.BISHOP, List.of(4, 7),
+            PieceType.CHANCELLOR, List.of(8),
+            PieceType.ARCHBISHOP, List.of(3),
+            PieceType.QUEEN, List.of(5),
+            PieceType.KING, List.of(6)
+        );
+    }
+
+    private static Map<PieceType, List<Integer>> gothicMapping() {
+        return Map.of(
+            PieceType.ROOK, List.of(1, 10),
+            PieceType.KNIGHT, List.of(2, 9),
+            PieceType.BISHOP, List.of(3, 8),
+            PieceType.CHANCELLOR, List.of(5),
+            PieceType.ARCHBISHOP, List.of(7),
+            PieceType.QUEEN, List.of(4),
+            PieceType.KING, List.of(6)
+        );
+    }
+
+    private static Map<PieceType, List<Integer>> janusMapping() {
+        return Map.of(
+            PieceType.ROOK, List.of(1, 10),
+            PieceType.KNIGHT, List.of(3, 8),
+            PieceType.BISHOP, List.of(4, 7),
+            PieceType.ARCHBISHOP, List.of(2, 9),
+            PieceType.QUEEN, List.of(6),
+            PieceType.KING, List.of(5)
+        );
+    }
+
+    private static Map<PieceType, List<Integer>> modernMapping() {
+        return Map.of(
+            PieceType.ROOK, List.of(1, 9),
+            PieceType.KNIGHT, List.of(2, 8),
+            PieceType.BISHOP, List.of(3, 7),
+            PieceType.ARCHBISHOP, List.of(6),
+            PieceType.QUEEN, List.of(4),
+            PieceType.KING, List.of(5)
+        );
+    }
+
+    private static Map<PieceType, List<Integer>> tuttiFruttiMapping() {
+        return Map.of(
+            PieceType.CHANCELLOR, List.of(1),
+            PieceType.ROOK, List.of(8),
+            PieceType.KNIGHT, List.of(2),
+            PieceType.ARCHBISHOP, List.of(7),
+            PieceType.BISHOP, List.of(3),
+            PieceType.AMAZON, List.of(4),
+            PieceType.QUEEN, List.of(6),
+            PieceType.KING, List.of(5)
+        );
+    }
+
+
     public ChessController controller(boolean isTimed) {
         return new ChessController(initGame(isTimed), new ChessGUI(rows, cols, isTimed));
     }
@@ -137,156 +217,45 @@ public enum GameVariant {
         return Map.copyOf(initCastling);
     }
 
-    private static List<Piece> standardPieces() {
+    private static List<Piece> generatePieceList(Map<PieceType, List<Integer>> mapping, int rows, int cols) {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
-            int initRow = initRow(color, 8);
-            int initRowPawn = initRowPawn(color, 8);
-            // Add Pawns
-            IntStream.rangeClosed(1, 8)
+            int initRow = initRow(color, rows);
+            int initRowPawn = initRowPawn(color, rows);
+            IntStream.rangeClosed(1, cols)
                 .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            // Add Rooks
-            pieces.add(new Rook(Position.of(1, initRow), color));
-            pieces.add(new Rook(Position.of(8, initRow), color));
-            // Add Knights
-            pieces.add(new Knight(Position.of(2, initRow), color));
-            pieces.add(new Knight(Position.of(7, initRow), color));
-            // Add Bishops
-            pieces.add(new Bishop(Position.of(3, initRow), color));
-            pieces.add(new Bishop(Position.of(6, initRow), color));
-            // Add Queen
-            pieces.add(new Queen(Position.of(4, initRow), color));
-            // Add King
-            pieces.add(new King(Position.of(5, initRow), color));
+            mapping.keySet()
+                .forEach(pieceType -> mapping.get(pieceType).forEach(x -> pieces.add(pieceType.constructor(Position.of(x, initRow), color))));
         }
         return List.copyOf(pieces);
+    }
+
+    private static List<Piece> standardPieces() {
+        return generatePieceList(standardMapping(), 8, 8);
     }
 
     private static List<Piece> almostChessPieces() {
-        List<Piece> pieces = new ArrayList<>();
-        for (ChessColor color : ChessColor.values()) {
-            int initRow = initRow(color, 8);
-            int initRowPawn = initRowPawn(color, 8);
-            // Add Pawns
-            IntStream.rangeClosed(1, 8)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            // Add Rooks
-            pieces.add(new Rook(Position.of(1, initRow), color));
-            pieces.add(new Rook(Position.of(8, initRow), color));
-            // Add Knights
-            pieces.add(new Knight(Position.of(2, initRow), color));
-            pieces.add(new Knight(Position.of(7, initRow), color));
-            // Add Bishops
-            pieces.add(new Bishop(Position.of(3, initRow), color));
-            pieces.add(new Bishop(Position.of(6, initRow), color));
-            // Add Chancellor
-            pieces.add(new Chancellor(Position.of(4, initRow), color));
-            // Add King
-            pieces.add(new King(Position.of(5, initRow), color));
-        }
-        return List.copyOf(pieces);
+        return generatePieceList(almostChessMapping(), 8, 8);
     }
 
     private static List<Piece> capablancaPieces() {
-        List<Piece> pieces = new ArrayList<>();
-        for (ChessColor color : ChessColor.values()) {
-            int initRow = initRow(color, 8);
-            int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 10)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            pieces.add(new Rook(Position.of(1, initRow), color));
-            pieces.add(new Rook(Position.of(10, initRow), color));
-            pieces.add(new Knight(Position.of(2, initRow), color));
-            pieces.add(new Knight(Position.of(9, initRow), color));
-            pieces.add(new Bishop(Position.of(4, initRow), color));
-            pieces.add(new Bishop(Position.of(7, initRow), color));
-            pieces.add(new Chancellor(Position.of(8, initRow), color));
-            pieces.add(new ArchBishop(Position.of(3, initRow), color));
-            pieces.add(new Queen(Position.of(5, initRow), color));
-            pieces.add(new King(Position.of(6, initRow), color));
-        }
-        return List.copyOf(pieces);
+        return generatePieceList(capablancaMapping(), 8, 10);
     }
 
     private static List<Piece> gothicPieces() {
-        List<Piece> pieces = new ArrayList<>();
-        for (ChessColor color : ChessColor.values()) {
-            int initRow = initRow(color, 8);
-            int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 10)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            pieces.add(new Rook(Position.of(1, initRow), color));
-            pieces.add(new Rook(Position.of(10, initRow), color));
-            pieces.add(new Knight(Position.of(2, initRow), color));
-            pieces.add(new Knight(Position.of(9, initRow), color));
-            pieces.add(new Bishop(Position.of(3, initRow), color));
-            pieces.add(new Bishop(Position.of(8, initRow), color));
-            pieces.add(new Chancellor(Position.of(5, initRow), color));
-            pieces.add(new ArchBishop(Position.of(7, initRow), color));
-            pieces.add(new Queen(Position.of(4, initRow), color));
-            pieces.add(new King(Position.of(6, initRow), color));
-        }
-        return List.copyOf(pieces);
+        return generatePieceList(gothicMapping(), 8, 10);
     }
 
     private static List<Piece> janusPieces() {
-        List<Piece> pieces = new ArrayList<>();
-        for (ChessColor color : ChessColor.values()) {
-            int initRow = initRow(color, 8);
-            int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 10)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            pieces.add(new Rook(Position.of(1, initRow), color));
-            pieces.add(new Rook(Position.of(10, initRow), color));
-            pieces.add(new Knight(Position.of(3, initRow), color));
-            pieces.add(new Knight(Position.of(8, initRow), color));
-            pieces.add(new Bishop(Position.of(4, initRow), color));
-            pieces.add(new Bishop(Position.of(7, initRow), color));
-            pieces.add(new ArchBishop(Position.of(2, initRow), color));
-            pieces.add(new ArchBishop(Position.of(9, initRow), color));
-            pieces.add(new Queen(Position.of(6, initRow), color));
-            pieces.add(new King(Position.of(5, initRow), color));
-        }
-        return List.copyOf(pieces);
+        return generatePieceList(janusMapping(), 8, 10);
     }
 
     private static List<Piece> modernPieces() {
-        List<Piece> pieces = new ArrayList<>();
-        for (ChessColor color : ChessColor.values()) {
-            int initRow = initRow(color, 9);
-            int initRowPawn = initRowPawn(color, 9);
-            IntStream.rangeClosed(1, 9)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            pieces.add(new Rook(Position.of(1, initRow), color));
-            pieces.add(new Rook(Position.of(9, initRow), color));
-            pieces.add(new Knight(Position.of(2, initRow), color));
-            pieces.add(new Knight(Position.of(8, initRow), color));
-            pieces.add(new Bishop(Position.of(3, initRow), color));
-            pieces.add(new Bishop(Position.of(7, initRow), color));
-            pieces.add(new ArchBishop(Position.of(6, initRow), color));
-            pieces.add(new Queen(Position.of(4, initRow), color));
-            pieces.add(new King(Position.of(5, initRow), color));
-        }
-        return List.copyOf(pieces);
+        return generatePieceList(modernMapping(), 9, 9);
     }
 
     private static List<Piece> tuttiFruttiPieces() {
-        List<Piece> pieces = new ArrayList<>();
-        for (ChessColor color : ChessColor.values()) {
-            int initRow = initRow(color, 8);
-            int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 8)
-                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
-            pieces.add(new Chancellor(Position.of(1, initRow), color));
-            pieces.add(new Rook(Position.of(8, initRow), color));
-            pieces.add(new Knight(Position.of(2, initRow), color));
-            pieces.add(new ArchBishop(Position.of(7, initRow), color));
-            pieces.add(new Bishop(Position.of(3, initRow), color));
-            pieces.add(new Amazon(Position.of(4, initRow), color));
-            pieces.add(new Queen(Position.of(6, initRow), color));
-            pieces.add(new King(Position.of(5, initRow), color));
-        }
-        return List.copyOf(pieces);
+        return generatePieceList(tuttiFruttiMapping(), 8, 8);
     }
 
 }
