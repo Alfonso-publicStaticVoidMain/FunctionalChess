@@ -1,6 +1,7 @@
 package functional_chess_model;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.swing.ImageIcon;
 
 /**
@@ -54,12 +55,11 @@ public abstract class Piece implements Serializable {
             position.equals(finPos)
             || game.checkPieceSameColorAs(finPos, color)
             || (checkCheck && game.doesThisMovementCauseACheck(this, finPos))
-            
         );
     }
     
     /**
-     * Returns String representing {@code this}'s color and type.
+     * Returns String representing {@code this}'s color and variant.
      * @return A concatenation of the name of the color of {@code this} Piece,
      * a blank space, and the simple name of {@code this}'s class.
      */
@@ -82,5 +82,11 @@ public abstract class Piece implements Serializable {
         final Piece other = (Piece) obj;
         return (this.color == other.color && this.royal == other.royal && this.position.equals(other.position));
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(position, color, royal);
+    }
+
 
 }

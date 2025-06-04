@@ -1,6 +1,7 @@
 package functional_chess_model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Record representing the valid positions of a chess board. Contains two
@@ -19,29 +20,24 @@ public record Position(int x, int y) implements Serializable {
      * @return A new Position constructed by converting the first char of the
      * String to an integer, to store it as the x coordinate of the position,
      * and storing the second as the y coordinate.
-     * If the String doesn't have length 2, or if its characters does't
+     * If the String doesn't have length 2, or if its characters doesn't
      * represent a position in algebraic notation, an error message is printed
      * and {@code null} is returned.
      * @deprecated This method only works for positions with y coordinate of up
-     * to 9, so it doesn't work for Chess gamer with boards of that size. In
-     * any case, the {@link Position#of(int, int)} method is generally prefered
+     * to 9, so it doesn't work for Chess games with boards of that size. In
+     * any case, the {@link Position#of(int, int)} method is generally preferred
      * to create new Positions.
      */
     @Deprecated
     public static Position of(String pos) {
-        if (pos.length()!=2) {
-            System.out.println("Error occurred while trying to create the position with value: " + pos);
-            System.out.println("The specified String doesn't have length 2.");
-            return null;
-        }
         try {
+            if (pos.length()!=2) throw new IllegalArgumentException("The specified String doesn't have length 2.");
             final int x = convertLetterToNumber(pos.charAt(0));
             final int y = Integer.parseInt(""+pos.charAt(1));
             if (x >= 1 && y >= 1) return new Position(x, y);
             else throw new IllegalArgumentException(pos+" represents coordinates ("+x+", "+y+"), which are outside the chess board");
         } catch (IllegalArgumentException e) {
-            System.err.println("Error occurred while trying to create the position with value: " + pos);
-            System.err.println(e);
+            System.err.println("Error occurred while trying to create the position with value: " + pos + " " + e.getMessage());
             return null;
         }
     }
@@ -57,14 +53,8 @@ public record Position(int x, int y) implements Serializable {
      * is printed and {@code null} is returned.
      */
     public static Position of(int x, int y) {
-        try {
-            if (x >= 1 && y >= 1) return new Position(x, y);
-            else throw new IllegalArgumentException("Coordinates ("+x+", "+y+") are outside the chess board");
-        } catch (IllegalArgumentException e) {
-            System.err.println("Error occurred while trying to create the position with values: ("+x+", "+y+")");
-            System.err.println(e);
-            return null;
-        }
+        if (x >= 1 && y >= 1) return new Position(x, y);
+        else throw new IllegalArgumentException("Coordinates ("+x+", "+y+") are outside the chess board");
     }
     
     /**
@@ -87,27 +77,6 @@ public record Position(int x, int y) implements Serializable {
      */
     public static int yDist(Position initPos, Position finPos) {
         return finPos.y - initPos.y;
-    }
-    
-    /**
-     * Compares {@code this} to another object.
-     * @param obj Object to compare {@code this} to.
-     * @return True if {@code obj} is a Position with the same values of x and
-     * y, false otherwise.
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (this.getClass() != obj.getClass()) {
-            return false;
-        }
-        final Position other = (Position) obj;
-        return (x == other.x && y == other.y);
     }
 
     /**

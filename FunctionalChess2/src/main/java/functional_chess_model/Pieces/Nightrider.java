@@ -30,7 +30,7 @@ public class Nightrider extends Piece {
         int steps = Xmovement / elementalXmov;
         return IntStream.range(1, steps)
             .mapToObj(n -> Position.of(initPos.x() + n * elementalXmov, initPos.y()+ n * elementalYmov))
-            .allMatch(pos -> !game.checkPieceAt(pos));
+            .noneMatch(game::checkPieceAt);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class Nightrider extends Piece {
     
     @Override
     public ImageIcon toIcon() {
-        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITENIGHTRIDER : ChessImages.BLACKNIGHTRIDER;
+        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITE_NIGHTRIDER : ChessImages.BLACK_NIGHTRIDER;
     }
     
 }

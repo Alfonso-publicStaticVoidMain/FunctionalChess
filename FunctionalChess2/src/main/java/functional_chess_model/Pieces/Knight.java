@@ -30,7 +30,7 @@ public class Knight extends Piece {
     
     @Override
     public ImageIcon toIcon() {
-        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITEKNIGHT : ChessImages.BLACKKNIGHT;
+        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITE_KNIGHT : ChessImages.BLACK_KNIGHT;
     }
     
 }

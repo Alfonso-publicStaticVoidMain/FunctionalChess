@@ -7,8 +7,9 @@ import java.util.function.BiFunction;
 /**
  * Enum class listing all {@link Piece} classes implemented thus far.
  * Each instance of this enum has an attribute being the constructor
- * for Pieces of that type, a Function&lt;Position, ChessColor, Piece&gt;.
- * Royalty of the Piece is assumed by each class's constructor as needed.
+ * for Pieces of that variant, a Function&lt;Position, ChessColor, Piece&gt;.
+ * Royalty of the Piece is assumed by each class's 2-parameter constructor
+ * as needed.
  */
 public enum PieceType {
     AMAZON(Amazon::new),
@@ -24,7 +25,9 @@ public enum PieceType {
 
     private final BiFunction<Position, ChessColor, Piece> constructor;
 
-    public BiFunction<Position, ChessColor, Piece> constructor() {return constructor;}
+    public Piece constructor(Position pos, ChessColor color) {
+        return constructor.apply(pos, color);
+    }
 
     PieceType(BiFunction<Position, ChessColor, Piece> constructor) {this.constructor = constructor;}
 }

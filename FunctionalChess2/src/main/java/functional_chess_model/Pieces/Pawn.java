@@ -25,7 +25,7 @@ public class Pawn extends Piece {
         int Xmovement = Position.xDist(initPos, finPos);
         int Ymovement = Position.yDist(initPos, finPos);
         int Ydirection = this.getColor().yDirection();
-        int initRow = game.config().initRowPawn(this.getColor());
+        int initRow = game.variant().initRowPawn(this.getColor());
         
         if (Ymovement * Ydirection <= 0) return false;
         
@@ -35,7 +35,7 @@ public class Pawn extends Piece {
             if (Xmovement != 0) {
                 OptionalInt xDirEnPassantOrNot = game.getEnPassantXDir(this);
                 if (xDirEnPassantOrNot.isPresent()) {
-                    if (initPos.y() == game.getLastPlay().get().finPos().y() && Math.abs(Ymovement) == 1 && Xmovement == xDirEnPassantOrNot.getAsInt()) return true;
+                    return initPos.y() == game.getLastPlay().get().finPos().y() && Math.abs(Ymovement) == 1 && Xmovement == xDirEnPassantOrNot.getAsInt();
                 }
                 return false;
             }
@@ -55,7 +55,7 @@ public class Pawn extends Piece {
     
     @Override
     public ImageIcon toIcon() {
-        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITEPAWN : ChessImages.BLACKPAWN;
+        return this.getColor() == ChessColor.WHITE ? ChessImages.WHITE_PAWN : ChessImages.BLACK_PAWN;
     }
     
 }
