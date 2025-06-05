@@ -18,8 +18,7 @@ public class Knight extends Piece {
     }
     
     @Override
-    public boolean isLegalMovement(Chess game, Position finPos, boolean checkCheck) {
-        if (!basicLegalityChecks(game, finPos, checkCheck)) return false;
+    public boolean canMoveTo(Chess game, Position finPos) {
         return Chess.isKnightLikePath(this.getPosition(), finPos);
     }
 

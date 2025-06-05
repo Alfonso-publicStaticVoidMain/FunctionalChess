@@ -27,36 +27,9 @@ public abstract class Piece implements Serializable {
     public ChessColor getColor() {return color;}
     public boolean isRoyal() {return royal;}
 
-    public abstract boolean isLegalMovement(Chess game, Position finPos, boolean checkCheck);
-    public boolean isLegalMovement(Chess game, Position finPos) {
-        return isLegalMovement(game, finPos, true);
-    }
+    public abstract boolean canMoveTo(Chess game, Position finPos);
     public abstract Piece moveTo(Position finPos);
     public abstract ImageIcon toIcon();
-
-    /**
-     * Performs some common legality checks that will be referenced by each
-     * implementation of {@link Piece#isLegalMovement(Chess, Position, boolean)}. 
-     * @param game {@link Chess} Game where {@code this} {@link Piece} is
-     * moving.
-     * @param finPos {@link Position} the piece is moving to.
-     * @param checkCheck State parameter to track whether we will declare
-     * a movement illegal if it causes a check.
-     * @return False if either of the following happens:
-     * <ul>
-     * <li>There is a {@link Piece} of the same color on the final position.</li>
-     * <li>{@code checkCheck} is true and the game state after performing the
-     * movement has the moving player in check.</li>
-     * <li>The initial position is the same as the final position.</li>
-     * </ul>
-     */
-    public boolean basicLegalityChecks(Chess game, Position finPos, boolean checkCheck) {
-        return !(
-            position.equals(finPos)
-            || game.checkPieceSameColorAs(finPos, color)
-            || (checkCheck && game.doesThisMovementCauseACheck(this, finPos))
-        );
-    }
     
     /**
      * Returns String representing {@code this}'s color and variant.
@@ -87,6 +60,5 @@ public abstract class Piece implements Serializable {
     public int hashCode() {
         return Objects.hash(position, color, royal);
     }
-
 
 }

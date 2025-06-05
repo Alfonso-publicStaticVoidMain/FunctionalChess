@@ -143,11 +143,11 @@ public enum GameVariant {
     }
 
     public ChessController controller(boolean isTimed) {
-        return new ChessController(initGame(isTimed), new ChessGUI(rows, cols, isTimed));
+        return new ChessController(initGame(isTimed), new ChessGUI(rows, cols, isTimed), rules());
     }
 
     public ChessController controller(boolean isTimed, boolean isOnline, ChessColor localActivePlayer) {
-        return new ChessController(initGame(isTimed), new ChessGUI(rows, cols, isTimed), isOnline, localActivePlayer);
+        return new ChessController(initGame(isTimed), new ChessGUI(rows, cols, isTimed), rules(), isOnline, localActivePlayer);
     }
 
     public Chess initGame(boolean isTimed, int seconds) {

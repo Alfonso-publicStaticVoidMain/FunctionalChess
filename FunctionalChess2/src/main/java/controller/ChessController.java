@@ -5,6 +5,7 @@ import controller.online.MoveListener;
 import functional_chess_model.*;
 import functional_chess_model.Pieces.King;
 import functional_chess_model.Pieces.Pawn;
+import functional_chess_model.rules_engine.RulesEngine;
 import graphic_resources.BoardButton;
 import graphic_resources.EmergentPanels;
 import view.ChessGUI;
@@ -42,6 +43,9 @@ public class ChessController implements ActionListener {
      * {@link ChessGUI} view the controller is controlling.
      */
     private final ChessGUI view;
+
+    private final RulesEngine rules;
+
     /**
      * {@link Position} stored to fetch a piece to move from it.
      */
@@ -63,9 +67,10 @@ public class ChessController implements ActionListener {
      * @param localPlayer Only makes sense to give this a value if isOnlineGame is set
      * to true, tracking what color the local player is playing.
      */
-    public ChessController(Chess game, ChessGUI view, boolean isOnlineGame, ChessColor localPlayer) {
+    public ChessController(Chess game, ChessGUI view, RulesEngine rules, boolean isOnlineGame, ChessColor localPlayer) {
         this.game = game;
         this.view = view;
+        this.rules = rules;
         this.isOnlineGame = isOnlineGame;
         this.localPlayer = localPlayer;
         this.whiteSecondsLeft = game.whiteSeconds();
@@ -76,8 +81,8 @@ public class ChessController implements ActionListener {
         this.selectedPosition = null;
     }
 
-    public ChessController(Chess game, ChessGUI view) {
-        this(game, view, false, null);
+    public ChessController(Chess game, ChessGUI view, RulesEngine rules) {
+        this(game, view, rules, false, null);
     }
 
     public static String formatTime(int seconds) {
@@ -116,16 +121,16 @@ public class ChessController implements ActionListener {
     }
 
     public List<Position> validMovesOf(Piece piece) {
-        return positionsThatValidate(pos -> (piece.isLegalMovement(game, pos) ||
-            (piece instanceof King && game.castlingTypeOfPlay(piece, pos).isPresent())));
+        return positionsThatValidate(pos -> (piece.canMoveTo(game, pos) ||
+            (piece instanceof King && rules.castlingTypeOfPlay(game, piece, pos).isPresent())));
     }
 
     public List<Position> validMovesThatWouldCauseCheckOf(Piece piece) {
-        return positionsThatValidate(pos -> piece.isLegalMovement(game, pos, false) && !piece.isLegalMovement(game, pos));
+        return positionsThatValidate(pos -> piece.canMoveTo(game, pos) && !piece.canMoveTo(game, pos));
     }
 
     public List<Position> piecesThatCanCaptureKing(Piece piece, Position finPos) {
-        Chess gameAfterMovement = game.tryToMoveChain(piece, finPos, false);
+        Chess gameAfterMovement = game.tryToMoveChain(piece, finPos, false, rules);
         ChessColor color = piece.getColor();
         Optional<Piece> royalPieceOrNot = gameAfterMovement.findRoyalPiece(color);
         if (royalPieceOrNot.isEmpty()) return List.of();
@@ -133,7 +138,7 @@ public class ChessController implements ActionListener {
         return gameAfterMovement.pieces().stream()
             .filter(p -> // Filter for the initPieces of a different color than active player that can move to capture active player's King.
                 p.getColor() != color &&
-                    p.isLegalMovement(gameAfterMovement, royalPieceOrNot.get().getPosition(), false)
+                    p.canMoveTo(gameAfterMovement, royalPieceOrNot.get().getPosition())
                 )
             .map(Piece::getPosition)
             .toList();
@@ -219,14 +224,14 @@ public class ChessController implements ActionListener {
             Piece piece = game.findPieceAt(selectedPosition).get();
             boolean playDone = false;
             
-            if (!piece.isLegalMovement(game, clickedPos)) view.highlightPiecesThatCanCaptureKing(piece, clickedPos, Color.RED, 1000);
+            if (!piece.canMoveTo(game, clickedPos)) view.highlightPiecesThatCanCaptureKing(piece, clickedPos, Color.RED, 1000);
                 
             if (piece instanceof King) {
                 for (CastlingType type : CastlingType.values()) {
                     if (!playDone) {
-                        Optional<CastlingType> castlingTypeOfPlay = game.castlingTypeOfPlay(piece, clickedPos);
+                        Optional<CastlingType> castlingTypeOfPlay = rules.castlingTypeOfPlay(game, piece, clickedPos);
                         if (castlingTypeOfPlay.isPresent() && type == castlingTypeOfPlay.get()) {
-                            Optional<Chess> gameAfterCastling = game.tryToCastle(game.activePlayer(), type);
+                            Optional<Chess> gameAfterCastling = game.tryToCastle(game.activePlayer(), type, rules);
                             if (gameAfterCastling.isPresent()) {
                                 game = gameAfterCastling.get();
                                 playDone = true;
@@ -237,7 +242,7 @@ public class ChessController implements ActionListener {
             }
                 
             if (!playDone) {
-                Optional<Chess> gameAfterMoveOrNot = game.tryToMove(piece, clickedPos);
+                Optional<Chess> gameAfterMoveOrNot = game.tryToMove(piece, clickedPos, rules);
                 if (gameAfterMoveOrNot.isPresent()) {
                     game = gameAfterMoveOrNot.get();
                     playDone = true;
@@ -261,7 +266,7 @@ public class ChessController implements ActionListener {
                 view.updateBoard();
                 view.updateActivePlayer(game.activePlayer().toString());
 
-                game = game.checkMateChain(game.activePlayer());
+                game = game.checkMateChain(game.activePlayer(), rules);
                 if (game.state() == GameState.WHITE_WINS || game.state() == GameState.BLACK_WINS) {
                     view.checkMessage(game.activePlayer());
                 } else if (game.state() == GameState.DRAW) {

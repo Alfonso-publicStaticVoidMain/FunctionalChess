@@ -3,6 +3,7 @@ package functional_chess_model;
 import functional_chess_model.Pieces.King;
 import functional_chess_model.Pieces.Pawn;
 import functional_chess_model.Pieces.Rook;
+import functional_chess_model.rules_engine.RulesEngine;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -50,37 +51,6 @@ public record Chess(
     /**
      * Attempts to perform a movement and returns the state of the game after it
      * has been performed, or {@code Optional.empty} if it was illegal.
-     * @param initPos Initial {@link Position} of the movement.
-     * @param finPos Final {@link Position} of the movement.
-     * @param checkCheck State parameter to track whether we declare a
-     * movement illegal if it'd cause a check.
-     * @return The state of the game after the movement has been performed, or
-     * {@code Optional.empty} if that movement was illegal, or if the initial
-     * position contained no piece.
-     * @see Chess#findPieceAt
-     * @see Chess#pieceCapturedByMove
-     */
-    public Optional<Chess> tryToMove(Position initPos, Position finPos, boolean checkCheck) {
-        return findPieceThenApply(initPos, piece -> tryToMove(piece, finPos, checkCheck));
-    }
-
-    /**
-     * Overloaded version of {@link Chess#tryToMove(Position, Position, boolean)},
-     * defaulting checkCheck to true.
-     * @param initPos Initial {@link Position} of the movement.
-     * @param finPos Final {@link Position} of the movement.
-     * @return The state of the game after the movement has been performed, or
-     * {@code Optional.empty} if that movement was illegal, or if the initial
-     * position contained no piece. Declares movements that would cause a check
-     * as illegal.
-     */
-    public Optional<Chess> tryToMove(Position initPos, Position finPos) {
-        return tryToMove(initPos, finPos, true);
-    }
-
-    /**
-     * Attempts to perform a movement and returns the state of the game after it
-     * has been performed, or {@code Optional.empty} if it was illegal.
      * @param piece {@link Piece} to move.
      * @param finPos {@link Position} to move the piece to.
      * @param checkCheck State parameter to track whether we declare a
@@ -88,14 +58,14 @@ public record Chess(
      * @return The state of the game after the movement has been performed, or
      * {@code Optional.empty} if that movement was illegal.
      */
-    public Optional<Chess> tryToMove(Piece piece, Position finPos, boolean checkCheck) {
+    public Optional<Chess> tryToMove(Piece piece, Position finPos, boolean checkCheck, RulesEngine rules) {
         ChessColor playerMoving = piece.getColor();
         Position initPos = piece.getPosition();
-        if (!piece.isLegalMovement(this, finPos, checkCheck)) return Optional.empty();
+        if (!rules.isValidMove(this, piece, finPos, checkCheck)) return Optional.empty();
 
         // Store the piece after being moved and piece captured if present.
         Piece pieceAfterMoving = piece.moveTo(finPos);
-        Piece pieceCaptured = pieceCapturedByMove(piece, finPos).orElse(null);
+        Piece pieceCaptured = rules.pieceCapturedByMove(this, piece, finPos).orElse(null);
         return Optional.of(
             Chess.Builder.of(this)
                 .withPieces(updatedPiecesAfterMove(piece, pieceAfterMoving, pieceCaptured))
@@ -108,7 +78,37 @@ public record Chess(
     }
 
     /**
-     * Overloaded version of {@link Chess#tryToMove(Piece, Position, boolean)},
+     * Attempts to perform a movement and returns the state of the game after it
+     * has been performed, or {@code Optional.empty} if it was illegal.
+     * @param initPos Initial {@link Position} of the movement.
+     * @param finPos Final {@link Position} of the movement.
+     * @param checkCheck State parameter to track whether we declare a
+     * movement illegal if it'd cause a check.
+     * @return The state of the game after the movement has been performed, or
+     * {@code Optional.empty} if that movement was illegal, or if the initial
+     * position contained no piece.
+     * @see Chess#findPieceAt
+     */
+    public Optional<Chess> tryToMove(Position initPos, Position finPos, boolean checkCheck, RulesEngine rules) {
+        return findPieceThenApply(initPos, piece -> tryToMove(piece, finPos, checkCheck, rules));
+    }
+
+    /**
+     * Overloaded version of {@link Chess#tryToMove(Position, Position, boolean, RulesEngine)},
+     * defaulting checkCheck to true.
+     * @param initPos Initial {@link Position} of the movement.
+     * @param finPos Final {@link Position} of the movement.
+     * @return The state of the game after the movement has been performed, or
+     * {@code Optional.empty} if that movement was illegal, or if the initial
+     * position contained no piece. Declares movements that would cause a check
+     * as illegal.
+     */
+    public Optional<Chess> tryToMove(Position initPos, Position finPos, RulesEngine rules) {
+        return tryToMove(initPos, finPos, true, rules);
+    }
+
+    /**
+     * Overloaded version of {@link Chess#tryToMove(Piece, Position, boolean, RulesEngine)},
      * defaulting {@code checkCheck} to true.
      * @param piece {@link Piece} to move.
      * @param finPos {@link Position} to move the piece to.
@@ -116,8 +116,8 @@ public record Chess(
      * {@code Optional.empty} if that movement was illegal. Declares movements
      * that would cause a check as illegal.
      */
-    public Optional<Chess> tryToMove(Piece piece, Position finPos) {
-        return tryToMove(piece.getPosition(), finPos, true);
+    public Optional<Chess> tryToMove(Piece piece, Position finPos, RulesEngine rules) {
+        return tryToMove(piece.getPosition(), finPos, true, rules);
     }
 
     /**
@@ -130,20 +130,20 @@ public record Chess(
      * @return The state of the game after the movement has been performed, or
      * {@code Optional.empty} if that movement was illegal.
      */
-    public Optional<Chess> tryToMove(Play play, boolean checkCheck) {
-        return tryToMove(play.initPos(), play.finPos(), checkCheck);
+    public Optional<Chess> tryToMove(Play play, boolean checkCheck, RulesEngine rules) {
+        return tryToMove(play.initPos(), play.finPos(), checkCheck, rules);
     }
 
     /**
-     * Overloaded version of {@link Chess#tryToMove(Play, boolean)}, defaulting
+     * Overloaded version of {@link Chess#tryToMove(Play, boolean, RulesEngine)}, defaulting
      * {@code checkCheck} to true.
      * @param play {@link Play} containing the movement.
      * @return The state of the game after the movement has been performed, or
      * {@code Optional.empty} if that movement was illegal. Declares movements
      * that would cause a check as illegal.
      */
-    public Optional<Chess> tryToMove(Play play) {
-        return tryToMove(play.initPos(), play.finPos(), true);
+    public Optional<Chess> tryToMove(Play play, RulesEngine rules) {
+        return tryToMove(play.initPos(), play.finPos(), true, rules);
     }
 
     /**
@@ -158,10 +158,10 @@ public record Chess(
      * {@code activePlayer} and {@code castling} for the returned game
      * accordingly.
      */
-    public Optional<Chess> tryToCastle(ChessColor player, CastlingType castlingType) {
+    public Optional<Chess> tryToCastle(ChessColor player, CastlingType castlingType, RulesEngine rules) {
         if (!isCastlingAvailable(player, castlingType)) return Optional.empty();
-        Optional<Piece> kingOrNot = findPieceAt(variant.initKingPos(player));
-        Optional<Piece> rookOrNot = findPieceAt(variant.initRookPos(castlingType, player));
+        Optional<Piece> kingOrNot = findPieceAt(rules.variant().initKingPos(player));
+        Optional<Piece> rookOrNot = findPieceAt(rules.variant().initRookPos(castlingType, player));
         if (kingOrNot.isEmpty() || rookOrNot.isEmpty()) return Optional.empty();
         Piece king = kingOrNot.get();
         Piece rook = rookOrNot.get();
@@ -191,8 +191,8 @@ public record Chess(
      * If there's a move that player can make that doesn't end up in them being
      * in check, {@code Optional.empty} is returned.
      */
-    public Optional<Chess> checkMate(ChessColor color) {
-        boolean isInCheck = isPlayerInCheck(color);
+    public Optional<Chess> checkMate(ChessColor color, RulesEngine rules) {
+        boolean isInCheck = rules.isPlayerInCheck(this, color);
         for (Piece piece : pieces.stream()
             .filter(p -> p.getColor() == color)
             .toList()
@@ -200,9 +200,9 @@ public record Chess(
             for (int col = 1; col <= variant.cols(); col++) {
                 for (int row = 1; row <= variant.rows(); row++) {
                     Position pos = Position.of(col, row);
-                    if (piece.isLegalMovement(this, pos, false)) {
-                        Chess gameAfterMovement = tryToMoveChain(piece.getPosition(), pos);
-                        if (!gameAfterMovement.isPlayerInCheck(color)) return Optional.empty();
+                    if (piece.canMoveTo(this, pos)) {
+                        Chess gameAfterMovement = tryToMoveChain(piece.getPosition(), pos, rules);
+                        if (!rules.isPlayerInCheck(gameAfterMovement, color)) return Optional.empty();
                     }
                 }
             }
@@ -449,7 +449,7 @@ public record Chess(
     }
 
     /**
-     * Monadic version of {@link Chess#tryToMove(Position, Position, boolean)}.
+     * Monadic version of {@link Chess#tryToMove(Position, Position, boolean, RulesEngine)}.
      * @param initPos Initial {@link Position} of the movement.
      * @param finPos Final {@link Position} of the movement.
      * @param checkCheck State parameter to track whether we declare a
@@ -457,23 +457,23 @@ public record Chess(
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
      */
-    public Chess tryToMoveChain(Position initPos, Position finPos, boolean checkCheck) {
-        return flatMap(chess -> chess.tryToMove(initPos, finPos, checkCheck));
+    public Chess tryToMoveChain(Position initPos, Position finPos, boolean checkCheck, RulesEngine rules) {
+        return flatMap(chess -> chess.tryToMove(initPos, finPos, checkCheck, rules));
     }
 
     /**
-     * Monadic version of {@link Chess#tryToMove(Position, Position)}.
+     * Monadic version of {@link Chess#tryToMove(Position, Position, RulesEngine)}.
      * @param initPos Initial {@link Position} of the movement.
      * @param finPos Final {@link Position} of the movement.
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
      */
-    public Chess tryToMoveChain(Position initPos, Position finPos) {
-        return flatMap(chess -> chess.tryToMove(initPos, finPos));
+    public Chess tryToMoveChain(Position initPos, Position finPos, RulesEngine rules) {
+        return flatMap(chess -> chess.tryToMove(initPos, finPos, rules));
     }
 
     /**
-     * Monadic version of {@link Chess#tryToMove(Piece, Position, boolean)}.
+     * Monadic version of {@link Chess#tryToMove(Piece, Position, boolean, RulesEngine)}.
      * @param piece {@link Piece} being moved.
      * @param finPos Final {@link Position} of the movement.
      * @param checkCheck State parameter to track whether we declare a
@@ -481,63 +481,63 @@ public record Chess(
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
      */
-    public Chess tryToMoveChain(Piece piece, Position finPos, boolean checkCheck) {
-        return flatMap(chess -> chess.tryToMove(piece, finPos, checkCheck));
+    public Chess tryToMoveChain(Piece piece, Position finPos, boolean checkCheck, RulesEngine rules) {
+        return flatMap(chess -> chess.tryToMove(piece, finPos, checkCheck, rules));
     }
 
     /**
-     * Monadic version of {@link Chess#tryToMove(Piece, Position)}.
+     * Monadic version of {@link Chess#tryToMove(Piece, Position, RulesEngine)}.
      * @param piece {@link Piece} being moved.
      * @param finPos Final {@link Position} of the movement.
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
      */
-    public Chess tryToMoveChain(Piece piece, Position finPos) {
-        return flatMap(chess -> chess.tryToMove(piece, finPos));
+    public Chess tryToMoveChain(Piece piece, Position finPos, RulesEngine rules) {
+        return flatMap(chess -> chess.tryToMove(piece, finPos, rules));
     }
 
     /**
-     * Monadic version of {@link Chess#tryToMove(Play, boolean)}.
+     * Monadic version of {@link Chess#tryToMove(Play, boolean, RulesEngine)}.
      * @param play {@link Play} storing the movement.
      * @param checkCheck State parameter to track whether we declare a
      * movement illegal if it'd cause a check.
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
      */
-    public Chess tryToMoveChain(Play play, boolean checkCheck) {
-        return flatMap(chess -> chess.tryToMove(play, checkCheck));
+    public Chess tryToMoveChain(Play play, boolean checkCheck, RulesEngine rules) {
+        return flatMap(chess -> chess.tryToMove(play, checkCheck, rules));
     }
 
     /**
-     * Monadic version of {@link Chess#tryToMove(Play, boolean)}.
+     * Monadic version of {@link Chess#tryToMove(Play, boolean, RulesEngine)}.
      * @param play {@link Play} storing the movement.
      * @return The state of the game after the movement has been performed, or
      * {@code this} if the movement was illegal.
      */
-    public Chess tryToMoveChain(Play play) {
-        return flatMap(chess -> chess.tryToMove(play));
+    public Chess tryToMoveChain(Play play, RulesEngine rules) {
+        return flatMap(chess -> chess.tryToMove(play, rules));
     }
 
     /**
-     * Monadic version of {@link Chess#checkMate(ChessColor)}.
+     * Monadic version of {@link Chess#checkMate(ChessColor, RulesEngine)}.
      * @param color {@link ChessColor} of the player being checked.
      * @return The state of the game after checking if the parameter player is
      * in checkmate or if the game is a draw, or {@code this} if that player
      * isn't in check and the game isn't a draw.
      */
-    public Chess checkMateChain(ChessColor color) {
-        return flatMap(chess -> chess.checkMate(color));
+    public Chess checkMateChain(ChessColor color, RulesEngine rules) {
+        return flatMap(chess -> chess.checkMate(color, rules));
     }
 
     /**
-     * Monadic version of {@link Chess#tryToCastle(ChessColor, CastlingType)}
+     * Monadic version of {@link Chess#tryToCastle(ChessColor, CastlingType, RulesEngine)}
      * @param player {@link ChessColor} of the player doing the castling.
      * @param castlingType {@link CastlingType} variant of the castling being done.
      * @return The state of the game after the castling has been performed, or
      * {@code this} if it was illegal.
      */
-    public Chess tryToCastleChain(ChessColor player, CastlingType castlingType) {
-        return flatMap(chess -> chess.tryToCastle(player, castlingType));
+    public Chess tryToCastleChain(ChessColor player, CastlingType castlingType, RulesEngine rules) {
+        return flatMap(chess -> chess.tryToCastle(player, castlingType, rules));
     }
 
     /**
@@ -626,120 +626,6 @@ public record Chess(
     }
 
     /**
-     * Gets the piece that would be captured by the proposed move.
-     * @param piece {@link Piece} to move.
-     * @param finPos {@link Position} to move the piece to.
-     * @return The {@link Piece} that would be captured by the proposed move, or
-     * {@code Optional.empty} it none would be. Ie, the piece present at
-     * {@code finPos} for a regular capture, or in the appropriate position for
-     * an en passant capture for {@link Pawn}s.
-     */
-    public Optional<Piece> pieceCapturedByMove(Piece piece, Position finPos) {
-        Optional<Piece> pieceOrNot = findPieceAt(finPos);
-        if (pieceOrNot.isPresent()) return pieceOrNot;
-
-        if (piece instanceof Pawn) {
-            OptionalInt enPassantXDir = getEnPassantXDir(piece);
-            if (enPassantXDir.isPresent() && enPassantXDir.getAsInt() == Position.xDist(piece.getPosition(), finPos)) return Optional.of(getLastPlay().get().piece());
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * Gets the piece that would be captured by the proposed move.
-     * @param initPos Initial {@link Position} of the movement.
-     * @param finPos Final {@link Position} of the movement.
-     * @return The {@link Piece} that would be captured by the proposed move, or
-     * {@code Optional.empty} it none would be, or if there's no piece in the
-     * initial position. Ie, the piece present at {@code finPos} for a regular
-     * capture, or in the appropriate position for an en passant capture for
-     * {@link Pawn}s.
-     */
-    public Optional<Piece> pieceCapturedByMove(Position initPos, Position finPos) {
-        return findPieceThenApply(initPos, piece -> pieceCapturedByMove(piece, finPos));
-    }
-
-    /**
-     * Shows the kind of castling the movement is representing, accounting for
-     * the legality of said castling.
-     * @param initPos Initial {@link Position} of the movement.
-     * @param finPos Final {@link Position} of the movement.
-     * @return Optional.empty if the movement doesn't represent a castling
-     * movement at all, and Optional[LEFT | RIGHT] if the movement represents a
-     * castling, ie, if the moved piece is a King, the respective castling variant
-     * is still available for this game, the final position is the respective
-     * castling position as dictated by this game's configuration, there's no
-     * piece between the {@link King} and the {@link Rook} (though the piece in
-     * that position might not be a Rook), and the King wouldn't be in check
-     * during its movement.
-     */
-    public Optional<CastlingType> castlingTypeOfPlay(Position initPos, Position finPos) {
-        return findPieceThenApply(initPos, piece -> castlingTypeOfPlay(piece, finPos));
-    }
-
-    /**
-     * Shows the kind of castling the movement is representing, accounting for
-     * the legality of said castling.
-     * @param piece Piece to move.
-     * @param finPos Position to move the piece to.
-     * @return Optional.empty if the movement doesn't represent a castling
-     * movement at all, and Optional[LEFT | RIGHT] if the movement represents a
-     * castling, ie, if the moved piece is a King, the respective castling variant
-     * is still available for this game, the final position is the respective
-     * castling position as dictated by this game's configuration, there's no
-     * piece between the {@link King} and the {@link Rook} (though the piece in
-     * that position might not be a Rook), and the King wouldn't be in check
-     * during its movement.
-     */
-    public Optional<CastlingType> castlingTypeOfPlay(Piece piece, Position finPos) {
-        if (!(piece instanceof King)) return Optional.empty();
-        if (!finPos.equals(variant.castlingKingPos(CastlingType.LEFT, piece.getColor())) && !finPos.equals(variant.castlingKingPos(CastlingType.RIGHT, piece.getColor()))) return Optional.empty();
-        ChessColor color = piece.getColor();
-        int initRow = variant.initRow(color);
-
-        if (isCastlingAvailable(color, CastlingType.LEFT) && finPos.equals(variant.castlingKingPos(CastlingType.LEFT, color))) {
-            // Checks if there are pieces in the middle of the initial and castling positions
-            if (IntStream.rangeClosed(variant.initRookCol(CastlingType.LEFT)+1, variant.castlingRookCol(CastlingType.LEFT))
-                .anyMatch(x -> checkPieceAt(Position.of(x, initRow)))) return Optional.empty();
-
-            // Checks if any piece could threaten to capture the King if it were on the middle positions.
-            if (IntStream.rangeClosed(variant.castlingKingCol(CastlingType.LEFT), variant.kingInitCol())
-                .anyMatch(x -> pieces.stream()
-                    .anyMatch(p -> p.getColor() != color && (
-                        p.isLegalMovement(this, Position.of(x, initRow), false)
-                            || (p instanceof Pawn &&
-                            Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
-                            Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
-                        ))
-                    ))) return Optional.empty();
-
-            return Optional.of(CastlingType.LEFT);
-        }
-
-        if (isCastlingAvailable(color, CastlingType.RIGHT) && finPos.equals(variant.castlingKingPos(CastlingType.RIGHT, color))) {
-            // Checks if there are pieces in the middle of the initial and castling positions
-            if (IntStream.rangeClosed(variant.castlingRookCol(CastlingType.RIGHT), variant.initRookCol(CastlingType.RIGHT)-1)
-                .anyMatch(x -> checkPieceAt(Position.of(x, initRow)))) return Optional.empty();
-
-            // Checks if any piece could threaten to capture the King if it were on the middle positions.
-            if (IntStream.rangeClosed(variant.kingInitCol(), variant.castlingKingCol(CastlingType.RIGHT))
-                .anyMatch(x -> pieces.stream()
-                    .anyMatch(p -> p.getColor() != color && (
-                        p.isLegalMovement(this, Position.of(x, initRow), false)
-                            || (p instanceof Pawn &&
-                            Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
-                            Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
-                        ))
-                    ))) return Optional.empty();
-
-            return Optional.of(CastlingType.RIGHT);
-        }
-
-        // If neither castling was available or the position wasn't the expected for that variant, returns empty.
-        return Optional.empty();
-    }
-
-    /**
      * Gets the availability of castling for the given player and variant.
      * @param color {@link ChessColor} player to check.
      * @param type {@link CastlingType} variant to check.
@@ -749,81 +635,6 @@ public record Chess(
     public boolean isCastlingAvailable(ChessColor color, CastlingType type) {
         return castling.get(color).get(type);
     }
-
-    /**
-     * Checks whether the given player is in check.
-     * @param color {@link ChessColor} player to check check for.
-     * @return True if the player is in check, ie, if there's a piece of the
-     * opposite color that can legally capture their royal piece, ignoring if
-     * making that move would cause a check for its controller. If the given
-     * player has no royal initPieces, returns false.
-     */
-    public boolean isPlayerInCheck(ChessColor color) {
-        Optional<Piece> royalPieceOrNot = findRoyalPiece(color);
-        return royalPieceOrNot.filter(royalPiece -> pieces.stream()
-            .anyMatch(piece -> piece.getColor() != color && piece.isLegalMovement(this, royalPiece.getPosition(), false))).isPresent();
-    }
-
-    /**
-     * Checks whether performing the given movement causes a check for the
-     * player controlling the piece.
-     * @param piece {@link Piece} to move.
-     * @param finPos {@link Position} to move it to.
-     * @return True if, after performing the movement, the player is in check,
-     * false otherwise.
-     */
-    public boolean doesThisMovementCauseACheck(Piece piece, Position finPos) {
-        Optional<Chess> gameAfterMovementOrNot = tryToMove(piece.getPosition(), finPos, false);
-        return gameAfterMovementOrNot.map(chess -> chess.isPlayerInCheck(piece.getColor())).orElse(false);
-    }
-
-    /**
-     * Checks whether performing the given movement causes a check for the
-     * player controlling the piece in the initial position.
-     * @param initPos Initial {@link Position} of the movement.
-     * @param finPos Final {@link Position} of the movement.
-     * @return True if, after performing the movement, the player is in check,
-     * false otherwise, or if there's no piece in the initial position.
-     */
-    public boolean doesThisMovementCauseACheck(Position initPos, Position finPos) {
-        //Optional<Piece> pieceOrNot = findPieceAt(initPos);
-        //return pieceOrNot.filter(piece -> doesThisMovementCauseACheck(piece, finPos)).isPresent();
-        return findPieceThenTest(initPos, piece -> doesThisMovementCauseACheck(piece, finPos));
-    }
-
-    /**
-     * Gets the direction in the X axis the piece needs to move to capture
-     * en passant the last piece moved, if that's a legal movement for it.
-     * @param piece {@link Piece} to move.
-     * @return An OptionalInt of +1 or -1 if the last {@link Play} was a
-     * {@link Pawn} moving two cells from its starting position, {@code piece}
-     * is also a {@link Pawn} of the opposite color and is within 1 unit from it
-     * in the X axis.
-     */
-    public OptionalInt getEnPassantXDir(Piece piece) {
-        Optional<Play> lastPlayOrNot = getLastPlay();
-
-        if (lastPlayOrNot.isEmpty()) return OptionalInt.empty();
-
-        Play lastPlay = lastPlayOrNot.get();
-        Piece lastPieceMoved = lastPlay.piece();
-
-        if (!(lastPieceMoved instanceof Pawn) || !(piece instanceof Pawn)) return OptionalInt.empty();
-        if (lastPieceMoved.getColor() == piece.getColor()) return OptionalInt.empty();
-        if (Math.abs(Position.yDist(lastPlay.initPos(), lastPlay.finPos())) != 2) return OptionalInt.empty();
-        if (Math.abs(Position.xDist(lastPlay.finPos(), piece.getPosition())) != 1) return OptionalInt.empty();
-
-        return OptionalInt.of(Position.xDist(piece.getPosition(), lastPlay.finPos()));
-    }
-
-    public boolean isValidMove(Position initPos, Position finPos) {
-        return findPieceThenTest(initPos, piece -> piece.isLegalMovement(this, finPos));
-                //findPieceAt(initPos).map(piece -> piece.isLegalMovement(this, finPos)).orElse(false);
-    }
-
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="Find Piece abstraction methods">
 
     public <T> Optional<T> findPieceThenApply(Position initPos, Function<Piece, Optional<T>> f) {
         return findPieceAt(initPos)
@@ -837,9 +648,7 @@ public record Chess(
     }
 
     public boolean findPieceThenTest(Position initPos, Predicate<Piece> condition) {
-        return findPieceAt(initPos)
-            .map(condition::test)
-            .orElse(false);
+        return findPieceThenApply(initPos, condition::test, false);
     }
 
     //</editor-fold>

@@ -7,13 +7,15 @@ import java.util.OptionalInt;
 
 public interface RulesEngine {
 
+    GameVariant variant();
+
     Optional<Piece> pieceCapturedByMove(Chess game, Piece piece, Position finPos);
 
     Optional<Piece> pieceCapturedByMove(Chess game, Position initPos, Position finPos);
 
-    Optional<CastlingType> castlingTypeOfPlay(Chess game, Position initPos, Position finPos);
-
     Optional<CastlingType> castlingTypeOfPlay(Chess game, Piece piece, Position finPos);
+
+    Optional<CastlingType> castlingTypeOfPlay(Chess game, Position initPos, Position finPos);
 
     boolean isPlayerInCheck(Chess game, ChessColor color);
 
@@ -23,8 +25,19 @@ public interface RulesEngine {
 
     OptionalInt getEnPassantXDir(Chess game, Piece piece);
 
-    boolean isValidMove(Chess game, Position initPos, Position finPos);
+    boolean isValidMove(Chess game, Piece piece, Position finPos, boolean checkCheck);
 
+    default boolean isValidMove(Chess game, Piece piece, Position finPos) {
+        return isValidMove(game, piece, finPos, true);
+    }
+
+    default boolean isValidMove(Chess game, Position initPos, Position finPos, boolean checkCheck) {
+        return game.findPieceThenTest(initPos, piece -> isValidMove(game, piece, finPos, checkCheck));
+    }
+
+    default boolean isValidMove(Chess game, Position initPos, Position finPos) {
+        return isValidMove(game, initPos, finPos, true);
+    }
     RulesEngine STANDARD_RULES = new StandardRules(GameVariant.STANDARD);
     RulesEngine ALMOST_CHESS_RULES = new StandardRules(GameVariant.ALMOSTCHESS);
     RulesEngine CAPABLANCA_RULES = new StandardRules(GameVariant.CAPABLANCA);

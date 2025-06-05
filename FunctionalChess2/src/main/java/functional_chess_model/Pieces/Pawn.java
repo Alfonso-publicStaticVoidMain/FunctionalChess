@@ -14,13 +14,14 @@ import javax.swing.ImageIcon;
  */
 public class Pawn extends Piece {
 
+    //TODO Decouple rules's en passant checks from Pawn's inherent movement logic
+
     public Pawn(Position position, ChessColor color) {
         super(position, color);
     }
     
     @Override
-    public boolean isLegalMovement(Chess game, Position finPos, boolean checkCheck) {
-        if (!basicLegalityChecks(game, finPos, checkCheck)) return false;
+    public boolean canMoveTo(Chess game, Position finPos) {
         Position initPos = this.getPosition();
         int Xmovement = Position.xDist(initPos, finPos);
         int Ymovement = Position.yDist(initPos, finPos);
