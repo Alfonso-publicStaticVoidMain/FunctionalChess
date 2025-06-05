@@ -12,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -47,6 +46,11 @@ public record Chess(
     //TODO: Introduce a RulesEngine parameter to the update state functions.
 
     //<editor-fold defaultstate="collapsed" desc="Update state functions">
+
+    public Optional<Chess> tryToMove(Movement move, boolean checkCheck, RulesEngine rules) {
+        if (findPieceAt(move.init()).isEmpty()) return Optional.empty();
+        return Optional.empty();
+    }
 
     /**
      * Attempts to perform a movement and returns the state of the game after it
@@ -200,7 +204,7 @@ public record Chess(
             for (int col = 1; col <= variant.cols(); col++) {
                 for (int row = 1; row <= variant.rows(); row++) {
                     Position pos = Position.of(col, row);
-                    if (piece.canMoveTo(this, pos)) {
+                    if (piece.canMove(this, pos)) {
                         Chess gameAfterMovement = tryToMoveChain(piece.getPosition(), pos, rules);
                         if (!rules.isPlayerInCheck(gameAfterMovement, color)) return Optional.empty();
                     }
@@ -651,10 +655,6 @@ public record Chess(
         return findPieceThenApply(initPos, condition::test, false);
     }
 
-    //</editor-fold>
-
-    //<editor-fold defaultstate="collapsed" desc="Path checking methods">
-
     /**
      * Checks the collision along a path following a Rook or Bishop-like
      * movement, ie, in a straight line or a diagonal.
@@ -664,107 +664,18 @@ public record Chess(
      * of the movement from {@code initPos} to {@code finPos}, both exclusive.
      * The method will return false if the movement isn't on a straight line or
      * diagonal.
-     * @see Chess#isPathClear(int, int, int, int)
      */
     public boolean isPathClear(Position initPos, Position finPos) {
-        int Xmovement = Position.xDist(initPos, finPos);
-        int Ymovement = Position.yDist(initPos, finPos);
-        return isPathClear(initPos.x(), initPos.y(), Xmovement, Ymovement);
+        return isPathClear(Movement.of(initPos, finPos));
     }
 
-    /**
-     * Checks the collision along a path following a Rook or Bishop-like
-     * movement, ie, in a straight line or a diagonal.
-     * @param initX Initial X coordinate of the movement.
-     * @param initY Initial Y coordinate of the movement.
-     * @param Xmovement Signed distance travelled in the X axis.
-     * @param Ymovement Signed distance travelled in the Y axis.
-     * @return Returns false is the path described isn't in a diagonal or
-     * straight line, like a Bishop or Rook would make.
-     * Then it returns true if there's no piece on each middle point of the
-     * described path, excluding initial and final positions.
-     * @see Chess#isPathClear(Position, Position)
-     */
-    public boolean isPathClear(int initX, int initY, int Xmovement, int Ymovement) {
-        if (!isBishopLikePath(Xmovement, Ymovement) && !isRookLikePath(Xmovement, Ymovement)) return false;
-        return IntStream.range(1, Math.max(Math.abs(Xmovement), Math.abs(Ymovement)))
-            .mapToObj(n -> Position.of(initX + n* Integer.compare(Xmovement, 0), initY + n* Integer.compare(Ymovement, 0)))
+    public boolean isPathClear(Movement move) {
+        if (!move.isDiagonal() && !move.isStraight()) return false;
+        int dx = move.dx();
+        int dy = move.dy();
+        return IntStream.range(1, Math.max(Math.abs(dx), Math.abs(dy)))
+            .mapToObj(n -> Position.of(move.initX() + n* Integer.compare(dx, 0), move.initY() + n* Integer.compare(dy, 0)))
             .noneMatch(this::checkPieceAt);
-    }
-
-    /**
-     * Checks if the proposed movement follows a straight path, like a Rook
-     * would.
-     * @param Xmovement Signed distance travelled in the X axis.
-     * @param Ymovement Signed distance travelled in the Y axis.
-     * @return False if both Xmovement and Ymovement are 0, true otherwise.
-     */
-    public static boolean isRookLikePath(int Xmovement, int Ymovement) {
-        return !(Xmovement != 0 && Ymovement != 0);
-    }
-
-    /**
-     * Overloaded version of {@link Chess#isRookLikePath(int, int)}, calculating
-     * the X and Y movements from the coordinates of the given positions.
-     * @param initPos Initial position of the movement.
-     * @param finPos Final position of the movement.
-     * @return False if both Xmovement and Ymovement are 0, true otherwise.
-     */
-    public static boolean isRookLikePath(Position initPos, Position finPos) {
-        return isRookLikePath(Position.xDist(initPos, finPos), Position.yDist(initPos, finPos));
-    }
-
-    /**
-     * Checks if the proposed movement follows a diagonal path, like a Bishop
-     * would.
-     * @param Xmovement Signed distance travelled in the X axis.
-     * @param Ymovement Signed distance travelled in the Y axis.
-     * @return True if the absolute value of both X and Y movements is the same,
-     * false otherwise.
-     */
-    public static boolean isBishopLikePath(int Xmovement, int Ymovement) {
-        return Math.abs(Xmovement) == Math.abs(Ymovement);
-    }
-
-    /**
-     * Overloaded version of {@link Chess#isBishopLikePath(int, int)},
-     * calculating the X and Y movements from the coordinates of the given
-     * positions.
-     * @param initPos Initial position of the movement.
-     * @param finPos Final position of the movement.
-     * @return True if the absolute value of both X and Y movements is the same,
-     * false otherwise.
-     */
-    public static boolean isBishopLikePath(Position initPos, Position finPos) {
-        return isBishopLikePath(Position.xDist(initPos, finPos), Position.yDist(initPos, finPos));
-    }
-
-    /**
-     * Checks if the proposed movement matches the movement of a Knight.
-     * @param Xmovement Signed distance travelled in the X axis.
-     * @param Ymovement Signed distance travelled in the Y axis.
-     * @return True if the absolute value of the sum of the X and Y movements
-     * is exactly 3, and each of those absolute values is between 1 and 2, both
-     * inclusive. False otherwise.
-     */
-    public static boolean isKnightLikePath(int Xmovement, int Ymovement) {
-        return Math.abs(Xmovement) + Math.abs(Ymovement) == 3
-            && Math.abs(Xmovement) <= 2 && Math.abs(Xmovement) >= 1
-            && Math.abs(Ymovement) <= 2 && Math.abs(Ymovement) >= 1;
-    }
-
-    /**
-     * Overloaded version of {@link Chess#isKnightLikePath(int, int)},
-     * calculating the X and Y movements from the coordinates of the given
-     * positions.
-     * @param initPos Initial position of the movement.
-     * @param finPos Final position of the movement.
-     * @return True if the absolute value of the sum of the X and Y movements
-     * is exactly 3, and each of those absolute values is between 1 and 2, both
-     * inclusive. False otherwise.
-     */
-    public static boolean isKnightLikePath(Position initPos, Position finPos) {
-        return isKnightLikePath(Position.xDist(initPos, finPos), Position.yDist(initPos, finPos));
     }
 
     //</editor-fold>

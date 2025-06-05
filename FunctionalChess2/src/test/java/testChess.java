@@ -9,7 +9,6 @@ import functional_chess_model.Pieces.Bishop;
 import functional_chess_model.Pieces.Nightrider;
 import functional_chess_model.Pieces.Rook;
 import functional_chess_model.rules_engine.RulesEngine;
-import functional_chess_model.rules_engine.StandardRules;
 import org.junit.jupiter.api.Test;
 import view.ChessGUI;
 
@@ -95,7 +94,7 @@ public class testChess {
             .tryToMoveChain(Position.of(5, 7), Position.of(5, 5), STANDARD_RULES)
             .tryToMoveChain(Position.of(4, 4), Position.of(5, 5), STANDARD_RULES)
             .tryToMoveChain(Position.of(6, 8), Position.of(2, 4), STANDARD_RULES);
-        assertFalse(game.findPieceAt(Position.of(2, 1)).get().canMoveTo(game, Position.of(1, 3)));
+        assertFalse(game.findPieceAt(Position.of(2, 1)).get().canMove(game, Position.of(1, 3)));
         game = game.tryToMoveChain(Position.of(2, 1), Position.of(1, 3), false, STANDARD_RULES);
         assertTrue(STANDARD_RULES.isPlayerInCheck(game, ChessColor.WHITE));
     }

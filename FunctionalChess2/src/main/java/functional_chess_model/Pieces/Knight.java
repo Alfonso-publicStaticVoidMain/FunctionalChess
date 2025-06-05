@@ -1,9 +1,6 @@
 package functional_chess_model.Pieces;
 
-import functional_chess_model.Chess;
-import functional_chess_model.ChessColor;
-import functional_chess_model.Piece;
-import functional_chess_model.Position;
+import functional_chess_model.*;
 import graphic_resources.ChessImages;
 import javax.swing.ImageIcon;
 
@@ -18,8 +15,8 @@ public class Knight extends Piece {
     }
     
     @Override
-    public boolean canMoveTo(Chess game, Position finPos) {
-        return Chess.isKnightLikePath(this.getPosition(), finPos);
+    public boolean canMove(Chess game, Movement move) {
+        return move.init() == getPosition() && move.isKnightLike();
     }
 
     @Override

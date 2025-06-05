@@ -1,9 +1,6 @@
 package functional_chess_model.Pieces;
 
-import functional_chess_model.Chess;
-import functional_chess_model.ChessColor;
-import functional_chess_model.Piece;
-import functional_chess_model.Position;
+import functional_chess_model.*;
 import graphic_resources.ChessImages;
 import java.util.OptionalInt;
 import javax.swing.ImageIcon;
@@ -21,16 +18,16 @@ public class Pawn extends Piece {
     }
     
     @Override
-    public boolean canMoveTo(Chess game, Position finPos) {
+    public boolean canMove(Chess game, Movement move) {
         Position initPos = this.getPosition();
-        int Xmovement = Position.xDist(initPos, finPos);
-        int Ymovement = Position.yDist(initPos, finPos);
+        int Xmovement = Position.xDist(initPos, move);
+        int Ymovement = Position.yDist(initPos, move);
         int Ydirection = this.getColor().yDirection();
         int initRow = game.variant().initRowPawn(this.getColor());
         
         if (Ymovement * Ydirection <= 0) return false;
         
-        if (game.checkPieceAt(finPos)) {
+        if (game.checkPieceAt(move)) {
             return Math.abs(Xmovement) == 1 && Math.abs(Ymovement) == 1;
         } else {
             if (Xmovement != 0) {

@@ -25,19 +25,20 @@ public interface RulesEngine {
 
     OptionalInt getEnPassantXDir(Chess game, Piece piece);
 
-    boolean isValidMove(Chess game, Piece piece, Position finPos, boolean checkCheck);
+    boolean isValidMove(Chess game, Movement move, boolean checkCheck);
 
-    default boolean isValidMove(Chess game, Piece piece, Position finPos) {
-        return isValidMove(game, piece, finPos, true);
+    default boolean isValidMove(Chess game, Movement move) {
+        return isValidMove(game, move, true);
     }
 
     default boolean isValidMove(Chess game, Position initPos, Position finPos, boolean checkCheck) {
-        return game.findPieceThenTest(initPos, piece -> isValidMove(game, piece, finPos, checkCheck));
+        return isValidMove(game, Movement.of(initPos, finPos), checkCheck);
     }
 
     default boolean isValidMove(Chess game, Position initPos, Position finPos) {
         return isValidMove(game, initPos, finPos, true);
     }
+
     RulesEngine STANDARD_RULES = new StandardRules(GameVariant.STANDARD);
     RulesEngine ALMOST_CHESS_RULES = new StandardRules(GameVariant.ALMOSTCHESS);
     RulesEngine CAPABLANCA_RULES = new StandardRules(GameVariant.CAPABLANCA);

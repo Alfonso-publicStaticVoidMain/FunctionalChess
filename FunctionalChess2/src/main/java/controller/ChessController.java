@@ -121,12 +121,12 @@ public class ChessController implements ActionListener {
     }
 
     public List<Position> validMovesOf(Piece piece) {
-        return positionsThatValidate(pos -> (piece.canMoveTo(game, pos) ||
+        return positionsThatValidate(pos -> (piece.canMove(game, pos) ||
             (piece instanceof King && rules.castlingTypeOfPlay(game, piece, pos).isPresent())));
     }
 
     public List<Position> validMovesThatWouldCauseCheckOf(Piece piece) {
-        return positionsThatValidate(pos -> piece.canMoveTo(game, pos) && !piece.canMoveTo(game, pos));
+        return positionsThatValidate(pos -> piece.canMove(game, pos) && !piece.canMove(game, pos));
     }
 
     public List<Position> piecesThatCanCaptureKing(Piece piece, Position finPos) {
@@ -138,7 +138,7 @@ public class ChessController implements ActionListener {
         return gameAfterMovement.pieces().stream()
             .filter(p -> // Filter for the initPieces of a different color than active player that can move to capture active player's King.
                 p.getColor() != color &&
-                    p.canMoveTo(gameAfterMovement, royalPieceOrNot.get().getPosition())
+                    p.canMove(gameAfterMovement, royalPieceOrNot.get().getPosition())
                 )
             .map(Piece::getPosition)
             .toList();
@@ -224,7 +224,7 @@ public class ChessController implements ActionListener {
             Piece piece = game.findPieceAt(selectedPosition).get();
             boolean playDone = false;
             
-            if (!piece.canMoveTo(game, clickedPos)) view.highlightPiecesThatCanCaptureKing(piece, clickedPos, Color.RED, 1000);
+            if (!piece.canMove(game, clickedPos)) view.highlightPiecesThatCanCaptureKing(piece, clickedPos, Color.RED, 1000);
                 
             if (piece instanceof King) {
                 for (CastlingType type : CastlingType.values()) {

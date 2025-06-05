@@ -1,9 +1,6 @@
 package functional_chess_model.Pieces;
 
-import functional_chess_model.Chess;
-import functional_chess_model.ChessColor;
-import functional_chess_model.Piece;
-import functional_chess_model.Position;
+import functional_chess_model.*;
 import graphic_resources.ChessImages;
 import javax.swing.ImageIcon;
 
@@ -18,12 +15,8 @@ public class Bishop extends Piece {
     }
     
     @Override
-    public boolean canMoveTo(Chess game, Position finPos) {
-        Position initPos = this.getPosition();
-        int Xmovement = Position.xDist(initPos, finPos);
-        int Ymovement = Position.yDist(initPos, finPos);
-        if (!Chess.isBishopLikePath(Xmovement, Ymovement)) return false;
-        return game.isPathClear(initPos.x(), initPos.y(), Xmovement, Ymovement);
+    public boolean canMove(Chess game, Movement move) {
+        return move.init() == getPosition() && move.isDiagonal() && game.isPathClear(move);
     }
 
     @Override

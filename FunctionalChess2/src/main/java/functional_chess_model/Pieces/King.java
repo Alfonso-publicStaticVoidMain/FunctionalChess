@@ -1,9 +1,6 @@
 package functional_chess_model.Pieces;
 
-import functional_chess_model.Chess;
-import functional_chess_model.ChessColor;
-import functional_chess_model.Piece;
-import functional_chess_model.Position;
+import functional_chess_model.*;
 import graphic_resources.ChessImages;
 import javax.swing.ImageIcon;
 
@@ -18,11 +15,8 @@ public class King extends Piece {
     }
     
     @Override
-    public boolean canMoveTo(Chess game, Position finPos) {
-        Position initPos = this.getPosition();
-        int Xmovement = Position.xDist(initPos, finPos);
-        int Ymovement = Position.yDist(initPos, finPos);
-        return !(Math.abs(Xmovement) > 1 || Math.abs(Ymovement) > 1);
+    public boolean canMove(Chess game, Movement move) {
+        return Math.abs(move.dx()) <= 1 && Math.abs(move.dy()) <= 1;
     }
 
     @Override

@@ -52,7 +52,7 @@ public class StandardRules implements RulesEngine {
             if (IntStream.rangeClosed(variant.castlingKingCol(CastlingType.LEFT), variant.kingInitCol())
                 .anyMatch(x -> game.pieces().stream()
                     .anyMatch(p -> p.getColor() != color && (
-                        p.canMoveTo(game, Position.of(x, initRow))
+                        p.canMove(game, Position.of(x, initRow))
                             || (p instanceof Pawn &&
                             Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
                             Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
@@ -71,7 +71,7 @@ public class StandardRules implements RulesEngine {
             if (IntStream.rangeClosed(variant.kingInitCol(), variant.castlingKingCol(CastlingType.RIGHT))
                 .anyMatch(x -> game.pieces().stream()
                     .anyMatch(p -> p.getColor() != color && (
-                        p.canMoveTo(game, Position.of(x, initRow))
+                        p.canMove(game, Position.of(x, initRow))
                             || (p instanceof Pawn &&
                             Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
                             Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
@@ -93,7 +93,7 @@ public class StandardRules implements RulesEngine {
     @Override
     public boolean isPlayerInCheck(Chess game, ChessColor color) {
         return game.findRoyalPiece(color).filter(royalPiece -> game.pieces().stream()
-            .anyMatch(piece -> piece.getColor() != color && piece.canMoveTo(game, royalPiece.getPosition())))
+            .anyMatch(piece -> piece.getColor() != color && piece.canMove(game, royalPiece.getPosition())))
             .isPresent();
     }
 
@@ -124,6 +124,11 @@ public class StandardRules implements RulesEngine {
         return OptionalInt.of(Position.xDist(piece.getPosition(), lastPlay.finPos()));
     }
 
+    @Override
+    public boolean isValidMove(Chess game, Movement move, boolean checkCheck) {
+        return false;
+    }
+
     /**
      * Performs some common legality checks for all pieces.
      * @param game The {@link Chess} game the piece is moving within.
@@ -139,17 +144,12 @@ public class StandardRules implements RulesEngine {
      * <li>The initial position is the same as the final position.</li>
      * </ul>
      */
-    public boolean basicLegalityChecks(Chess game, Piece piece, Position finPos, boolean checkCheck) {
+    public boolean basicLegalityChecks(Chess game, Movement move, boolean checkCheck) {
         return !(
-            piece.getPosition().equals(finPos)
-                || game.checkPieceSameColorAs(finPos, piece.getColor())
-                || (checkCheck && doesThisMovementCauseACheck(game, piece, finPos))
+            move.isNull()
+                || game.checkPieceSameColorAs(move.fin(), piece.getColor())
+                || (checkCheck && doesThisMovementCauseACheck(game, move))
         );
-    }
-
-    @Override
-    public boolean isValidMove(Chess game, Piece piece, Position finPos, boolean checkCheck) {
-        return basicLegalityChecks(game, piece, finPos, checkCheck) && piece.canMoveTo(game, finPos);
     }
 
 }

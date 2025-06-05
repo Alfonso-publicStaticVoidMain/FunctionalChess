@@ -1,9 +1,6 @@
 package functional_chess_model.Pieces;
 
-import functional_chess_model.Chess;
-import functional_chess_model.ChessColor;
-import functional_chess_model.Piece;
-import functional_chess_model.Position;
+import functional_chess_model.*;
 import graphic_resources.ChessImages;
 import java.util.stream.IntStream;
 import javax.swing.ImageIcon;
@@ -19,16 +16,16 @@ public class Nightrider extends Piece {
     }
     
     @Override
-    public boolean canMoveTo(Chess game, Position finPos) {
+    public boolean canMove(Chess game, Movement move) {
         Position initPos = this.getPosition();
-        int Xmovement = Position.xDist(initPos, finPos);
-        int Ymovement = Position.yDist(initPos, finPos);
-        if (Xmovement != 2*Ymovement && Ymovement != 2*Xmovement) return false;
-        int elementalXmov = Xmovement % 2 == 0 ? 2 : 1;
-        int elementalYmov = Ymovement % 2 == 0 ? 2 : 1;
-        int steps = Xmovement / elementalXmov;
+        int dx = move.dx();
+        int dy = move.dy();
+        if (dx != 2*dy && dy != 2*dx) return false;
+        int elementalDx = dx % 2 == 0 ? 2 : 1;
+        int elementalDy = dy % 2 == 0 ? 2 : 1;
+        int steps = dx / elementalDx;
         return IntStream.range(1, steps)
-            .mapToObj(n -> Position.of(initPos.x() + n * elementalXmov, initPos.y()+ n * elementalYmov))
+            .mapToObj(n -> Position.of(initPos.x() + n * elementalDx, initPos.y()+ n * elementalDy))
             .noneMatch(game::checkPieceAt);
     }
 

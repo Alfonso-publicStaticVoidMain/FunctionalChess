@@ -27,7 +27,10 @@ public abstract class Piece implements Serializable {
     public ChessColor getColor() {return color;}
     public boolean isRoyal() {return royal;}
 
-    public abstract boolean canMoveTo(Chess game, Position finPos);
+    public abstract boolean canMove(Chess game, Movement move);
+    public boolean canMove(Chess game, Position finPos) {
+        return canMove(game, Movement.of(position, finPos));
+    }
     public abstract Piece moveTo(Position finPos);
     public abstract ImageIcon toIcon();
     
