@@ -25,4 +25,12 @@ public interface RulesEngine {
 
     boolean isValidMove(Chess game, Position initPos, Position finPos);
 
+    RulesEngine STANDARD_RULES = new StandardRules(GameVariant.STANDARD);
+    RulesEngine ALMOST_CHESS_RULES = new StandardRules(GameVariant.ALMOSTCHESS);
+    RulesEngine CAPABLANCA_RULES = new StandardRules(GameVariant.CAPABLANCA);
+    RulesEngine GOTHIC_RULES = new StandardRules(GameVariant.GOTHIC);
+    RulesEngine JANUS_RULES = new StandardRules(GameVariant.JANUS);
+    RulesEngine MODERN_RULES = new StandardRules(GameVariant.MODERN);
+    RulesEngine TUTTI_FRUTTI_RULES = new StandardRules(GameVariant.TUTTIFRUTTI);
+
 }

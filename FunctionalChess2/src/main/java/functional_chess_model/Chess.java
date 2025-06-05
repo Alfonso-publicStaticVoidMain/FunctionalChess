@@ -57,35 +57,11 @@ public record Chess(
      * @return The state of the game after the movement has been performed, or
      * {@code Optional.empty} if that movement was illegal, or if the initial
      * position contained no piece.
-     * <br><br>
-     * The following checks are performed, in this order:
-     * <ol>
-     * <li>If no piece is found in {@code initPos}, {@code Optional.empty} is
-     * returned. Otherwise, that piece is stored in {@code piece}.</li>
-     * <li>If {@code piece} can't legally move to {@code finPos} (with the
-     * appropriate {@code checkCheck} parameter), {@code Optional.empty} is
-     * returned.</li>
-     * <li>Then a new initPieces list is created and properly updated, taking into
-     * account the possibility of a captured piece and an en passant capture.</li>
-     * <li>Then a new Play list is created and updated.
-     * <li>Then a new castling map is created and properly updated, setting to
-     * false the possibility of castling for the active player if they moved
-     * from the initial position of their king or rook on the appropriate side,
-     * or for the nonactive player if the rook of the appropriate side was
-     * captured in the movement.</li>
-     * <li>Finally, a new {@code Chess} game is created and returned, copying
-     * the lists and map created within the method to ensure immutability, and
-     * passing them to the standard constructor of the class, while also
-     * updating the active player to the opposite one, keeping the same game
-     * configuration, and making the state IN_PROGRESS.</li>
-     * </ol>
      * @see Chess#findPieceAt
      * @see Chess#pieceCapturedByMove
      */
     public Optional<Chess> tryToMove(Position initPos, Position finPos, boolean checkCheck) {
-        Optional<Piece> pieceOrNot = findPieceAt(initPos);
-        if (pieceOrNot.isEmpty()) return Optional.empty();
-        return tryToMove(pieceOrNot.get(), finPos, checkCheck);
+        return findPieceThenApply(initPos, piece -> tryToMove(piece, finPos, checkCheck));
     }
 
     /**

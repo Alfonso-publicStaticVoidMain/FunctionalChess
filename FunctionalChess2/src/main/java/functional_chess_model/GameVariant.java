@@ -2,6 +2,8 @@ package functional_chess_model;
 
 import controller.ChessController;
 import functional_chess_model.Pieces.*;
+import functional_chess_model.rules_engine.RulesEngine;
+import functional_chess_model.rules_engine.StandardRules;
 import view.ChessGUI;
 
 import java.util.ArrayList;
@@ -18,6 +20,8 @@ public enum GameVariant {
     JANUS(8, 10, janusPieces(), true, 5, 3, 4),
     MODERN(9, 9, modernPieces(), true, 5, 2, 2),
     TUTTIFRUTTI(8, 8, tuttiFruttiPieces(), true, 5, 2, 2);
+
+    public static final List<GameVariant> STANDARD_RULES_VARIANTS = List.of(STANDARD, ALMOSTCHESS, CAPABLANCA, GOTHIC, JANUS, MODERN, TUTTIFRUTTI);
 
     private final int rows;
     private final int cols;
@@ -131,6 +135,12 @@ public enum GameVariant {
         );
     }
 
+    public RulesEngine rules() {
+        if (STANDARD_RULES_VARIANTS.contains(this)) {
+            return new StandardRules(this);
+        }
+        throw new IllegalArgumentException("No RulesEngine associated with this variant: "+this);
+    }
 
     public ChessController controller(boolean isTimed) {
         return new ChessController(initGame(isTimed), new ChessGUI(rows, cols, isTimed));
