@@ -43,8 +43,6 @@ public record Chess(
     int blackSeconds
 ) implements Serializable {
 
-    //TODO: Introduce a RulesEngine parameter to the update state functions.
-
     //<editor-fold defaultstate="collapsed" desc="Update state functions">
 
     /**
@@ -199,7 +197,7 @@ public record Chess(
             for (int col = 1; col <= variant.cols(); col++) {
                 for (int row = 1; row <= variant.rows(); row++) {
                     Position pos = Position.of(col, row);
-                    if (piece.canMove(this, pos)) {
+                    if (rules.isValidMove(this, piece, pos, false)) {
                         Chess gameAfterMovement = tryToMoveChain(piece.getPosition(), pos, rules);
                         if (!rules.isPlayerInCheck(gameAfterMovement, color)) return Optional.empty();
                     }
@@ -254,7 +252,6 @@ public record Chess(
         return Chess.Builder.of(this)
             .withSeconds(whiteSeconds, blackSeconds)
             .build();
-        //return new Chess(pieces, castling, playHistory, activePlayer, variant, state, isTimed, whiteSeconds, blackSeconds);
     }
 
     //</editor-fold>

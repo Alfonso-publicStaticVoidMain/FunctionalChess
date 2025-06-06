@@ -8,16 +8,7 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
-public class StandardRules implements RulesEngine {
-
-    private final GameVariant variant;
-
-    public StandardRules(GameVariant variant) {this.variant = variant;}
-
-    @Override
-    public GameVariant variant() {
-        return variant;
-    }
+public record StandardRules(GameVariant variant) implements RulesEngine {
 
     @Override
     public Optional<Piece> pieceCapturedByMove(Chess game, Piece piece, Position finPos) {
@@ -26,7 +17,8 @@ public class StandardRules implements RulesEngine {
 
         if (piece instanceof Pawn) {
             OptionalInt enPassantXDir = getEnPassantXDir(game, piece);
-            if (enPassantXDir.isPresent() && enPassantXDir.getAsInt() == Position.xDist(piece.getPosition(), finPos)) return Optional.of(game.getLastPlay().get().piece());
+            if (enPassantXDir.isPresent() && enPassantXDir.getAsInt() == Position.xDist(piece.getPosition(), finPos))
+                return Optional.of(game.getLastPlay().get().piece());
         }
         return Optional.empty();
     }
@@ -39,44 +31,45 @@ public class StandardRules implements RulesEngine {
     @Override
     public Optional<CastlingType> castlingTypeOfPlay(Chess game, Piece piece, Position finPos) {
         if (!(piece instanceof King)) return Optional.empty();
-        if (!finPos.equals(variant.castlingKingPos(CastlingType.LEFT, piece.getColor())) && !finPos.equals(variant.castlingKingPos(CastlingType.RIGHT, piece.getColor()))) return Optional.empty();
+        if (!finPos.equals(variant.castlingKingPos(CastlingType.LEFT, piece.getColor())) && !finPos.equals(variant.castlingKingPos(CastlingType.RIGHT, piece.getColor())))
+            return Optional.empty();
         ChessColor color = piece.getColor();
         int initRow = variant.initRow(color);
 
         if (game.isCastlingAvailable(color, CastlingType.LEFT) && finPos.equals(variant.castlingKingPos(CastlingType.LEFT, color))) {
             // Checks if there are pieces in the middle of the initial and castling positions
-            if (IntStream.rangeClosed(variant.initRookCol(CastlingType.LEFT)+1, variant.castlingRookCol(CastlingType.LEFT))
-                .anyMatch(x -> game.checkPieceAt(Position.of(x, initRow)))) return Optional.empty();
+            if (IntStream.rangeClosed(variant.initRookCol(CastlingType.LEFT) + 1, variant.castlingRookCol(CastlingType.LEFT))
+                    .anyMatch(x -> game.checkPieceAt(Position.of(x, initRow)))) return Optional.empty();
 
             // Checks if any piece could threaten to capture the King if it were on the middle positions.
             if (IntStream.rangeClosed(variant.castlingKingCol(CastlingType.LEFT), variant.kingInitCol())
-                .anyMatch(x -> game.pieces().stream()
-                    .anyMatch(p -> p.getColor() != color && (
-                        p.canMove(game, Position.of(x, initRow))
-                            || (p instanceof Pawn &&
-                            Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
-                            Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
-                        ))
-                    ))) return Optional.empty();
+                    .anyMatch(x -> game.pieces().stream()
+                            .anyMatch(p -> p.getColor() != color && (
+                                    p.canMove(game, Position.of(x, initRow))
+                                            || (p instanceof Pawn &&
+                                            Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
+                                            Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
+                                    ))
+                            ))) return Optional.empty();
 
             return Optional.of(CastlingType.LEFT);
         }
 
         if (game.isCastlingAvailable(color, CastlingType.RIGHT) && finPos.equals(variant.castlingKingPos(CastlingType.RIGHT, color))) {
             // Checks if there are pieces in the middle of the initial and castling positions
-            if (IntStream.rangeClosed(variant.castlingRookCol(CastlingType.RIGHT), variant.initRookCol(CastlingType.RIGHT)-1)
-                .anyMatch(x -> game.checkPieceAt(Position.of(x, initRow)))) return Optional.empty();
+            if (IntStream.rangeClosed(variant.castlingRookCol(CastlingType.RIGHT), variant.initRookCol(CastlingType.RIGHT) - 1)
+                    .anyMatch(x -> game.checkPieceAt(Position.of(x, initRow)))) return Optional.empty();
 
             // Checks if any piece could threaten to capture the King if it were on the middle positions.
             if (IntStream.rangeClosed(variant.kingInitCol(), variant.castlingKingCol(CastlingType.RIGHT))
-                .anyMatch(x -> game.pieces().stream()
-                    .anyMatch(p -> p.getColor() != color && (
-                        p.canMove(game, Position.of(x, initRow))
-                            || (p instanceof Pawn &&
-                            Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
-                            Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
-                        ))
-                    ))) return Optional.empty();
+                    .anyMatch(x -> game.pieces().stream()
+                            .anyMatch(p -> p.getColor() != color && (
+                                    p.canMove(game, Position.of(x, initRow))
+                                            || (p instanceof Pawn &&
+                                            Math.abs(Position.yDist(p.getPosition(), Position.of(x, initRow))) == 1 &&
+                                            Math.abs(Position.xDist(p.getPosition(), Position.of(x, initRow))) == 1
+                                    ))
+                            ))) return Optional.empty();
 
             return Optional.of(CastlingType.RIGHT);
         }
@@ -131,9 +124,9 @@ public class StandardRules implements RulesEngine {
 
     @Override
     public boolean isValidMove(Chess game, Piece piece, Position finPos, boolean checkCheck) {
-        Movement move = Movement.of(piece.getPosition(), finPos);
+        Position initPos = piece.getPosition();
+        Movement move = Movement.of(initPos, finPos);
         if (!basicLegalityChecks(game, piece, finPos, checkCheck)) return false;
-        Position initPos = move.init();
         if (piece.canMove(game, move)) return true;
         if (piece instanceof Pawn) {
             int dx = move.dx();
@@ -141,22 +134,23 @@ public class StandardRules implements RulesEngine {
             if (dx != 0) {
                 OptionalInt xDirEnPassantOrNot = getEnPassantXDir(game, piece);
                 return xDirEnPassantOrNot.isPresent()
-                    && initPos.y() == game.getLastPlay().get().finPos().y()
-                    && Math.abs(dy) == 1 && dx == xDirEnPassantOrNot.getAsInt();
+                        && initPos.y() == game.getLastPlay().get().finPos().y()
+                        && Math.abs(dy) == 1 && dx == xDirEnPassantOrNot.getAsInt();
             }
-            return !(Math.abs(dy) == 2 && game.checkPieceAt(Position.of(initPos.x(), initPos.y()+piece.getColor().yDirection())))
-                && (Math.abs(dy) <= 1 || piece.getPosition().y() == variant.initRowPawn(piece.getColor()));
+            return !(Math.abs(dy) == 2 && game.checkPieceAt(Position.of(initPos.x(), initPos.y() + piece.getColor().yDirection())))
+                    && (Math.abs(dy) <= 1 || initPos.y() == variant.initRowPawn(piece.getColor()));
         }
         return false;
     }
 
     /**
      * Performs some common legality checks for all pieces.
-     * @param game The {@link Chess} game the piece is moving within.
-     * @param piece {@link Piece} that is moving.
-     * @param finPos {@link Position} the piece is moving to.
+     *
+     * @param game       The {@link Chess} game the piece is moving within.
+     * @param piece      {@link Piece} that is moving.
+     * @param finPos     {@link Position} the piece is moving to.
      * @param checkCheck State parameter to track whether we will declare
-     * a movement illegal if it causes a check.
+     *                   a movement illegal if it causes a check.
      * @return False if either of the following happens:
      * <ul>
      * <li>There is a {@link Piece} of the same color on the final position.</li>
@@ -167,9 +161,9 @@ public class StandardRules implements RulesEngine {
      */
     public boolean basicLegalityChecks(Chess game, Piece piece, Position finPos, boolean checkCheck) {
         return !(
-            piece.getPosition() == finPos
-            || game.checkPieceSameColorAs(finPos, piece.getColor())
-            || (checkCheck && doesThisMovementCauseACheck(game, piece, finPos))
+                piece.getPosition() == finPos
+                        || game.checkPieceSameColorAs(finPos, piece.getColor())
+                        || (checkCheck && doesThisMovementCauseACheck(game, piece, finPos))
         );
     }
 

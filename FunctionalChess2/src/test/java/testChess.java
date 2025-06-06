@@ -1,6 +1,8 @@
 
 import controller.ChessController;
 import functional_chess_model.*;
+
+import java.awt.*;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.SwingUtilities;
@@ -9,6 +11,7 @@ import functional_chess_model.Pieces.Bishop;
 import functional_chess_model.Pieces.Nightrider;
 import functional_chess_model.Pieces.Rook;
 import functional_chess_model.rules_engine.RulesEngine;
+import functional_chess_model.rules_engine.StandardRules;
 import org.junit.jupiter.api.Test;
 import view.ChessGUI;
 
@@ -94,7 +97,7 @@ public class testChess {
             .tryToMoveChain(Position.of(5, 7), Position.of(5, 5), STANDARD_RULES)
             .tryToMoveChain(Position.of(4, 4), Position.of(5, 5), STANDARD_RULES)
             .tryToMoveChain(Position.of(6, 8), Position.of(2, 4), STANDARD_RULES);
-        assertFalse(game.findPieceAt(Position.of(2, 1)).get().canMove(game, Position.of(1, 3)));
+        assertFalse(STANDARD_RULES.isValidMove(game, game.findPieceAt(Position.of(2, 1)).get(), Position.of(1, 3)));
         game = game.tryToMoveChain(Position.of(2, 1), Position.of(1, 3), false, STANDARD_RULES);
         assertTrue(STANDARD_RULES.isPlayerInCheck(game, ChessColor.WHITE));
     }
@@ -124,7 +127,18 @@ public class testChess {
     }
     
     public static void main(String[] args) {
-        Chess game = createTestGameWithPiece(new Nightrider(Position.of(1,1), ChessColor.WHITE));
-        SwingUtilities.invokeLater(() -> new ChessController(game, new ChessGUI(8, 8, false), STANDARD_RULES));
+        //Chess game = createTestGameWithPiece(new Nightrider(Position.of(1,1), ChessColor.WHITE));
+        //SwingUtilities.invokeLater(() -> new ChessController(game, new ChessGUI(8, 8, false), STANDARD_RULES));
+
+        Chess game = STANDARDGAME
+            .tryToMoveChain(Position.of(6, 2), Position.of(6, 3), STANDARD_RULES)
+            .tryToMoveChain(Position.of(5, 7), Position.of(5, 5), STANDARD_RULES)
+            .tryToMoveChain(Position.of(7, 2), Position.of(7, 4), STANDARD_RULES)
+            .tryToMoveChain(Position.of(4, 8), Position.of(8, 4), STANDARD_RULES);
+
+        SwingUtilities.invokeLater(() -> {
+            ChessController cc = new ChessController(game, new ChessGUI(8, 8, false), STANDARD_RULES);
+            cc.getView().highlightPiecesThatCanCaptureKing(game.findPieceAt(Position.of(1, 1)).get(), Position.of(1, 1), Color.RED, -1);
+        });
     }
 }
