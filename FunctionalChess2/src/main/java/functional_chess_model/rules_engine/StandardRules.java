@@ -129,6 +129,11 @@ public class StandardRules implements RulesEngine {
         return false;
     }
 
+    @Override
+    public boolean isValidMove(Chess game, Piece piece, Position finPos, boolean checkCheck) {
+        return false;
+    }
+
     /**
      * Performs some common legality checks for all pieces.
      * @param game The {@link Chess} game the piece is moving within.

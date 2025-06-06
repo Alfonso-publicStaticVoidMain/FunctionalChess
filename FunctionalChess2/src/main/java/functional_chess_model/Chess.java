@@ -47,11 +47,6 @@ public record Chess(
 
     //<editor-fold defaultstate="collapsed" desc="Update state functions">
 
-    public Optional<Chess> tryToMove(Movement move, boolean checkCheck, RulesEngine rules) {
-        if (findPieceAt(move.init()).isEmpty()) return Optional.empty();
-        return Optional.empty();
-    }
-
     /**
      * Attempts to perform a movement and returns the state of the game after it
      * has been performed, or {@code Optional.empty} if it was illegal.
