@@ -131,6 +131,22 @@ public class StandardRules implements RulesEngine {
 
     @Override
     public boolean isValidMove(Chess game, Piece piece, Position finPos, boolean checkCheck) {
+        Movement move = Movement.of(piece.getPosition(), finPos);
+        if (!basicLegalityChecks(game, piece, finPos, checkCheck)) return false;
+        Position initPos = move.init();
+        if (piece.canMove(game, move)) return true;
+        if (piece instanceof Pawn) {
+            int dx = move.dx();
+            int dy = move.dy();
+            if (dx != 0) {
+                OptionalInt xDirEnPassantOrNot = getEnPassantXDir(game, piece);
+                return xDirEnPassantOrNot.isPresent()
+                    && initPos.y() == game.getLastPlay().get().finPos().y()
+                    && Math.abs(dy) == 1 && dx == xDirEnPassantOrNot.getAsInt();
+            }
+            return !(Math.abs(dy) == 2 && game.checkPieceAt(Position.of(initPos.x(), initPos.y()+piece.getColor().yDirection())))
+                && (Math.abs(dy) <= 1 || piece.getPosition().y() == variant.initRowPawn(piece.getColor()));
+        }
         return false;
     }
 
@@ -149,11 +165,11 @@ public class StandardRules implements RulesEngine {
      * <li>The initial position is the same as the final position.</li>
      * </ul>
      */
-    public boolean basicLegalityChecks(Chess game, Movement move, boolean checkCheck) {
+    public boolean basicLegalityChecks(Chess game, Piece piece, Position finPos, boolean checkCheck) {
         return !(
-            move.isNull()
-                || game.checkPieceSameColorAs(move.fin(), piece.getColor())
-                || (checkCheck && doesThisMovementCauseACheck(game, move))
+            piece.getPosition() == finPos
+            || game.checkPieceSameColorAs(finPos, piece.getColor())
+            || (checkCheck && doesThisMovementCauseACheck(game, piece, finPos))
         );
     }
 
