@@ -62,14 +62,14 @@ public record Chess(
      * @return The state of the game after the movement has been performed, or
      * {@code Optional.empty} if that movement was illegal.
      */
-    public Optional<Chess> tryToMove(Piece piece, Position finPos, boolean checkCheck, RulesEngine rules) {
+    public Optional<Chess> tryToMove(Movement move, boolean checkCheck, RulesEngine rules) {
         ChessColor playerMoving = piece.getColor();
         Position initPos = piece.getPosition();
         if (!rules.isValidMove(this, piece, finPos, checkCheck)) return Optional.empty();
 
         // Store the piece after being moved and piece captured if present.
         Piece pieceAfterMoving = piece.moveTo(finPos);
-        Piece pieceCaptured = rules.pieceCapturedByMove(this, piece, finPos).orElse(null);
+        Piece pieceCaptured = rules.pieceCapturedByMove(this, , piece).orElse(null);
         return Optional.of(
             Chess.Builder.of(this)
                 .withPieces(updatedPiecesAfterMove(piece, pieceAfterMoving, pieceCaptured))

@@ -9,19 +9,25 @@ public interface RulesEngine {
 
     GameVariant variant();
 
-    Optional<Piece> pieceCapturedByMove(Chess game, Piece piece, Position finPos);
+    Optional<Piece> pieceCapturedByMove(Chess game, Movement move);
 
-    Optional<Piece> pieceCapturedByMove(Chess game, Position initPos, Position finPos);
+    default Optional<Piece> pieceCapturedByMove(Chess game, Position initPos, Position finPos) {
+        return pieceCapturedByMove(game, Movement.of(initPos, finPos));
+    }
 
-    Optional<CastlingType> castlingTypeOfPlay(Chess game, Piece piece, Position finPos);
+    Optional<CastlingType> castlingTypeOfPlay(Chess game, Movement move);
 
-    Optional<CastlingType> castlingTypeOfPlay(Chess game, Position initPos, Position finPos);
+    default Optional<CastlingType> castlingTypeOfPlay(Chess game, Position initPos, Position finPos) {
+        return castlingTypeOfPlay(game, Movement.of(initPos, finPos));
+    }
 
     boolean isPlayerInCheck(Chess game, ChessColor color);
 
-    boolean doesThisMovementCauseACheck(Chess game, Piece piece, Position finPos);
+    boolean doesThisMovementCauseACheck(Chess game, Movement move);
 
-    boolean doesThisMovementCauseACheck(Chess game, Position initPos, Position finPos);
+    default boolean doesThisMovementCauseACheck(Chess game, Position initPos, Position finPos) {
+        return doesThisMovementCauseACheck(game, Movement.of(initPos, finPos));
+    }
 
     OptionalInt getEnPassantXDir(Chess game, Piece piece);
 
@@ -36,7 +42,7 @@ public interface RulesEngine {
     }
 
     default boolean isValidMove(Chess game, Position initPos, Position finPos) {
-        return isValidMove(game, initPos, finPos, true);
+        return isValidMove(game, Movement.of(initPos, finPos), true);
     }
 
     RulesEngine STANDARD_RULES = new StandardRules(GameVariant.STANDARD);

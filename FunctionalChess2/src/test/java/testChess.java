@@ -54,7 +54,7 @@ public class testChess {
         Chess game = STANDARDGAME
             .tryToMoveChain(Position.of(5, 2), Position.of(5, 4), STANDARD_RULES)
             .tryToMoveChain(Position.of(4, 7), Position.of(4, 5), STANDARD_RULES);
-        assertEquals(Optional.of(game.findPieceAt(Position.of(4, 5)).get()), STANDARD_RULES.pieceCapturedByMove(game, game.findPieceAt(Position.of(5, 4)).get(), Position.of(4, 5)));
+        assertEquals(Optional.of(game.findPieceAt(Position.of(4, 5)).get()), STANDARD_RULES.pieceCapturedByMove(game, , game.findPieceAt(Position.of(5, 4)).get()));
     }
     
     @Test
@@ -64,7 +64,7 @@ public class testChess {
             .tryToMoveChain(Position.of(4, 7), Position.of(4, 5), STANDARD_RULES)
             .tryToMoveChain(Position.of(5, 4), Position.of(4, 5), STANDARD_RULES)
             .tryToMoveChain(Position.of(5, 7), Position.of(5, 5), STANDARD_RULES);
-        assertEquals(game.findPieceAt(Position.of(5, 5)), STANDARD_RULES.pieceCapturedByMove(game, game.findPieceAt(Position.of(4, 5)).get(), Position.of(5, 6)));
+        assertEquals(game.findPieceAt(Position.of(5, 5)), STANDARD_RULES.pieceCapturedByMove(game, , game.findPieceAt(Position.of(4, 5)).get()));
     }
     
     @Test

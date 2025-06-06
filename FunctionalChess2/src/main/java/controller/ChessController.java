@@ -122,7 +122,7 @@ public class ChessController implements ActionListener {
 
     public List<Position> validMovesOf(Piece piece) {
         return positionsThatValidate(pos -> (piece.canMove(game, pos) ||
-            (piece instanceof King && rules.castlingTypeOfPlay(game, piece, pos).isPresent())));
+            (piece instanceof King && rules.castlingTypeOfPlay(game, , piece).isPresent())));
     }
 
     public List<Position> validMovesThatWouldCauseCheckOf(Piece piece) {
@@ -229,7 +229,7 @@ public class ChessController implements ActionListener {
             if (piece instanceof King) {
                 for (CastlingType type : CastlingType.values()) {
                     if (!playDone) {
-                        Optional<CastlingType> castlingTypeOfPlay = rules.castlingTypeOfPlay(game, piece, clickedPos);
+                        Optional<CastlingType> castlingTypeOfPlay = rules.castlingTypeOfPlay(game, , piece);
                         if (castlingTypeOfPlay.isPresent() && type == castlingTypeOfPlay.get()) {
                             Optional<Chess> gameAfterCastling = game.tryToCastle(game.activePlayer(), type, rules);
                             if (gameAfterCastling.isPresent()) {
