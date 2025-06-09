@@ -136,6 +136,23 @@ public class testChess {
             .tryToMoveChain(Position.of(7, 2), Position.of(7, 4), STANDARD_RULES)
             .tryToMoveChain(Position.of(4, 8), Position.of(8, 4), STANDARD_RULES);
 
+        for (Piece piece : game.pieces().stream()
+            .filter(p -> p.getColor() == ChessColor.WHITE)
+            .toList()
+        ) {
+            for (int col = 1; col <= game.variant().cols(); col++) {
+                for (int row = 1; row <= game.variant().rows(); row++) {
+                    Position pos = Position.of(col, row);
+                    if (STANDARD_RULES.isValidMove(game, piece, pos, false)) {
+                        Chess gameAfterMovement = game.tryToMoveChain(piece.getPosition(), pos, STANDARD_RULES);
+                        if (!STANDARD_RULES.isPlayerInCheck(gameAfterMovement, ChessColor.WHITE)) {
+                            System.out.println("Movement: "+piece+" from "+piece.getPosition()+" to "+pos+" saves the King from check");
+                        }
+                    }
+                }
+            }
+        }
+
         SwingUtilities.invokeLater(() -> {
             ChessController cc = new ChessController(game, new ChessGUI(8, 8, false), STANDARD_RULES);
             cc.getView().highlightPiecesThatCanCaptureKing(game.findPieceAt(Position.of(1, 1)).get(), Position.of(1, 1), Color.RED, -1);

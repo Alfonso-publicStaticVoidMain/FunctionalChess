@@ -146,11 +146,11 @@ public record StandardRules(GameVariant variant) implements RulesEngine {
     /**
      * Performs some common legality checks for all pieces.
      *
-     * @param game       The {@link Chess} game the piece is moving within.
-     * @param piece      {@link Piece} that is moving.
-     * @param finPos     {@link Position} the piece is moving to.
+     * @param game The {@link Chess} game the piece is moving within.
+     * @param piece {@link Piece} that is moving.
+     * @param finPos {@link Position} the piece is moving to.
      * @param checkCheck State parameter to track whether we will declare
-     *                   a movement illegal if it causes a check.
+     * a movement illegal if it causes a check.
      * @return False if either of the following happens:
      * <ul>
      * <li>There is a {@link Piece} of the same color on the final position.</li>
@@ -161,9 +161,9 @@ public record StandardRules(GameVariant variant) implements RulesEngine {
      */
     public boolean basicLegalityChecks(Chess game, Piece piece, Position finPos, boolean checkCheck) {
         return !(
-                piece.getPosition() == finPos
-                        || game.checkPieceSameColorAs(finPos, piece.getColor())
-                        || (checkCheck && doesThisMovementCauseACheck(game, piece, finPos))
+            piece.getPosition() == finPos
+                || game.checkPieceSameColorAs(finPos, piece.getColor())
+                || (checkCheck && doesThisMovementCauseACheck(game, piece, finPos))
         );
     }
 
