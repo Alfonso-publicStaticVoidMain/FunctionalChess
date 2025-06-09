@@ -16,7 +16,7 @@ public class Amazon extends Piece {
     
     @Override
     public boolean canMove(Chess game, Movement move) {
-        return move.init() == getPosition()
+        return move.init().equals(getPosition())
             && (move.isKnightLike() || game.isPathClear(move));
     }
 

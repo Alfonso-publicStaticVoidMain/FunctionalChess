@@ -16,7 +16,7 @@ public class Knight extends Piece {
     
     @Override
     public boolean canMove(Chess game, Movement move) {
-        return move.init() == getPosition() && move.isKnightLike();
+        return move.init().equals(getPosition()) && move.isKnightLike();
     }
 
     @Override

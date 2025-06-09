@@ -16,7 +16,7 @@ public class Queen extends Piece {
     
     @Override
     public boolean canMove(Chess game, Movement move) {
-        return move.init() == getPosition() && game.isPathClear(move);
+        return move.init().equals(getPosition()) && game.isPathClear(move);
     }
 
     @Override

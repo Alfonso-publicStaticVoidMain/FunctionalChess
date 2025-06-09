@@ -160,11 +160,9 @@ public record StandardRules(GameVariant variant) implements RulesEngine {
      * </ul>
      */
     public boolean basicLegalityChecks(Chess game, Piece piece, Position finPos, boolean checkCheck) {
-        return !(
-            piece.getPosition() == finPos
-                || game.checkPieceSameColorAs(finPos, piece.getColor())
-                || (checkCheck && doesThisMovementCauseACheck(game, piece, finPos))
-        );
+        return !piece.getPosition().equals(finPos)
+            && !game.checkPieceSameColorAs(finPos, piece.getColor())
+            && !(checkCheck && doesThisMovementCauseACheck(game, piece, finPos));
     }
 
 }

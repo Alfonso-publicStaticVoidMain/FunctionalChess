@@ -17,7 +17,8 @@ public class Nightrider extends Piece {
     
     @Override
     public boolean canMove(Chess game, Movement move) {
-        Position initPos = this.getPosition();
+        Position initPos = getPosition();
+        if (!move.init().equals(getPosition())) return false;
         int dx = move.dx();
         int dy = move.dy();
         if (dx != 2*dy && dy != 2*dx) return false;

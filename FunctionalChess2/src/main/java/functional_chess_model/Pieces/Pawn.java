@@ -16,14 +16,18 @@ public class Pawn extends Piece {
     public Pawn(Position position, ChessColor color) {
         super(position, color);
     }
-    
+
     @Override
     public boolean canMove(Chess game, Movement move) {
-        return move.init() == getPosition()
-            && Math.abs(move.dy()) <= 2
+        return move.init().equals(getPosition())
             && move.isForwardFor(getColor())
-            && !(move.dx() != 0 && move.dy() != getColor().yDirection() && !game.checkPieceAt(move.fin()));
+            && (
+                (move.dx() == 0 && (Math.abs(move.dy()) == 1
+                || (Math.abs(move.dy()) == 2 && getPosition().y() == game.variant().initRowPawn(getColor()))))
+                || (Math.abs(move.dx()) == 1 && Math.abs(move.dy()) == 1 && game.checkPieceAt(move.fin()))
+            );
     }
+
 
     @Override
     public Piece moveTo(Position finPos) {

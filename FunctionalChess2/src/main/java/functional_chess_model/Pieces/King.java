@@ -16,7 +16,7 @@ public class King extends Piece {
     
     @Override
     public boolean canMove(Chess game, Movement move) {
-        return Math.abs(move.dx()) <= 1 && Math.abs(move.dy()) <= 1;
+        return move.init().equals(getPosition()) && Math.abs(move.dx()) <= 1 && Math.abs(move.dy()) <= 1;
     }
 
     @Override

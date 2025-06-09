@@ -16,7 +16,7 @@ public class ArchBishop extends Piece {
     
     @Override
     public boolean canMove(Chess game, Movement move) {
-        return move.init() == getPosition()
+        return move.init().equals(getPosition())
             && (move.isKnightLike() || (move.isDiagonal() && game.isPathClear(move)));
     }
 

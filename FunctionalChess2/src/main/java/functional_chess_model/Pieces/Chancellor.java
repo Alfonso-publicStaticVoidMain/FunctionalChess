@@ -16,8 +16,8 @@ public class Chancellor extends Piece {
     
     @Override
     public boolean canMove(Chess game, Movement move) {
-        return move.init() == getPosition()
-                && (move.isKnightLike() || (move.isStraight() && game.isPathClear(move)));
+        return move.init().equals(getPosition())
+            && (move.isKnightLike() || (move.isStraight() && game.isPathClear(move)));
     }
 
     @Override

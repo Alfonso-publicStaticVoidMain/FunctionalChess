@@ -16,7 +16,7 @@ public class Bishop extends Piece {
     
     @Override
     public boolean canMove(Chess game, Movement move) {
-        return move.init() == getPosition() && move.isDiagonal() && game.isPathClear(move);
+        return move.init().equals(getPosition()) && move.isDiagonal() && game.isPathClear(move);
     }
 
     @Override

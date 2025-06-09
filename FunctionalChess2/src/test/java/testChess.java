@@ -157,5 +157,6 @@ public class testChess {
             ChessController cc = new ChessController(game, new ChessGUI(8, 8, false), STANDARD_RULES);
             cc.getView().highlightPiecesThatCanCaptureKing(game.findPieceAt(Position.of(1, 1)).get(), Position.of(1, 1), Color.RED, -1);
         });
+
     }
 }

@@ -16,7 +16,7 @@ public class Rook extends Piece {
     
     @Override
     public boolean canMove(Chess game, Movement move) {
-        return move.init() == getPosition() && move.isStraight() && game.isPathClear(move);
+        return move.init().equals(getPosition()) && move.isStraight() && game.isPathClear(move);
     }
 
     @Override
