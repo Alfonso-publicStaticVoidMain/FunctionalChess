@@ -109,6 +109,14 @@ public class ChessController implements ActionListener {
      */
     public void consumeBlackSecond() {blackSecondsLeft--;}
 
+    public void consumeSecondOf(ChessColor color) {
+        if (color == ChessColor.WHITE) {
+            whiteSecondsLeft--;
+        } else {
+            blackSecondsLeft--;
+        }
+    }
+
     public List<Position> positionsThatValidate(Predicate<Position> condition) {
         return IntStream.rangeClosed(1, game.variant().rows())
             .boxed()
@@ -157,6 +165,18 @@ public class ChessController implements ActionListener {
     public Timer viewTimer(JLabel whiteTimer, JLabel blackTimer) {
         return new Timer(1000, e -> {
             if (game.state() == GameState.IN_PROGRESS) {
+                ChessColor activePlayer = game.activePlayer();
+                consumeSecondOf(activePlayer);
+                blackTimer.setForeground(activePlayer == ChessColor.WHITE ? Color.BLACK : Color.RED);
+                whiteTimer.setForeground(activePlayer == ChessColor.WHITE ? Color.RED : Color.BLACK);
+                whiteTimer.setText(formatTime(whiteSecondsLeft));
+                blackTimer.setText(formatTime(blackSecondsLeft));
+                if (whiteSecondsLeft == 0 || blackSecondsLeft == 0) {
+                    ((Timer) e.getSource()).stop();
+                    JOptionPane.showMessageDialog(view, whiteSecondsLeft == 0 ? "White ran out of time!" : "Black ran out of time!");
+                    game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.variant(), GameState.playerWins(whiteSecondsLeft == 0 ? ChessColor.BLACK : ChessColor.WHITE), game.isTimed(), game.whiteSeconds(), game.blackSeconds());
+                }
+                /*
                 if (game.activePlayer() == ChessColor.WHITE) {
                     consumeWhiteSecond();
                     blackTimer.setForeground(Color.BLACK);
@@ -177,7 +197,7 @@ public class ChessController implements ActionListener {
                         JOptionPane.showMessageDialog(view, "Black ran out of time!");
                         game = new Chess(game.pieces(), game.castling(), game.playHistory(), game.activePlayer(), game.variant(), GameState.WHITE_WINS, game.isTimed(), game.whiteSeconds(), game.blackSeconds());
                     }
-                }
+                }*/
             }
         });
     }
