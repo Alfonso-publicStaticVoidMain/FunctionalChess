@@ -1,9 +1,13 @@
 package functional_chess_model.rules_engine;
 
 import functional_chess_model.*;
+import functional_chess_model.Pieces.King;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 public interface RulesEngine {
 
@@ -43,6 +47,30 @@ public interface RulesEngine {
 
     default boolean isValidMove(Chess game, Piece piece, Position finPos) {
         return isValidMove(game, piece, finPos, true);
+    }
+
+    default List<Position> validMovesOf(Chess game, Piece piece) {
+        return variant().positionsThatValidate(pos -> isValidMove(game, piece, pos) ||
+            (piece instanceof King && castlingTypeOfPlay(game, piece, pos).isPresent()));
+    }
+
+    default List<Position> validMovesThatWouldCauseCheckOf(Chess game, Piece piece) {
+        return variant().positionsThatValidate(pos -> isValidMove(game, piece, pos, false) && !isValidMove(game, piece, pos, true));
+    }
+
+    default List<Position> piecesThatCanCaptureKing(Chess game, Piece piece, Position finPos) {
+        Chess gameAfterMovement = game.tryToMoveChain(piece, finPos, false, this);
+        ChessColor color = piece.getColor();
+        Optional<Piece> royalPieceOrNot = gameAfterMovement.findRoyalPiece(color);
+        if (royalPieceOrNot.isEmpty()) return List.of();
+
+        return gameAfterMovement.pieces().stream()
+            .filter(p -> // Filter for the initPieces of a different color than active player that can move to capture active player's King.
+                p.getColor() != color &&
+                    p.canMove(gameAfterMovement, royalPieceOrNot.get().getPosition())
+            )
+            .map(Piece::getPosition)
+            .toList();
     }
 
     RulesEngine STANDARD_RULES = new StandardRules(GameVariant.STANDARD);

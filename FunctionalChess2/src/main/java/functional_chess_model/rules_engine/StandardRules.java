@@ -165,4 +165,6 @@ public record StandardRules(GameVariant variant) implements RulesEngine {
             && !(checkCheck && doesThisMovementCauseACheck(game, piece, finPos));
     }
 
+
+
 }

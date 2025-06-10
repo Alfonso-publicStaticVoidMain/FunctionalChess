@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 public enum GameVariant {
@@ -238,6 +239,17 @@ public enum GameVariant {
                 .forEach(pieceType -> mapping.get(pieceType).forEach(x -> pieces.add(pieceType.constructor(Position.of(x, initRow), color))));
         }
         return List.copyOf(pieces);
+    }
+
+    public List<Position> positionsThatValidate(Predicate<Position> condition) {
+        return IntStream.rangeClosed(1, rows)
+            .boxed()
+            .flatMap(row ->
+                IntStream.rangeClosed(1, cols)
+                    .mapToObj(col -> Position.of(col, row))
+            )
+            .filter(condition)
+            .toList();
     }
 
     private static List<Piece> standardPieces() {

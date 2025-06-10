@@ -117,41 +117,6 @@ public class ChessController implements ActionListener {
         }
     }
 
-    public List<Position> positionsThatValidate(Predicate<Position> condition) {
-        return IntStream.rangeClosed(1, game.variant().rows())
-            .boxed()
-            .flatMap(row ->
-                IntStream.rangeClosed(1, game.variant().cols())
-                    .mapToObj(col -> Position.of(col, row))
-            )
-            .filter(condition)
-            .toList();
-    }
-
-    public List<Position> validMovesOf(Piece piece) {
-        return positionsThatValidate(pos -> (piece.canMove(game, pos) ||
-            (piece instanceof King && rules.castlingTypeOfPlay(game, piece, pos).isPresent())));
-    }
-
-    public List<Position> validMovesThatWouldCauseCheckOf(Piece piece) {
-        return positionsThatValidate(pos -> piece.canMove(game, pos) && !piece.canMove(game, pos));
-    }
-
-    public List<Position> piecesThatCanCaptureKing(Piece piece, Position finPos) {
-        Chess gameAfterMovement = game.tryToMoveChain(piece, finPos, false, rules);
-        ChessColor color = piece.getColor();
-        Optional<Piece> royalPieceOrNot = gameAfterMovement.findRoyalPiece(color);
-        if (royalPieceOrNot.isEmpty()) return List.of();
-
-        return gameAfterMovement.pieces().stream()
-            .filter(p -> // Filter for the initPieces of a different color than active player that can move to capture active player's King.
-                p.getColor() != color &&
-                    p.canMove(gameAfterMovement, royalPieceOrNot.get().getPosition())
-                )
-            .map(Piece::getPosition)
-            .toList();
-    }
-
     /**
      * Creates a Timer to track and update the time left for each player.
      * @param whiteTimer JLabel containing the seconds left for the white player.
