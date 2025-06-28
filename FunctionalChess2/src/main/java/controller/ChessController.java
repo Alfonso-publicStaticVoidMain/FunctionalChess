@@ -30,7 +30,7 @@ import javax.swing.Timer;
 /**
  * Class that controls the {@link ChessGUI} view of a given chess game
  * according to its {@link Chess} model game.
- * @author Alfonso Gallego Fernández
+ * @author Alfonso Gallego
  */
 public class ChessController implements ActionListener {
     

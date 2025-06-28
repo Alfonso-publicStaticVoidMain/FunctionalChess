@@ -39,7 +39,6 @@ import javax.swing.table.TableColumnModel;
 /**
  * Class to implement a GUI for chess.
  * @author Alfonso Gallego
- * @version 1.0
  */
 public class ChessGUI extends JFrame {
 
