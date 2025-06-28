@@ -27,9 +27,10 @@ public record Position(int x, int y) implements Serializable {
      * to 9, so it doesn't work for Chess games with boards of that size. In
      * any case, the {@link Position#of(int, int)} method is generally preferred
      * to create new Positions.
+     * @hidden
      */
     @Deprecated
-    public static Position of(String pos) {
+    private static Position of(String pos) {
         try {
             if (pos.length()!=2) throw new IllegalArgumentException("The specified String doesn't have length 2.");
             final int x = convertLetterToNumber(pos.charAt(0));
@@ -64,9 +65,7 @@ public record Position(int x, int y) implements Serializable {
      * @return The x coordinate of the final position minus the x coordinate
      * of the initial position.
      */
-    public static int xDist(Position initPos, Position finPos) {
-        return finPos.x - initPos.x;
-    }
+    public static int xDist(Position initPos, Position finPos) {return finPos.x - initPos.x;}
     
     /**
      * Calculates the signed distance in the Y axis between two positions.
@@ -75,9 +74,7 @@ public record Position(int x, int y) implements Serializable {
      * @return The y coordinate of the final position minus the y coordinate
      * of the initial position.
      */
-    public static int yDist(Position initPos, Position finPos) {
-        return finPos.y - initPos.y;
-    }
+    public static int yDist(Position initPos, Position finPos) {return finPos.y - initPos.y;}
 
     /**
      * Represents the Position using the algebraic chess notation, A1, A2, etc.
@@ -86,9 +83,7 @@ public record Position(int x, int y) implements Serializable {
      * the digits of the y coordinate.
      */
     @Override
-    public String toString() {
-        return "" + convertNumberToLetter(x) + y;
-    }
+    public String toString() {return "" + convertNumberToLetter(x) + y;}
     
     /**
      * Static method to convert a letter to a number.

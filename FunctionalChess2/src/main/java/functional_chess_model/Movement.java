@@ -11,21 +11,13 @@ public record Movement(
         return new Movement(init, fin, Position.xDist(init, fin), Position.yDist(init, fin));
     }
 
-    public int initX() {
-        return this.init.x();
-    }
+    public int initX() {return this.init.x();}
+    public int initY() {return this.init.y();}
 
-    public int initY() {
-        return this.init.y();
-    }
-
-    public boolean isDiagonal() {
-        return Math.abs(dx) == Math.abs(dy);
-    }
-
-    public boolean isStraight() {
-        return dx == 0 || dy == 0;
-    }
+    public boolean isDiagonal() {return Math.abs(dx) == Math.abs(dy);}
+    public boolean isStraight() {return dx == 0 || dy == 0;}
+    public boolean isForwardFor(ChessColor color) {return dy * color.yDirection() > 0;}
+    public boolean isNull() {return dx == 0 && dy == 0 && init.equals(fin);}
 
     public boolean isKnightLike() {
         return Math.abs(dx) + Math.abs(dy) == 3
@@ -33,16 +25,8 @@ public record Movement(
             && Math.abs(dy) <= 2 && Math.abs(dy) >= 1;
     }
 
-    public boolean isForwardFor(ChessColor color) {
-        return dy * color.yDirection() > 0;
-    }
-
     public boolean isDoubleStepForwardFor(ChessColor color, GameVariant variant) {
         return dx == 0 && dy == 2 * color.yDirection() && init.y() == variant.initRow(color);
-    }
-
-    public boolean isNull() {
-        return dx == 0 && dy == 0;
     }
 
 }
