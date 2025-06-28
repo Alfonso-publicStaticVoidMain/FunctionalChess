@@ -28,7 +28,7 @@ public record Play(
 
     /**
      * 4-parameter constructor, setting the {@code pieceCaptured} and
-     * {@code pieceCrowned} attribute to {@code Optional.empty}.
+     * {@code pieceCrowned} attribute to {@code null}.
      * @param piece {@link Piece} moved.
      * @param initPos Initial {@link Position}.
      * @param finPos Final {@link Position}.
@@ -39,7 +39,7 @@ public record Play(
     
     /**
      * 4-parameter constructor, storing a captured Piece and setting 
-     * {@code castlingInfo} and {@code pieceCrowned} to {@code Optional.empty},
+     * {@code castlingInfo} and {@code pieceCrowned} to {@code null},
      * since capturing is incompatible with castling.
      * @param piece {@link Piece} moved.
      * @param initPos Initial {@link Position}.
@@ -52,7 +52,7 @@ public record Play(
     
     /**
      * 5-parameter constructor, storing the Piece the Pawn was crowned into,
-     * and setting castlingInfo to {@code Optional.empty}, since crowning is
+     * and setting castlingInfo to {@code null}, since crowning is
      * incompatible with castling.
      * @param piece {@link Piece} moved (when it was a {@link Pawn}).
      * @param initPos Initial {@link Position}.

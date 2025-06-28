@@ -22,8 +22,7 @@ public enum GameVariant {
     private final int rows;
     private final int cols;
     private final List<Piece> initPieces;
-    private final boolean castlingEnabled;
-    private final int kingInitCol;
+    private final int initKingCol;
     private final int leftCastlingMovement;
     private final int rightCastlingMovement;
     private final String[] crownablePieces;
@@ -32,19 +31,17 @@ public enum GameVariant {
     public int rows() {return rows;}
     public int cols() {return cols;}
     public List<Piece> initPieces() {return initPieces;}
-    public boolean isCastlingEnabled() {return castlingEnabled;}
-    public int kingInitCol() {return kingInitCol;}
+    public int kingInitCol() {return initKingCol;}
     public int leftCastlingMovement() {return leftCastlingMovement;}
     public int rightCastlingMovement() {return rightCastlingMovement;}
     public String[] crownablePieces() {return crownablePieces;}
     public Map<ChessColor, Map<CastlingType, Boolean>> initCastling() {return initCastling;}
 
-    GameVariant(int rows, int cols, List<Piece> initPieces, boolean castlingEnabled, int kingInitCol, int leftCastlingMovement, int rightCastlingMovement) {
+    GameVariant(int rows, int cols, List<Piece> initPieces, boolean castlingEnabled, int initKingCol, int leftCastlingMovement, int rightCastlingMovement) {
         this.rows = rows;
         this.cols = cols;
-        this.initPieces = List.copyOf(initPieces);
-        this.castlingEnabled = castlingEnabled;
-        this.kingInitCol = kingInitCol;
+        this.initPieces = initPieces;
+        this.initKingCol = initKingCol;
         this.leftCastlingMovement = leftCastlingMovement;
         this.rightCastlingMovement = rightCastlingMovement;
         this.crownablePieces = initPieces.stream()
@@ -59,18 +56,21 @@ public enum GameVariant {
         return new ChessController(initGame(isTimed), new ChessGUI(rows, cols, isTimed));
     }
 
+    public ChessController controller(boolean isTimed, boolean isOnline, ChessColor localActivePlayer) {
+        return new ChessController(initGame(isTimed), new ChessGUI(rows, cols, isTimed), isOnline, localActivePlayer);
+    }
+
     public Chess initGame(boolean isTimed, int seconds) {
-        return new Chess(
-            initPieces,
-            initCastling,
-            List.of(),
-            ChessColor.WHITE,
-            this,
-            GameState.NOT_STARTED,
-            isTimed,
-            seconds,
-            seconds
-        );
+        return Chess.Builder.of()
+            .withPieces(initPieces)
+            .withCastling(initCastling)
+            .withPlayHistory(List.of())
+            .withActivePlayer(ChessColor.WHITE)
+            .withVariant(this)
+            .withState(GameState.NOT_STARTED)
+            .withIsTimed(isTimed)
+            .withSeconds(seconds)
+            .build();
     }
 
     public Chess initGame(boolean isTimed) {
@@ -78,7 +78,7 @@ public enum GameVariant {
     }
 
     public Position initKingPos(ChessColor color) {
-        return Position.of(kingInitCol, initRow(color));
+        return Position.of(initKingCol, initRow(color));
     }
 
     public static int initRow(ChessColor color, int rows) {
@@ -110,7 +110,7 @@ public enum GameVariant {
     }
 
     public int castlingKingCol(CastlingType side) {
-        return side == CastlingType.LEFT ? kingInitCol - leftCastlingMovement : kingInitCol + rightCastlingMovement;
+        return side == CastlingType.LEFT ? initKingCol - leftCastlingMovement : initKingCol + rightCastlingMovement;
     }
 
     public Position castlingKingPos(CastlingType side, ChessColor color) {
@@ -118,14 +118,14 @@ public enum GameVariant {
     }
 
     public int castlingRookCol(CastlingType side) {
-        return side == CastlingType.LEFT ? kingInitCol - leftCastlingMovement + 1 : kingInitCol + rightCastlingMovement - 1;
+        return side == CastlingType.LEFT ? initKingCol - leftCastlingMovement + 1 : initKingCol + rightCastlingMovement - 1;
     }
 
     public Position castlingRookPos(CastlingType side, ChessColor color) {
         return Position.of(castlingRookCol(side), initRow(color));
     }
 
-    public static Map<ChessColor, Map<CastlingType, Boolean>> initCastlingWith(boolean value) {
+    private static Map<ChessColor, Map<CastlingType, Boolean>> initCastlingWith(boolean value) {
         Map<ChessColor, Map<CastlingType, Boolean>> initCastling = new EnumMap<>(ChessColor.class);
         for (ChessColor color : ChessColor.values()) {
             Map<CastlingType, Boolean> castlingForColor = new EnumMap<>(CastlingType.class);
@@ -137,14 +137,14 @@ public enum GameVariant {
         return Map.copyOf(initCastling);
     }
 
-    public static List<Piece> standardPieces() {
+    private static List<Piece> standardPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
             int initRowPawn = initRowPawn(color, 8);
             // Add Pawns
             IntStream.rangeClosed(1, 8)
-                    .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             // Add Rooks
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(8, initRow), color));
@@ -159,17 +159,17 @@ public enum GameVariant {
             // Add King
             pieces.add(new King(Position.of(5, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
-    public static List<Piece> almostChessPieces() {
+    private static List<Piece> almostChessPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
             int initRowPawn = initRowPawn(color, 8);
             // Add Pawns
             IntStream.rangeClosed(1, 8)
-                    .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             // Add Rooks
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(8, initRow), color));
@@ -184,15 +184,16 @@ public enum GameVariant {
             // Add King
             pieces.add(new King(Position.of(5, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
-    public static List<Piece> capablancaPieces() {
+    private static List<Piece> capablancaPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
             int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 10).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+            IntStream.rangeClosed(1, 10)
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(10, initRow), color));
             pieces.add(new Knight(Position.of(2, initRow), color));
@@ -204,15 +205,16 @@ public enum GameVariant {
             pieces.add(new Queen(Position.of(5, initRow), color));
             pieces.add(new King(Position.of(6, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
-    public static List<Piece> gothicPieces() {
+    private static List<Piece> gothicPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
             int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 10).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+            IntStream.rangeClosed(1, 10)
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(10, initRow), color));
             pieces.add(new Knight(Position.of(2, initRow), color));
@@ -224,15 +226,16 @@ public enum GameVariant {
             pieces.add(new Queen(Position.of(4, initRow), color));
             pieces.add(new King(Position.of(6, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
-    public static List<Piece> janusPieces() {
+    private static List<Piece> janusPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
             int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 10).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+            IntStream.rangeClosed(1, 10)
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(10, initRow), color));
             pieces.add(new Knight(Position.of(3, initRow), color));
@@ -244,15 +247,16 @@ public enum GameVariant {
             pieces.add(new Queen(Position.of(6, initRow), color));
             pieces.add(new King(Position.of(5, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
-    public static List<Piece> modernPieces() {
+    private static List<Piece> modernPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 9);
             int initRowPawn = initRowPawn(color, 9);
-            IntStream.rangeClosed(1, 9).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+            IntStream.rangeClosed(1, 9)
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Rook(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(9, initRow), color));
             pieces.add(new Knight(Position.of(2, initRow), color));
@@ -263,15 +267,16 @@ public enum GameVariant {
             pieces.add(new Queen(Position.of(4, initRow), color));
             pieces.add(new King(Position.of(5, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
-    public static List<Piece> tuttiFruttiPieces() {
+    private static List<Piece> tuttiFruttiPieces() {
         List<Piece> pieces = new ArrayList<>();
         for (ChessColor color : ChessColor.values()) {
             int initRow = initRow(color, 8);
             int initRowPawn = initRowPawn(color, 8);
-            IntStream.rangeClosed(1, 8).forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
+            IntStream.rangeClosed(1, 8)
+                .forEach(x -> pieces.add(new Pawn(Position.of(x, initRowPawn), color)));
             pieces.add(new Chancellor(Position.of(1, initRow), color));
             pieces.add(new Rook(Position.of(8, initRow), color));
             pieces.add(new Knight(Position.of(2, initRow), color));
@@ -281,7 +286,7 @@ public enum GameVariant {
             pieces.add(new Queen(Position.of(6, initRow), color));
             pieces.add(new King(Position.of(5, initRow), color));
         }
-        return pieces;
+        return List.copyOf(pieces);
     }
 
 }

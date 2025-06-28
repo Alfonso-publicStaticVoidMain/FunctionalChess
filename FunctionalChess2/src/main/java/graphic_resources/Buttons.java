@@ -44,13 +44,5 @@ public class Buttons {
     public static JButton standardButton(String label) {
         return standardButton(label, label);
     }
-
-    public static JButton boardButton() {
-        JButton button = new JButton();
-        button.setOpaque(true);
-        button.setBorderPainted(false);
-        button.setPreferredSize(new Dimension(80, 80));
-        return button;
-    }
     
 }

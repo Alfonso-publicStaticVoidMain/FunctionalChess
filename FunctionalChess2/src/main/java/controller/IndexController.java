@@ -1,14 +1,16 @@
 package controller;
 
-
 import configparams.ConfigParameters;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.SwingUtilities;
 
+import controller.online.NetworkController;
+import functional_chess_model.ChessColor;
 import functional_chess_model.GameVariant;
 import view.Index;
+import view.online.ConnectionLogger;
 
 /**
  *
@@ -17,7 +19,6 @@ import view.Index;
 public class IndexController implements ActionListener {
 
     private final Index view;
-    private boolean isTimed = false;
 
     public IndexController() {
         this.view = new Index();
@@ -28,22 +29,37 @@ public class IndexController implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         System.out.println("[DEBUG] IndexController action received: "+command);
-
-        if (ConfigParameters.variantEnumNames.contains(command)) {
+        if (ConfigParameters.VARIANT_ENUM_NAMES.contains(command)) {
+            GameType gameType = view.gameTypeSelected();
+            ChessController controller = GameVariant.valueOf(command).controller(view.isTimerToggled(), gameType.isOnlineGame(), switch (gameType) {
+                case HOST -> ChessColor.WHITE;
+                case CLIENT -> ChessColor.BLACK;
+                default -> null;
+            });
             SwingUtilities.invokeLater(() -> {
-                    view.dispose();
-                    GameVariant.valueOf(command).controller(isTimed);
-                }
-            );
+                view.dispose();
+                if (gameType == GameType.HOST) new NetworkController(controller, new ConnectionLogger()).startServer();
+                else if (gameType == GameType.CLIENT) new NetworkController(controller, new ConnectionLogger()).startClient();
+            });
+            return;
         }
 
         switch (command) {
             case ConfigParameters.NEW_PIECES_BUTTON -> SwingUtilities.invokeLater(() -> {
-                    view.dispose();
-                    new NewPiecesController();
+                view.dispose();
+                new NewPiecesController();
             });
-            case ConfigParameters.TIMER_TOGGLE -> isTimed = !isTimed;
             case ConfigParameters.EXIT_BUTTON -> SwingUtilities.invokeLater(view::dispose);
         }
-    }    
+    }
+
+    public enum GameType {
+        HOST,
+        CLIENT,
+        LOCAL;
+
+        public boolean isOnlineGame() {
+            return this != LOCAL;
+        }
+    }
 }

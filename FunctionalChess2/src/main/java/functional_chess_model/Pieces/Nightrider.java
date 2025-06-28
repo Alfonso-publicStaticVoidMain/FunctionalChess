@@ -30,7 +30,7 @@ public class Nightrider extends Piece {
         int steps = Xmovement / elementalXmov;
         return IntStream.range(1, steps)
             .mapToObj(n -> Position.of(initPos.x() + n * elementalXmov, initPos.y()+ n * elementalYmov))
-            .allMatch(pos -> !game.checkPieceAt(pos));
+            .noneMatch(game::checkPieceAt);
     }
 
     @Override
